@@ -15,7 +15,6 @@ export const accounts = appSchema.table('accounts', {
     .references(() => currencies.id)
     .notNull(),
   countryId: integer().references(() => countries.id),
-  userId: uuid().references(() => users.id), // account holder
   createAt: timestamp({ withTimezone: true }).defaultNow(),
   updateAt: timestamp({ withTimezone: true }),
 });

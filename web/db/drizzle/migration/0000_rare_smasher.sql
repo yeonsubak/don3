@@ -9,7 +9,6 @@ CREATE TABLE "app"."accounts" (
 	"type" "type",
 	"currency_id" integer NOT NULL,
 	"country_id" integer,
-	"user_id" uuid,
 	"create_at" timestamp with time zone DEFAULT now(),
 	"update_at" timestamp with time zone
 );
@@ -49,5 +48,4 @@ CREATE TABLE "app"."users" (
 --> statement-breakpoint
 ALTER TABLE "app"."accounts" ADD CONSTRAINT "accounts_currency_id_currencies_id_fk" FOREIGN KEY ("currency_id") REFERENCES "config"."currencies"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "app"."accounts" ADD CONSTRAINT "accounts_country_id_countries_id_fk" FOREIGN KEY ("country_id") REFERENCES "config"."countries"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "app"."accounts" ADD CONSTRAINT "accounts_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "app"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "config"."countries" ADD CONSTRAINT "countries_default_currency_id_currencies_id_fk" FOREIGN KEY ("default_currency_id") REFERENCES "config"."currencies"("id") ON DELETE no action ON UPDATE no action;

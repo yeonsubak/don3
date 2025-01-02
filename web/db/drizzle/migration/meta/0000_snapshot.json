@@ -1,5 +1,5 @@
 {
-  "id": "43949806-8452-4d60-959a-d77f7fae5bb8",
+  "id": "2e9dfd73-79af-4933-947a-9f796c890e94",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -50,12 +50,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "user_id": {
-          "name": "user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
         "create_at": {
           "name": "create_at",
           "type": "timestamp with time zone",
@@ -93,20 +87,6 @@
           "schemaTo": "config",
           "columnsFrom": [
             "country_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "accounts_user_id_users_id_fk": {
-          "name": "accounts_user_id_users_id_fk",
-          "tableFrom": "accounts",
-          "tableTo": "users",
-          "schemaTo": "app",
-          "columnsFrom": [
-            "user_id"
           ],
           "columnsTo": [
             "id"
