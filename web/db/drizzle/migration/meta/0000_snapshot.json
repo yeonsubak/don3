@@ -1,9 +1,94 @@
 {
-  "id": "2e9dfd73-79af-4933-947a-9f796c890e94",
+  "id": "b215847a-9859-4c9b-867a-89d3cef2d4d7",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
+    "app.account_groups": {
+      "name": "account_groups",
+      "schema": "app",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "byDefault",
+            "name": "account_groups_id_seq",
+            "schema": "app",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "parent_group_id": {
+          "name": "parent_group_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 1
+        },
+        "type": {
+          "name": "type",
+          "type": "account_group_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sort_order": {
+          "name": "sort_order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "is_hidden": {
+          "name": "is_hidden",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "account_groups_parent_group_id_account_groups_id_fk": {
+          "name": "account_groups_parent_group_id_account_groups_id_fk",
+          "tableFrom": "account_groups",
+          "tableTo": "account_groups",
+          "schemaTo": "app",
+          "columnsFrom": [
+            "parent_group_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set default",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "app.accounts": {
       "name": "accounts",
       "schema": "app",
@@ -33,10 +118,10 @@
         },
         "type": {
           "name": "type",
-          "type": "type",
+          "type": "account_type",
           "typeSchema": "public",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "currency_id": {
           "name": "currency_id",
@@ -47,6 +132,33 @@
         "country_id": {
           "name": "country_id",
           "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "account_group_id": {
+          "name": "account_group_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 1
+        },
+        "sort_order": {
+          "name": "sort_order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "is_archive": {
+          "name": "is_archive",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "icon": {
+          "name": "icon",
+          "type": "varchar(20)",
           "primaryKey": false,
           "notNull": false
         },
@@ -70,28 +182,42 @@
           "name": "accounts_currency_id_currencies_id_fk",
           "tableFrom": "accounts",
           "tableTo": "currencies",
-          "schemaTo": "config",
+          "schemaTo": "app",
           "columnsFrom": [
             "currency_id"
           ],
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "restrict",
           "onUpdate": "no action"
         },
         "accounts_country_id_countries_id_fk": {
           "name": "accounts_country_id_countries_id_fk",
           "tableFrom": "accounts",
           "tableTo": "countries",
-          "schemaTo": "config",
+          "schemaTo": "app",
           "columnsFrom": [
             "country_id"
           ],
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "accounts_account_group_id_account_groups_id_fk": {
+          "name": "accounts_account_group_id_account_groups_id_fk",
+          "tableFrom": "accounts",
+          "tableTo": "account_groups",
+          "schemaTo": "app",
+          "columnsFrom": [
+            "account_group_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set default",
           "onUpdate": "no action"
         }
       },
@@ -101,9 +227,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "config.countries": {
+    "app.countries": {
       "name": "countries",
-      "schema": "config",
+      "schema": "app",
       "columns": {
         "id": {
           "name": "id",
@@ -111,9 +237,9 @@
           "primaryKey": true,
           "notNull": true,
           "identity": {
-            "type": "always",
+            "type": "byDefault",
             "name": "countries_id_seq",
-            "schema": "config",
+            "schema": "app",
             "increment": "1",
             "startWith": "1",
             "minValue": "1",
@@ -134,9 +260,21 @@
           "primaryKey": false,
           "notNull": true
         },
+        "code_alpha2": {
+          "name": "code_alpha2",
+          "type": "varchar(2)",
+          "primaryKey": false,
+          "notNull": true
+        },
         "default_currency_id": {
           "name": "default_currency_id",
           "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "emoji": {
+          "name": "emoji",
+          "type": "varchar(3)",
           "primaryKey": false,
           "notNull": false
         },
@@ -154,23 +292,30 @@
           "notNull": false
         }
       },
-      "indexes": {},
-      "foreignKeys": {
-        "countries_default_currency_id_currencies_id_fk": {
-          "name": "countries_default_currency_id_currencies_id_fk",
-          "tableFrom": "countries",
-          "tableTo": "currencies",
-          "schemaTo": "config",
-          "columnsFrom": [
-            "default_currency_id"
+      "indexes": {
+        "countries_idx_code_id": {
+          "name": "countries_idx_code_id",
+          "columns": [
+            {
+              "expression": "code",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
           ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "countries_code_unique": {
@@ -179,15 +324,22 @@
           "columns": [
             "code"
           ]
+        },
+        "countries_codeAlpha2_unique": {
+          "name": "countries_codeAlpha2_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "code_alpha2"
+          ]
         }
       },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "config.currencies": {
+    "app.currencies": {
       "name": "currencies",
-      "schema": "config",
+      "schema": "app",
       "columns": {
         "id": {
           "name": "id",
@@ -195,9 +347,9 @@
           "primaryKey": true,
           "notNull": true,
           "identity": {
-            "type": "always",
+            "type": "byDefault",
             "name": "currencies_id_seq",
-            "schema": "config",
+            "schema": "app",
             "increment": "1",
             "startWith": "1",
             "minValue": "1",
@@ -208,7 +360,7 @@
         },
         "type": {
           "name": "type",
-          "type": "type",
+          "type": "currency_type",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
@@ -237,6 +389,189 @@
           "primaryKey": false,
           "notNull": true
         },
+        "iso_digits": {
+          "name": "iso_digits",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "create_at": {
+          "name": "create_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "update_at": {
+          "name": "update_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "currencies_idx_code_id": {
+          "name": "currencies_idx_code_id",
+          "columns": [
+            {
+              "expression": "code",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "currencies_unq_code_type": {
+          "name": "currencies_unq_code_type",
+          "columns": [
+            {
+              "expression": "code",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "config.information": {
+      "name": "information",
+      "schema": "config",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "byDefault",
+            "name": "information_id_seq",
+            "schema": "config",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "value": {
+          "name": "value",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "information_idx_name_value": {
+          "name": "information_idx_name_value",
+          "columns": [
+            {
+              "expression": "name",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "value",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "information_unq_name": {
+          "name": "information_unq_name",
+          "nullsNotDistinct": false,
+          "columns": [
+            "name"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "app.journal_entries": {
+      "name": "journal_entries",
+      "schema": "app",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "byDefault",
+            "name": "journal_entries_id_seq",
+            "schema": "app",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "date": {
+          "name": "date",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "create_at": {
           "name": "create_at",
           "type": "timestamp with time zone",
@@ -259,9 +594,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "config.default_currency_lookup": {
-      "name": "default_currency_lookup",
-      "schema": "config",
+    "app.transactions": {
+      "name": "transactions",
+      "schema": "app",
       "columns": {
         "id": {
           "name": "id",
@@ -269,9 +604,9 @@
           "primaryKey": true,
           "notNull": true,
           "identity": {
-            "type": "always",
-            "name": "default_currency_lookup_id_seq",
-            "schema": "config",
+            "type": "byDefault",
+            "name": "transactions_id_seq",
+            "schema": "app",
             "increment": "1",
             "startWith": "1",
             "minValue": "1",
@@ -280,21 +615,95 @@
             "cycle": false
           }
         },
-        "country_code": {
-          "name": "country_code",
-          "type": "varchar(3)",
+        "journal_entry_id": {
+          "name": "journal_entry_id",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
-        "currency_code": {
-          "name": "currency_code",
-          "type": "varchar(3)",
+        "account_id": {
+          "name": "account_id",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true
+        },
+        "currency_id": {
+          "name": "currency_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "amount": {
+          "name": "amount",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "create_at": {
+          "name": "create_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "update_at": {
+          "name": "update_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "transactions_journal_entry_id_journal_entries_id_fk": {
+          "name": "transactions_journal_entry_id_journal_entries_id_fk",
+          "tableFrom": "transactions",
+          "tableTo": "journal_entries",
+          "schemaTo": "app",
+          "columnsFrom": [
+            "journal_entry_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "transactions_account_id_accounts_id_fk": {
+          "name": "transactions_account_id_accounts_id_fk",
+          "tableFrom": "transactions",
+          "tableTo": "accounts",
+          "schemaTo": "app",
+          "columnsFrom": [
+            "account_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "transactions_currency_id_currencies_id_fk": {
+          "name": "transactions_currency_id_currencies_id_fk",
+          "tableFrom": "transactions",
+          "tableTo": "currencies",
+          "schemaTo": "app",
+          "columnsFrom": [
+            "currency_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -336,8 +745,26 @@
     }
   },
   "enums": {
-    "public.type": {
-      "name": "type",
+    "public.account_group_type": {
+      "name": "account_group_type",
+      "schema": "public",
+      "values": [
+        "asset",
+        "liability",
+        "expense",
+        "uncategorized"
+      ]
+    },
+    "public.account_type": {
+      "name": "account_type",
+      "schema": "public",
+      "values": [
+        "debit",
+        "credit"
+      ]
+    },
+    "public.currency_type": {
+      "name": "currency_type",
       "schema": "public",
       "values": [
         "fiat",

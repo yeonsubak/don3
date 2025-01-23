@@ -1,5 +1,9 @@
 {
   "HomePage": {
     "title": "Hello world!"
+  },
+  "countryCode": {
+    "KOR": "South Korea",
+    "POL": "Poland"
   }
 }

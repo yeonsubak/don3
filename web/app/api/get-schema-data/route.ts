@@ -1,10 +1,6 @@
 import { NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
-
-export const extractOrderFromFileName = (fileName: string) => {
-  const match = fileName.match(/(\d[^_.-\D]+)/);
-  return match ? Number(match[0]) : -1;
-};
+import { extractOrderFromFileName } from './functions';
 
 export async function GET() {
   try {
@@ -21,7 +17,7 @@ export async function GET() {
         if (order >= 0) {
           sqlScripts[order] = content;
         }
-      })
+      }),
     );
 
     await Promise.all(fetchSqlScripts);
@@ -30,7 +26,7 @@ export async function GET() {
       .map((order) => sqlScripts[Number(order)])
       .join('\n');
 
-    return NextResponse.json({ content: combinedSql });
+    return NextResponse.json({ sql: combinedSql, version: '0.0.1' });
   } catch (err) {
     console.log(err);
     return NextResponse.json({ error: 'Failed to fetch the sql scripts' }, { status: 500 });

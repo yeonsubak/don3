@@ -1,4 +1,4 @@
-import { extractOrderFromFileName } from '@/app/api/get-sql-dump/route';
+import { extractOrderFromFileName } from '@/app/api/get-schema-data/functions';
 import { describe, expect, test } from 'vitest';
 
 describe('File handling functions', () => {
@@ -16,6 +16,6 @@ describe('File handling functions', () => {
       const result = extractOrderFromFileName(fileName);
       console.log(`Input: ${fileName} | Expected: ${expected} | Got: ${result}`);
       expect(result).toBe(expected);
-    }
+    },
   );
 });
