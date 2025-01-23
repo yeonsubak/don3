@@ -1,6 +1,4 @@
-import type { DefaultCurrencyLookupInsert } from '../drizzle/types';
-
-export const DATASET_DEFAULT_CURRENCY_LOOKUP: DefaultCurrencyLookupInsert[] = [
+export const DATASET_DEFAULT_CURRENCY_LOOKUP: { countryCode: string; currencyCode: string }[] = [
   { countryCode: 'AFG', currencyCode: 'AFN' },
   { countryCode: 'ALB', currencyCode: 'ALL' },
   { countryCode: 'DZA', currencyCode: 'DZD' },

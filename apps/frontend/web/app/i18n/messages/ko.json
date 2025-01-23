@@ -1,5 +1,9 @@
 {
   "HomePage": {
     "title": "세상아 안녕!"
+  },
+  "countryCode": {
+    "KOR": "대한민국",
+    "POL": "폴란드"
   }
 }
