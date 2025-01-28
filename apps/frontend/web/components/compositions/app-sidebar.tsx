@@ -40,7 +40,7 @@ const menuItems = [
 
 export const AppSidebar = () => {
   return (
-    <Sidebar>
+    <Sidebar variant="inset">
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Application</SidebarGroupLabel>

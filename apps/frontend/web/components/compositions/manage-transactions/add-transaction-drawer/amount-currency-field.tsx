@@ -4,7 +4,7 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/comp
 import type { FieldValue, FieldValues, UseFormReturn } from 'react-hook-form';
 import { useTransactionDrawerContext } from './drawer-context';
 
-export type AmountCurrencyFieldProps = {
+type AmountCurrencyFieldProps = {
   currencyFieldName: string;
   amountFieldName: string;
   zForm?: UseFormReturn<FieldValue<FieldValues>>;

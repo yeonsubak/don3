@@ -19,7 +19,7 @@ export const Transaction = () => {
           </Badge>
         </div>
       </div>
-      <p className="text-lg font-semibold">₩ -30,000</p>
+      <p className="text-lg font-medium">₩ -30,000</p>
     </div>
   );
 };

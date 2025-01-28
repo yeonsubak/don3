@@ -10,11 +10,11 @@ export const TransactionFormTab = ({ footer }: { footer: ReactNode }) => {
       <div className="px-2">
         <TabsList className="w-full">
           <div className="grid w-full grid-flow-col">
-            <TabsTrigger value="expense" className="grow">
-              Expense
-            </TabsTrigger>
             <TabsTrigger value="income" className="grow">
               Income
+            </TabsTrigger>
+            <TabsTrigger value="expense" className="grow">
+              Expense
             </TabsTrigger>
             <TabsTrigger value="transfer" className="grow">
               Transfer

@@ -50,6 +50,9 @@ export class ConfigService extends Service {
           id,
           inUseCountryId.map((e) => e.countryId),
         ),
+      with: {
+        defaultCurrency: true,
+      },
     });
   }
 

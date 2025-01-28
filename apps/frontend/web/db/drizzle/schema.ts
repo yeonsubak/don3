@@ -88,9 +88,16 @@ export const accountGroupsRelations = relations(accountGroups, ({ one, many }) =
   }),
 }));
 
+export const journalEntryTypeEnum = pgEnum('journal_entry_type', ['income', 'expense', 'transfer']);
+
 export const journalEntries = appSchema.table('journal_entries', {
   id: integer().primaryKey().generatedByDefaultAsIdentity().notNull(),
   date: timestamp({ withTimezone: true }).notNull(),
+  type: journalEntryTypeEnum().notNull(),
+  currencyId: integer()
+    .notNull()
+    .references(() => currencies.id),
+  amount: numeric({ scale: 4 }).notNull(),
   title: varchar({ length: 255 }),
   description: text(),
   createAt: timestamp({ withTimezone: true }).defaultNow(),
