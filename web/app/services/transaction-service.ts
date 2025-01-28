@@ -1,14 +1,28 @@
 import { parseNumber } from '@/components/common-functions';
-import type { ExpenseTransactionForm } from '@/components/compositions/manage-transactions/add-transaction-drawer/expense-form';
+import type { TransactionForm } from '@/components/compositions/manage-transactions/add-transaction-drawer/form-schema';
 import * as schema from '@/db/drizzle/schema';
-import type { PgTransaction, TransactionInsert } from '@/db/drizzle/types';
+import type { JournalEntryType, PgliteTransaction, TransactionInsert } from '@/db/drizzle/types';
 import type { PgliteDrizzle } from '@/db/pglite-drizzle';
 import { DateTime } from 'luxon';
+import { ConfigService } from './config-service';
 import { Service } from './service-primitive';
 
 export class TransactionService extends Service {
+  private configService: ConfigService;
+
   constructor(drizzle: PgliteDrizzle) {
     super(drizzle);
+    this.configService = new ConfigService(drizzle);
+  }
+
+  public async getIncomeSummary(from: Date, to: Date) {
+    const incomeEntries = await this.getJournalEntries('income', { from, to });
+    return incomeEntries.reduce((acc, cur) => acc + (parseNumber(cur.amount) ?? 0), 0);
+  }
+
+  public async getExpenseSummary(from: Date, to: Date) {
+    const expenseEntries = await this.getJournalEntries('expense', { from, to });
+    return expenseEntries.reduce((acc, cur) => acc + (parseNumber(cur.amount) ?? 0), 0);
   }
 
   public async getJournalEntryById(id: number) {
@@ -20,16 +34,12 @@ export class TransactionService extends Service {
     });
   }
 
-  public async insertExpenseTransaction(form: ExpenseTransactionForm) {
+  public async insertExpenseTransaction(form: TransactionForm) {
     const entryId = await this.drizzle.getDb().transaction(async (tx) => {
+      debugger;
       try {
-        const journalEntry = await this.insertJournalEntry(
-          tx,
-          form.date,
-          form.time,
-          form.title,
-          form.description,
-        );
+        debugger;
+        const journalEntry = await this.insertJournalEntry(tx, form);
 
         if (!journalEntry) {
           throw new Error('Insert to journal Entry failed');
@@ -77,29 +87,42 @@ export class TransactionService extends Service {
     return await this.getJournalEntryById(entryId ?? -1);
   }
 
-  private async insertTransaction(tx: PgTransaction, data: TransactionInsert) {
+  private async insertTransaction(tx: PgliteTransaction, data: TransactionInsert) {
     await tx.insert(schema.transactions).values(data);
   }
 
   private async insertJournalEntry(
-    tx: PgTransaction,
-    date: Date,
-    time: ExpenseTransactionForm['time'],
-    title: string,
-    description: string,
+    tx: PgliteTransaction,
+    { journalEntryType, date, time, title, description, currencyCode, amount }: TransactionForm,
   ) {
     const systemTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const datetime = DateTime.fromJSDate(date, { zone: systemTimezone });
     datetime.set({ hour: time.hour, minute: time.minute, second: 0, millisecond: 0 });
+
+    const currency = await this.configService.getCurrencyByCode(currencyCode);
+
     return (
       await tx
         .insert(schema.journalEntries)
         .values({
+          type: journalEntryType,
           date: datetime.toJSDate(),
           title,
           description,
+          currencyId: currency?.id ?? -1,
+          amount,
         })
         .returning()
     ).at(0);
+  }
+
+  private async getJournalEntries(
+    entryType: JournalEntryType,
+    { from, to }: { from: Date; to: Date },
+  ) {
+    return await this.drizzle.getDb().query.journalEntries.findMany({
+      where: ({ date, type }, { between, and, eq }) =>
+        and(eq(type, entryType), between(date, from, to)),
+    });
   }
 }

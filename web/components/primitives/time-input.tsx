@@ -2,9 +2,11 @@ import { cn } from '@/lib/utils';
 import type { ChangeEvent, Dispatch, SetStateAction } from 'react';
 import { Input } from '../ui/input';
 
+export type Time = { hour: string; minute: string };
+
 type TimeInputProps = {
   format: '12h' | '24h';
-  time: { hour: string; minute: string };
+  time: Time;
   setTime: Dispatch<SetStateAction<{ hour: string; minute: string }>>;
 };
 
@@ -16,7 +18,7 @@ export const TimeInput = ({ format, time, setTime }: TimeInputProps) => {
       const numericValue = parseInt(value, 10);
 
       const constraints = {
-        hour: { max: 24, min: 0 },
+        hour: { max: 23, min: 0 },
         minute: { max: 59, min: 0 },
       };
 

@@ -62,7 +62,7 @@ export const AddTransactionDrawer = () => {
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
-        <Button variant="default" className="px-6 text-lg">
+        <Button variant="default" className="w-full text-lg font-bold" inert={open}>
           Add
         </Button>
       </DrawerTrigger>

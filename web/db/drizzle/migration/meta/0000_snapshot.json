@@ -1,5 +1,5 @@
 {
-  "id": "b215847a-9859-4c9b-867a-89d3cef2d4d7",
+  "id": "c6211a13-1c37-4d40-acd3-6b2a3f662aeb",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -560,6 +560,25 @@
           "primaryKey": false,
           "notNull": true
         },
+        "type": {
+          "name": "type",
+          "type": "journal_entry_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "currency_id": {
+          "name": "currency_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "amount": {
+          "name": "amount",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
         "title": {
           "name": "title",
           "type": "varchar(255)",
@@ -587,7 +606,22 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "journal_entries_currency_id_currencies_id_fk": {
+          "name": "journal_entries_currency_id_currencies_id_fk",
+          "tableFrom": "journal_entries",
+          "tableTo": "currencies",
+          "schemaTo": "app",
+          "columnsFrom": [
+            "currency_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -769,6 +803,15 @@
       "values": [
         "fiat",
         "crypto"
+      ]
+    },
+    "public.journal_entry_type": {
+      "name": "journal_entry_type",
+      "schema": "public",
+      "values": [
+        "income",
+        "expense",
+        "transfer"
       ]
     }
   },

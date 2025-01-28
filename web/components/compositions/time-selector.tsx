@@ -7,7 +7,7 @@ import type {
   FieldValues,
   UseFormReturn,
 } from 'react-hook-form';
-import { TimeInput } from '../primitives/time-input';
+import { TimeInput, type Time } from '../primitives/time-input';
 import { Button } from '../ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 
@@ -17,10 +17,8 @@ export type TimeSelectorProps = {
   zForm: UseFormReturn<FieldValue<FieldValues>>;
 };
 
-type TimeState = { hour: string; minute: string };
-
 export const TimeSelector = ({ field, zForm, placeholder = 'Pick a time' }: TimeSelectorProps) => {
-  const [time, setTime] = useState<TimeState>(
+  const [time, setTime] = useState<Time>(
     field.value ? { hour: field.value.hour, minute: field.value.minute } : { hour: '', minute: '' },
   );
   const [isValueEmpty, setIsValueEmpty] = useState<boolean>(false);

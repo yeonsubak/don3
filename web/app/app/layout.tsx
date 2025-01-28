@@ -23,7 +23,7 @@ export default function AppLayout({ children }: Readonly<{ children: React.React
 function AppContent({ children }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
 
-  const { isPending, isError, error } = useQuery(QUERIES.initializeIndexedDb);
+  const { isPending, isError, error } = useQuery(QUERIES.db.initializeIndexedDb);
 
   if (isPending) {
     return <Skeleton className="h-full w-full" />;
@@ -43,7 +43,7 @@ function AppContent({ children }: Readonly<{ children: React.ReactNode }>) {
             <Separator orientation="vertical" className="mr-2 h-4" />
             <Breadcrumb pathname={pathname} />
           </header>
-          <main className="h-full w-full p-2">{children}</main>
+          <main className="h-full w-full px-6 py-4">{children}</main>
         </SidebarInset>
       </SidebarProvider>
     </GlobalContextProvider>

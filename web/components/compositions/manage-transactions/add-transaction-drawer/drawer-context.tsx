@@ -1,5 +1,6 @@
 'use client';
 
+import { useGlobalContext } from '@/app/app/global-context';
 import type { ComboboxItem } from '@/components/primitives/combobox';
 import { QUERIES } from '@/components/tanstack-queries';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -30,10 +31,10 @@ export const TransactionDrawerContextProvider = ({ children }: { children: React
   const [currencies, setCurrencies] = useState<CurrencySelect[]>([]);
   const [currencyComboItems, setCurrencyComboItems] = useState<ComboboxItem<CurrencySelect>[]>([]);
   const [selectedCurrency, setSelectedCurrency] = useState<CurrencySelect | undefined>();
+  const { defaultCurrency } = useGlobalContext();
 
-  const { isPending, isError, error, data: currencyData } = useQuery(QUERIES.currencies);
-  const { data: defaultCurrency } = useQuery(QUERIES.defaultCurrency);
-  const { data: currenciesInUseData } = useQuery(QUERIES.currenciesInUse);
+  const { isPending, isError, error, data: currencyData } = useQuery(QUERIES.config.currencies);
+  const { data: currenciesInUseData } = useQuery(QUERIES.config.currenciesInUse);
 
   useEffect(() => {
     setCurrencies(currencyData ?? []);
@@ -53,8 +54,8 @@ export const TransactionDrawerContextProvider = ({ children }: { children: React
       };
       return [favorite, ...convert(currencyData ?? [])];
     });
-    setSelectedCurrency(defaultCurrency);
-  }, [currencyData, currenciesInUseData, , defaultCurrency]);
+    // setSelectedCurrency(defaultCurrency);
+  }, [currencyData, currenciesInUseData, defaultCurrency]);
 
   if (isPending) {
     return <Skeleton className="h-full w-full" />;
