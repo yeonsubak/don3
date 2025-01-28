@@ -1,11 +1,14 @@
+'use client';
+
 import type { Version } from '@/app/api/get-latest-version/route';
 import { PGlite } from '@electric-sql/pglite';
+import { live } from '@electric-sql/pglite/live';
+import { PGliteWorker } from '@electric-sql/pglite/worker';
 import { eq } from 'drizzle-orm';
 import { drizzle, type PgliteDatabase } from 'drizzle-orm/pglite';
 import { DATASET_COUNTRY } from './dataset/country';
 import { DATASET_CURRENCY_FIAT } from './dataset/currency';
 import * as schema from './drizzle/schema';
-import { PgliteClient } from './pglite-client';
 
 export type PgliteDrizzleClient = PgliteDatabase<typeof schema> & {
   $client: PGlite;
@@ -24,7 +27,16 @@ export class PgliteDrizzle {
 
   public static async getInstance(): Promise<PgliteDrizzle> {
     if (!PgliteDrizzle.instance) {
-      const pgliteClient = PgliteClient.getInstance()!;
+      const pgliteClient = await PGliteWorker.create(
+        new Worker(new URL('../public/pglite-worker.js', import.meta.url), {
+          type: 'module',
+        }),
+        {
+          extensions: { live },
+        },
+      );
+
+      // @ts-expect-error It's a type problem. //TODO: change the message
       const db: PgliteDrizzleClient = drizzle(pgliteClient, {
         schema,
         casing: 'snake_case',
