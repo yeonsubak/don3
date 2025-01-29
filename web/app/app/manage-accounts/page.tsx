@@ -3,7 +3,7 @@
 import { AccountsService, type GroupAccountsByCountry } from '@/app/services/accounts-service';
 import { AccountGroupTopLevel } from '@/components/compositions/manage-accounts/account-group-top-level';
 import type { accounts } from '@/db/drizzle/schema';
-import { PgliteDrizzle } from '@/db/pglite-drizzle';
+import { _PgliteDrizzle } from '@/db/pglite-drizzle';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { initializeDb } from '../layout';
@@ -29,7 +29,7 @@ export default function ManageAccounts() {
   const { isPending, isError, error } = useQuery({
     queryKey: ['initManageAccounts'],
     queryFn: async () => {
-      const pg = await PgliteDrizzle.getInstance();
+      const pg = await _PgliteDrizzle.getInstance();
       const accountsService = new AccountsService(pg);
       const accountGroupsByCountry = await accountsService.getAcountsByCountry('asset');
       setAccountGroupsByCountry(accountGroupsByCountry);

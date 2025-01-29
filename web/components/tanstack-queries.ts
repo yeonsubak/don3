@@ -2,32 +2,16 @@
 
 import { AccountsService } from '@/app/services/accounts-service';
 import { ConfigService } from '@/app/services/config-service';
-import { DemoService } from '@/app/services/demo-service';
 import { TransactionService } from '@/app/services/transaction-service';
-import { PgliteDrizzle } from '@/db/pglite-drizzle';
+import { PGliteDrizzleWorker } from '@/db/pglite-web-worker';
 import { queryOptions } from '@tanstack/react-query';
 
-const getConfigService = async () => new ConfigService(await PgliteDrizzle.getInstance());
-const getAccountsService = async () => new AccountsService(await PgliteDrizzle.getInstance());
-const getTransactionService = async () => new TransactionService(await PgliteDrizzle.getInstance());
+const getConfigService = async () => new ConfigService(await PGliteDrizzleWorker.create());
+const getAccountsService = async () => new AccountsService(await PGliteDrizzleWorker.create());
+const getTransactionService = async () =>
+  new TransactionService(await PGliteDrizzleWorker.create());
 
 export const QUERIES = {
-  db: {
-    initializeIndexedDb: queryOptions({
-      queryKey: ['initializeIndexedDb'],
-      queryFn: async () => {
-        try {
-          const drizzle = await PgliteDrizzle.getInstance();
-          const demoService = new DemoService(drizzle);
-          await demoService.initializeDemoData();
-          return true;
-        } catch (err) {
-          console.error(err);
-          return false;
-        }
-      },
-    }),
-  },
   config: {
     countriesInUse: queryOptions({
       queryKey: ['countriesInUse'],

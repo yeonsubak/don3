@@ -24,14 +24,13 @@ type GlobalContext = {
 export const GlobalContext = createContext<GlobalContext | null>(null);
 
 export const GlobalContextProvider = ({ children }: { children: ReactNode }) => {
-  const { data: isDbReady } = useQuery(QUERIES.db.initializeIndexedDb);
   const { data: fetchedDefaultCurrency } = useQuery(QUERIES.config.defaultCurrency);
   const {
     isPending,
     isError,
     error,
     data: fetchedCountriesInUse,
-  } = useQuery({ ...QUERIES.config.countriesInUse, enabled: isDbReady });
+  } = useQuery(QUERIES.config.countriesInUse);
 
   const [countriesInUse, setCountriesInUse] = useState<CountrySelectWithRelations[]>([]);
   const [isMultiCountry, setIsMultiCountry] = useState<boolean>(false);

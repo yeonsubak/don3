@@ -1,4 +1,4 @@
-import type { PgliteDrizzle } from '@/db/pglite-drizzle';
+import type { PgliteDrizzle } from '@/db/pglite-web-worker';
 
 export class Service {
   protected drizzle: PgliteDrizzle;

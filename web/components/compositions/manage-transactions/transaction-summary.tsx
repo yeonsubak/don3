@@ -2,7 +2,7 @@ import type { DateRange } from '@/components/common-types';
 import { QUERIES } from '@/components/tanstack-queries';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useQueries, useQuery } from '@tanstack/react-query';
+import { useQueries } from '@tanstack/react-query';
 import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from 'react';
 
 type TransactionSummaryProps = {
@@ -11,13 +11,11 @@ type TransactionSummaryProps = {
 };
 
 export const TransactionSummary = ({ dateRange: { from, to } }: TransactionSummaryProps) => {
-  const { data: initializeIndexedDb } = useQuery(QUERIES.db.initializeIndexedDb);
-
   const { data, isPending, isError, error } = useQueries({
     queries: [
-      { ...QUERIES.transaction.getIncomeSummary(from, to), enabled: initializeIndexedDb },
-      { ...QUERIES.transaction.getExpenseSummary(from, to), enabled: initializeIndexedDb },
-      { ...QUERIES.config.defaultCurrency, enabled: initializeIndexedDb },
+      QUERIES.transaction.getIncomeSummary(from, to),
+      QUERIES.transaction.getExpenseSummary(from, to),
+      QUERIES.config.defaultCurrency,
     ],
     combine: (results) => ({
       data: {

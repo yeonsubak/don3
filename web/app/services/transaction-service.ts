@@ -2,7 +2,7 @@ import { parseNumber } from '@/components/common-functions';
 import type { TransactionForm } from '@/components/compositions/manage-transactions/add-transaction-drawer/form-schema';
 import * as schema from '@/db/drizzle/schema';
 import type { JournalEntryType, PgliteTransaction, TransactionInsert } from '@/db/drizzle/types';
-import type { PgliteDrizzle } from '@/db/pglite-drizzle';
+import type { PgliteDrizzle } from '@/db/pglite-web-worker';
 import { DateTime } from 'luxon';
 import { ConfigService } from './config-service';
 import { Service } from './service-primitive';
@@ -26,7 +26,7 @@ export class TransactionService extends Service {
   }
 
   public async getJournalEntryById(id: number) {
-    return await this.drizzle.getDb().query.journalEntries.findFirst({
+    return await this.drizzle.query.journalEntries.findFirst({
       where: (journalEntries, { eq }) => eq(journalEntries.id, id),
       with: {
         transactions: true,
@@ -35,7 +35,7 @@ export class TransactionService extends Service {
   }
 
   public async insertExpenseTransaction(form: TransactionForm) {
-    const entryId = await this.drizzle.getDb().transaction(async (tx) => {
+    const entryId = await this.drizzle.transaction(async (tx) => {
       debugger;
       try {
         debugger;
@@ -120,7 +120,7 @@ export class TransactionService extends Service {
     entryType: JournalEntryType,
     { from, to }: { from: Date; to: Date },
   ) {
-    return await this.drizzle.getDb().query.journalEntries.findMany({
+    return await this.drizzle.query.journalEntries.findMany({
       where: ({ date, type }, { between, and, eq }) =>
         and(eq(type, entryType), between(date, from, to)),
     });

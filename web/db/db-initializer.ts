@@ -1,61 +1,52 @@
-'use client';
-
 import type { Version } from '@/app/api/get-latest-version/route';
-import { PGlite } from '@electric-sql/pglite';
-import { live } from '@electric-sql/pglite/live';
-import { PGliteWorker } from '@electric-sql/pglite/worker';
+import { DemoService } from '@/app/services/demo-service';
 import { eq } from 'drizzle-orm';
-import { drizzle, type PgliteDatabase } from 'drizzle-orm/pglite';
 import { DATASET_COUNTRY } from './dataset/country';
 import { DATASET_CURRENCY_FIAT } from './dataset/currency';
 import * as schema from './drizzle/schema';
+import { type PgliteDrizzle } from './pglite-web-worker';
+import { drizzle } from 'drizzle-orm/pglite';
+import { PgliteClient } from './pglite-client';
 
-export type PgliteDrizzleClient = PgliteDatabase<typeof schema> & {
-  $client: PGlite;
-};
-
-export class PgliteDrizzle {
-  private static instance: PgliteDrizzle;
+export class DBInitializer {
+  private static instance: DBInitializer;
   public static DEFAULT_CONFIG_KEYS = ['defaultCurrency'];
 
-  private db: PgliteDrizzleClient | undefined;
+  private db: PgliteDrizzle | undefined;
 
-  private isDbReady = false;
-  private getDbPromise: Promise<void> | null = null;
+  private isInitialized = false;
+  private initializationPromise: Promise<void> | null = null;
 
   private constructor() {}
 
-  public static async getInstance(): Promise<PgliteDrizzle> {
-    if (!PgliteDrizzle.instance) {
-      const pgliteClient = await PGliteWorker.create(
-        new Worker(new URL('../public/pglite-worker.js', import.meta.url), {
-          type: 'module',
-        }),
-        {
-          extensions: { live },
-        },
-      );
-
-      // @ts-expect-error It's a type problem. //TODO: change the message
-      const db: PgliteDrizzleClient = drizzle(pgliteClient, {
+  public static async getInstance(): Promise<DBInitializer> {
+    if (!DBInitializer.instance) {
+      DBInitializer.instance = new DBInitializer();
+      const pg = PgliteClient.getInstance();
+      const pgDrizzle = drizzle(pg!, {
         schema,
         casing: 'snake_case',
       });
-
-      PgliteDrizzle.instance = new PgliteDrizzle();
-      PgliteDrizzle.instance.db = db;
+      DBInitializer.instance.db = pgDrizzle;
     }
 
-    await PgliteDrizzle.instance.ensureDbIsReady();
-    return PgliteDrizzle.instance;
+    return DBInitializer.instance;
   }
 
-  public getDb(): PgliteDrizzleClient {
-    if (!this.db || !this.isDbReady) {
-      throw new Error('Database is not ready yet');
+  public async ensureDbReady() {
+    if (this.isInitialized) {
+      return;
     }
 
-    return this.db;
+    if (this.initializationPromise) {
+      console.log('Database is initializing. Please wait...');
+      await this.initializationPromise;
+      return;
+    }
+
+    this.initializationPromise = this.initialize();
+    await this.initializationPromise;
+    this.initializationPromise = null;
   }
 
   private async initialize() {
@@ -74,19 +65,10 @@ export class PgliteDrizzle {
       await this.insertDefaultConfig(missingDefaultConfigKeys);
     }
 
-    this.isDbReady = true;
-  }
+    const demoService = new DemoService(this.db!);
+    await demoService.initializeDemoData();
 
-  private async ensureDbIsReady(): Promise<void> {
-    if (this.isDbReady) {
-      return;
-    }
-
-    if (!this.getDbPromise) {
-      this.getDbPromise = this.initialize();
-    }
-
-    await this.getDbPromise;
+    this.isInitialized = true;
   }
 
   private async getLatestVersion(): Promise<Version> {
@@ -154,10 +136,10 @@ export class PgliteDrizzle {
         .from(schema.information)
     )?.map((e) => e.key);
 
-    return PgliteDrizzle.DEFAULT_CONFIG_KEYS.filter((key) => !storedKeys?.includes(key));
+    return DBInitializer.DEFAULT_CONFIG_KEYS.filter((key) => !storedKeys?.includes(key));
   }
 
-  private async insertDefaultConfig(missingKeys: typeof PgliteDrizzle.DEFAULT_CONFIG_KEYS) {
+  private async insertDefaultConfig(missingKeys: typeof DBInitializer.DEFAULT_CONFIG_KEYS) {
     missingKeys.forEach(async (key) => {
       switch (key) {
         case 'defaultCurrency': {

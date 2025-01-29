@@ -5,7 +5,7 @@ import type {
   AccountGroupType,
   AccountSelectWithRelations,
 } from '@/db/drizzle/types';
-import type { PgliteDrizzle } from '@/db/pglite-drizzle';
+import type { PgliteDrizzle } from '@/db/pglite-web-worker';
 import { eq } from 'drizzle-orm';
 import type { z } from 'zod';
 import { Service } from './service-primitive';
@@ -16,7 +16,7 @@ export class AccountsService extends Service {
   }
 
   public async getAllAccounts() {
-    return await this.drizzle.getDb().query.accounts.findMany({
+    return await this.drizzle.query.accounts.findMany({
       with: {
         currency: true,
         country: true,
@@ -26,10 +26,10 @@ export class AccountsService extends Service {
   }
 
   public async createAccount(data: z.infer<typeof ACCOUNT_FORM_SCHEMA>) {
-    const currency = await this.drizzle.getDb().query.currencies.findFirst({
+    const currency = await this.drizzle.query.currencies.findFirst({
       where: eq(currencies.code, data.currencyCode),
     });
-    const country = await this.drizzle.getDb().query.countries.findFirst({
+    const country = await this.drizzle.query.countries.findFirst({
       where: eq(countries.code, data.countryCode),
     });
 
@@ -49,7 +49,7 @@ export class AccountsService extends Service {
     };
 
     const insertStart = new Date();
-    const result = await this.drizzle.getDb().insert(accounts).values(insertObj).returning();
+    const result = await this.drizzle.insert(accounts).values(insertObj).returning();
     const insertEnd = new Date();
     console.log('insert', insertEnd.getTime() - insertStart.getTime() + 'ms');
 
@@ -87,7 +87,7 @@ export class AccountsService extends Service {
     includeHidden: boolean = false,
     isFlatten: boolean = true,
   ): Promise<AccountGroupSelectWithRelations[]> {
-    return (await this.drizzle.getDb().query.accountGroups.findMany({
+    return (await this.drizzle.query.accountGroups.findMany({
       where: ({ parentGroupId, type, isHidden }, { and, eq, isNull }) =>
         isFlatten
           ? and(eq(isHidden, includeHidden), eq(type, groupType), isNull(parentGroupId))
@@ -105,7 +105,7 @@ export class AccountsService extends Service {
   }
 
   public async getAccountById(id: number) {
-    return await this.drizzle.getDb().query.accounts.findFirst({
+    return await this.drizzle.query.accounts.findFirst({
       where: (accounts, { eq }) => eq(accounts.id, id),
     });
   }

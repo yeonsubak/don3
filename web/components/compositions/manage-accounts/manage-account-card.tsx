@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { accounts } from '@/db/drizzle/schema';
-import { PgliteDrizzle } from '@/db/pglite-drizzle';
+import { _PgliteDrizzle } from '@/db/pglite-drizzle';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 import { useForm } from 'react-hook-form';
@@ -63,7 +63,7 @@ export const ManageAccountCard = ({ accountList, setAccountList }: ManageAccount
 
   useEffect(() => {
     const initializeCombos = async () => {
-      const config = new ConfigService(await PgliteDrizzle.getInstance());
+      const config = new ConfigService(await _PgliteDrizzle.getInstance());
       const currencies = await config.getAllCurrencies();
       setCurrencyCombo((cur) => ({
         ...cur,
@@ -92,7 +92,7 @@ export const ManageAccountCard = ({ accountList, setAccountList }: ManageAccount
   });
 
   const onSubmit = async (values: z.infer<typeof ACCOUNT_FORM_SCHEMA>) => {
-    const service = new AccountsService(await PgliteDrizzle.getInstance());
+    const service = new AccountsService(await _PgliteDrizzle.getInstance());
     const result = (await service.createAccount(values))?.at(0);
     console.log(result);
     if (result) {
