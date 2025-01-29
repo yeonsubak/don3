@@ -23,7 +23,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { accounts } from '@/db/drizzle/schema';
-import { _PgliteDrizzle } from '@/db/pglite-drizzle';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 import { useForm } from 'react-hook-form';
@@ -52,18 +51,16 @@ export const ManageAccountCard = ({ accountList, setAccountList }: ManageAccount
     placeholder: 'Select currency...',
     searchPlaceholder: 'Search currency...',
     notFoundPlaceholder: 'No currency found.',
-    width: 'w-full',
   });
   const [countryCombo, setCountryCombo] = useState<ComboboxProps>({
     placeholder: 'Select country...',
     searchPlaceholder: 'Search country...',
     notFoundPlaceholder: 'No country found.',
-    width: 'w-full',
   });
 
   useEffect(() => {
     const initializeCombos = async () => {
-      const config = new ConfigService(await _PgliteDrizzle.getInstance());
+      const config = await ConfigService.getInstance<ConfigService>();
       const currencies = await config.getAllCurrencies();
       setCurrencyCombo((cur) => ({
         ...cur,
@@ -92,7 +89,7 @@ export const ManageAccountCard = ({ accountList, setAccountList }: ManageAccount
   });
 
   const onSubmit = async (values: z.infer<typeof ACCOUNT_FORM_SCHEMA>) => {
-    const service = new AccountsService(await _PgliteDrizzle.getInstance());
+    const service = await AccountsService.getInstance<AccountsService>();
     const result = (await service.createAccount(values))?.at(0);
     console.log(result);
     if (result) {

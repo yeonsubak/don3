@@ -3,10 +3,8 @@
 import { AccountsService, type GroupAccountsByCountry } from '@/app/services/accounts-service';
 import { AccountGroupTopLevel } from '@/components/compositions/manage-accounts/account-group-top-level';
 import type { accounts } from '@/db/drizzle/schema';
-import { _PgliteDrizzle } from '@/db/pglite-drizzle';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
-import { initializeDb } from '../layout';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 import type { CountrySelect } from '@/db/drizzle/types';
@@ -15,11 +13,6 @@ import { ConfigService } from '@/app/services/config-service';
 export type AccountList = (typeof accounts.$inferSelect)[];
 
 export default function ManageAccounts() {
-  const { data: isDbReady } = useQuery({
-    queryKey: ['isDbReady'],
-    queryFn: initializeDb,
-  });
-
   const [isMultiCountry, setMultiCountry] = useState<boolean>(false);
   const [accountGroupsByCountry, setAccountGroupsByCountry] = useState<GroupAccountsByCountry>({});
   const [countriesInUse, setCountriesInUse] = useState<CountrySelect[]>([]);
@@ -29,19 +22,17 @@ export default function ManageAccounts() {
   const { isPending, isError, error } = useQuery({
     queryKey: ['initManageAccounts'],
     queryFn: async () => {
-      const pg = await _PgliteDrizzle.getInstance();
-      const accountsService = new AccountsService(pg);
+      const accountsService = await AccountsService.getInstance<AccountsService>();
       const accountGroupsByCountry = await accountsService.getAcountsByCountry('asset');
       setAccountGroupsByCountry(accountGroupsByCountry);
       setMultiCountry(Object.keys(accountGroupsByCountry).length > 0);
 
-      const configService = new ConfigService(pg);
+      const configService = await ConfigService.getInstance<ConfigService>();
       setCountriesInUse(
         await configService.getCountriesByCode(Object.keys(accountGroupsByCountry)),
       );
       return true;
     },
-    enabled: isDbReady,
   });
 
   if (isPending) {
