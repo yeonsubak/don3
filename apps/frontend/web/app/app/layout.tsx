@@ -2,11 +2,9 @@
 
 import { AppSidebar } from '@/components/compositions/app-sidebar';
 import { Breadcrumb } from '@/components/compositions/breadcrumb';
-import { QUERIES } from '@/components/tanstack-queries';
 import { Separator } from '@/components/ui/separator';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
-import { Skeleton } from '@/components/ui/skeleton';
-import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { usePathname } from 'next/navigation';
 import { GlobalContextProvider } from './global-context';
 
@@ -22,16 +20,6 @@ export default function AppLayout({ children }: Readonly<{ children: React.React
 
 function AppContent({ children }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
-
-  const { isPending, isError, error } = useQuery(QUERIES.db.initializeIndexedDb);
-
-  if (isPending) {
-    return <Skeleton className="h-full w-full" />;
-  }
-
-  if (isError) {
-    return <p>Error: {error.message}</p>;
-  }
 
   return (
     <GlobalContextProvider>

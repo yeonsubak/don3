@@ -1,5 +1,5 @@
 import { accounts } from '@/db/drizzle/schema';
-import type { PgliteDrizzle } from '@/db/pglite-drizzle';
+import type { PgliteDrizzle } from '@/db/pglite-web-worker';
 import { Service } from './service-primitive';
 
 export class ConfigService extends Service {
@@ -8,17 +8,17 @@ export class ConfigService extends Service {
   }
 
   public async getAllCurrencies() {
-    return await this.drizzle.getDb().query.currencies.findMany();
+    return await this.drizzle.query.currencies.findMany();
   }
 
   public async getCurrencyByCode(code: string) {
-    return await this.drizzle.getDb().query.currencies.findFirst({
+    return await this.drizzle.query.currencies.findFirst({
       where: (currency, { eq }) => eq(currency.code, code),
     });
   }
 
   public async getDefaultCurrency() {
-    const defaultCurrency = await this.drizzle.getDb().query.information.findFirst({
+    const defaultCurrency = await this.drizzle.query.information.findFirst({
       where: (information, { eq }) => eq(information.name, 'defaultCurrency'),
     });
 
@@ -26,25 +26,24 @@ export class ConfigService extends Service {
   }
 
   public async getAllCountries() {
-    return await this.drizzle.getDb().query.countries.findMany();
+    return await this.drizzle.query.countries.findMany();
   }
 
   public async getCountriesByCode(countryCode: string[]) {
-    return await this.drizzle.getDb().query.countries.findMany({
+    return await this.drizzle.query.countries.findMany({
       where: ({ code }, { inArray }) => inArray(code, countryCode),
     });
   }
 
   public async getCountriesInUse() {
     const inUseCountryId = await this.drizzle
-      .getDb()
       .select({
         countryId: accounts.countryId,
       })
       .from(accounts)
       .groupBy(accounts.countryId);
 
-    return await this.drizzle.getDb().query.countries.findMany({
+    return await this.drizzle.query.countries.findMany({
       where: ({ id }, { inArray }) =>
         inArray(
           id,
@@ -58,14 +57,13 @@ export class ConfigService extends Service {
 
   public async getCurrenciesInUse() {
     const inUseCurrencyId = await this.drizzle
-      .getDb()
       .select({
         currencyId: accounts.currencyId,
       })
       .from(accounts)
       .groupBy(accounts.currencyId);
 
-    return await this.drizzle.getDb().query.currencies.findMany({
+    return await this.drizzle.query.currencies.findMany({
       where: ({ id, code }, { inArray, or, eq }) =>
         or(
           inArray(

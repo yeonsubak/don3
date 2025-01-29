@@ -18,7 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import type { AccountSelectWithRelations, CountrySelect } from '@/db/drizzle/types';
-import { PgliteDrizzle } from '@/db/pglite-drizzle';
+import { PGliteDrizzleWorker } from '@/db/pglite-web-worker';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
@@ -60,19 +60,18 @@ export const ExpenseForm = ({ footer }: { footer: ReactNode }) => {
     setSelectedCurrency(currencies.find((currency) => currency.code === currencyCodeWatch));
   }, [currencies, currencyCodeWatch, setSelectedCurrency]);
 
-  const { data: isDbReady } = useQuery(QUERIES.db.initializeIndexedDb);
   const {
     data: assetGroupsByCountry,
     isPending: isPending1,
     isError: isError1,
     error: error1,
-  } = useQuery({ ...QUERIES.accounts.assetGroupsByCountry, enabled: isDbReady });
+  } = useQuery(QUERIES.accounts.assetGroupsByCountry);
   const {
     data: expenseGroupsByCountry,
     isPending: isPending2,
     isError: isError2,
     error: error2,
-  } = useQuery({ ...QUERIES.accounts.expenseGroupsByCountry, enabled: isDbReady });
+  } = useQuery(QUERIES.accounts.expenseGroupsByCountry);
 
   const [paidByAccounts, setPaidByAccounts] = useState<ComboboxItem[]>([]);
   const [categoryAccounts, setCategoryAccounts] = useState<ComboboxItem[]>([]);
@@ -110,7 +109,7 @@ export const ExpenseForm = ({ footer }: { footer: ReactNode }) => {
   }
 
   const onSubmit = async (form: TransactionForm) => {
-    const transactionService = new TransactionService(await PgliteDrizzle.getInstance());
+    const transactionService = new TransactionService(await PGliteDrizzleWorker.create());
     const insertedEntry = await transactionService.insertExpenseTransaction(form);
     console.log('insertedEntry', insertedEntry);
     // TODO: add page update logic
