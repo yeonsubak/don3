@@ -1,3 +1,4 @@
+import { invisibleCharMd } from '@/components/common-functions';
 import type { DateRange } from '@/components/common-types';
 import { QUERIES } from '@/components/tanstack-queries';
 import { Separator } from '@/components/ui/separator';
@@ -37,9 +38,14 @@ export const TransactionSummary = ({ dateRange: { from, to } }: TransactionSumma
   const [income, setIncome] = useState<number>(0);
   const [expense, setExpense] = useState<number>(0);
   const total = useMemo(() => income - expense, [income, expense]);
+  const currencyPadding = useMemo(() => {
+    const max = Math.max(income.toLocaleString().length, expense.toLocaleString().length);
+    const min = Math.min(income.toLocaleString().length, expense.toLocaleString().length);
+    return max - min + 1;
+  }, [income, expense]);
 
   if (isPending) {
-    return <Skeleton className="h-full w-full" />;
+    return <Skeleton className="h- w-full" />;
   }
 
   if (isError) {
@@ -50,7 +56,10 @@ export const TransactionSummary = ({ dateRange: { from, to } }: TransactionSumma
     <div className="flex flex-col gap-1 font-normal">
       <div className="flex flex-row gap-8 text-xl">
         <p className="grow text-left">Income</p>
-        <p className="grow text-right text-blue-800">₩ {income.toLocaleString()}</p>
+        <p className="grow text-right text-blue-800">
+          {data.defaultCurrency?.symbol.padEnd(currencyPadding, invisibleCharMd)}
+          {income.toLocaleString()}
+        </p>
       </div>
       <div className="flex flex-row gap-8 text-xl">
         <p className="grow text-left">Expense</p>
