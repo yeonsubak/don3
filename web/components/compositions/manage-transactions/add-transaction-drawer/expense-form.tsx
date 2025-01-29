@@ -157,6 +157,12 @@ export const ExpenseForm = ({ footer }: { footer: ReactNode }) => {
                   zForm={form}
                   searchable={false}
                   popoverContentAlign="start"
+                  onSelectFn={(currentValue) => {
+                    const currencyCode =
+                      countriesInUse.find((country) => country.code === currentValue)
+                        ?.defaultCurrency?.code ?? 'USD';
+                    form.setValue('currencyCode', currencyCode);
+                  }}
                 />
               </FormControl>
             </FormItem>
