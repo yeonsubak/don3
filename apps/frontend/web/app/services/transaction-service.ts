@@ -1,18 +1,28 @@
+'use client';
+
 import { parseNumber } from '@/components/common-functions';
 import type { TransactionForm } from '@/components/compositions/manage-transactions/add-transaction-drawer/form-schema';
 import * as schema from '@/db/drizzle/schema';
 import type { JournalEntryType, PgliteTransaction, TransactionInsert } from '@/db/drizzle/types';
-import type { PgliteDrizzle } from '@/db/pglite-web-worker';
 import { DateTime } from 'luxon';
+import { Service } from './abstract-service';
 import { ConfigService } from './config-service';
-import { Service } from './service-primitive';
 
 export class TransactionService extends Service {
-  private configService: ConfigService;
+  protected static instance: TransactionService;
+  private configService!: ConfigService;
 
-  constructor(drizzle: PgliteDrizzle) {
-    super(drizzle);
-    this.configService = new ConfigService(drizzle);
+  private constructor() {
+    super();
+  }
+
+  protected static async createInstance(): Promise<TransactionService> {
+    if (!TransactionService.instance) {
+      TransactionService.instance = new TransactionService();
+      TransactionService.instance.configService = await ConfigService.getInstance();
+    }
+
+    return TransactionService.instance;
   }
 
   public async getIncomeSummary(from: Date, to: Date) {
@@ -35,28 +45,23 @@ export class TransactionService extends Service {
   }
 
   public async insertExpenseTransaction(form: TransactionForm) {
+    const currency = await this.configService.getCurrencyByCode(form.currencyCode);
     const entryId = await this.drizzle.transaction(async (tx) => {
-      debugger;
       try {
-        debugger;
-        const journalEntry = await this.insertJournalEntry(tx, form);
+        const amount = parseNumber(form.amount);
 
-        if (!journalEntry) {
-          throw new Error('Insert to journal Entry failed');
+        if (!amount) {
+          throw new Error('Amount field cannot be null');
         }
-
-        const currency = await tx.query.currencies.findFirst({
-          where: (currency, { eq }) => eq(currency.code, form.currencyCode),
-        });
 
         if (!currency) {
           throw new Error('Failed to fetch currency');
         }
 
-        const amount = parseNumber(form.amount);
+        const journalEntry = await this.insertJournalEntry(tx, currency.id, amount, form);
 
-        if (!amount) {
-          throw new Error('Amount field cannot be null');
+        if (!journalEntry) {
+          throw new Error('Insert to journal Entry failed');
         }
 
         const debitTransaction: TransactionInsert = {
@@ -93,14 +98,13 @@ export class TransactionService extends Service {
 
   private async insertJournalEntry(
     tx: PgliteTransaction,
-    { journalEntryType, date, time, title, description, currencyCode, amount }: TransactionForm,
+    currencyId: number,
+    amount: number,
+    { journalEntryType, date, time, title, description }: TransactionForm,
   ) {
     const systemTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const datetime = DateTime.fromJSDate(date, { zone: systemTimezone });
     datetime.set({ hour: time.hour, minute: time.minute, second: 0, millisecond: 0 });
-
-    const currency = await this.configService.getCurrencyByCode(currencyCode);
-
     return (
       await tx
         .insert(schema.journalEntries)
@@ -109,8 +113,8 @@ export class TransactionService extends Service {
           date: datetime.toJSDate(),
           title,
           description,
-          currencyId: currency?.id ?? -1,
-          amount,
+          currencyId,
+          amount: amount.toString(),
         })
         .returning()
     ).at(0);

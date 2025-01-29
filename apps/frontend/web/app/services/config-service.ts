@@ -1,10 +1,21 @@
+'use client';
+
 import { accounts } from '@/db/drizzle/schema';
-import type { PgliteDrizzle } from '@/db/pglite-web-worker';
-import { Service } from './service-primitive';
+import { Service } from './abstract-service';
 
 export class ConfigService extends Service {
-  constructor(drizzle: PgliteDrizzle) {
-    super(drizzle);
+  protected static instance: ConfigService;
+
+  private constructor() {
+    super();
+  }
+
+  protected static async createInstance(): Promise<ConfigService> {
+    if (!ConfigService.instance) {
+      ConfigService.instance = new ConfigService();
+    }
+
+    return ConfigService.instance;
   }
 
   public async getAllCurrencies() {

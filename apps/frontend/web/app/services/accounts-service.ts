@@ -1,3 +1,5 @@
+'use client';
+
 import type { ACCOUNT_FORM_SCHEMA } from '@/components/compositions/manage-accounts/manage-account-card';
 import { accounts, countries, currencies } from '@/db/drizzle/schema';
 import type {
@@ -5,14 +7,23 @@ import type {
   AccountGroupType,
   AccountSelectWithRelations,
 } from '@/db/drizzle/types';
-import type { PgliteDrizzle } from '@/db/pglite-web-worker';
 import { eq } from 'drizzle-orm';
 import type { z } from 'zod';
-import { Service } from './service-primitive';
+import { Service } from './abstract-service';
 
 export class AccountsService extends Service {
-  constructor(drizzle: PgliteDrizzle) {
-    super(drizzle);
+  protected static instance: AccountsService;
+
+  private constructor() {
+    super();
+  }
+
+  protected static async createInstance(): Promise<AccountsService> {
+    if (!AccountsService.instance) {
+      AccountsService.instance = new AccountsService();
+    }
+
+    return AccountsService.instance;
   }
 
   public async getAllAccounts() {

@@ -41,7 +41,6 @@ export class DBInitializer {
     }
 
     if (this.initializationPromise) {
-      console.log('initializing... please wait');
       await this.initializationPromise;
       return;
     }
@@ -49,7 +48,6 @@ export class DBInitializer {
     this.initializationPromise = this.initialize();
     await this.initializationPromise;
     this.initializationPromise = null;
-    console.log('initialization completed.');
   }
 
   private async initialize() {

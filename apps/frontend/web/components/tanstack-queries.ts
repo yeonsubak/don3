@@ -3,13 +3,12 @@
 import { AccountsService } from '@/app/services/accounts-service';
 import { ConfigService } from '@/app/services/config-service';
 import { TransactionService } from '@/app/services/transaction-service';
-import { PGliteDrizzleWorker } from '@/db/pglite-web-worker';
 import { queryOptions } from '@tanstack/react-query';
 
-const getConfigService = async () => new ConfigService(await PGliteDrizzleWorker.create());
-const getAccountsService = async () => new AccountsService(await PGliteDrizzleWorker.create());
+const getConfigService = async () => await ConfigService.getInstance<ConfigService>();
+const getAccountsService = async () => await AccountsService.getInstance<AccountsService>();
 const getTransactionService = async () =>
-  new TransactionService(await PGliteDrizzleWorker.create());
+  await TransactionService.getInstance<TransactionService>();
 
 export const QUERIES = {
   config: {

@@ -18,7 +18,6 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import type { AccountSelectWithRelations, CountrySelect } from '@/db/drizzle/types';
-import { PGliteDrizzleWorker } from '@/db/pglite-web-worker';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
@@ -109,7 +108,7 @@ export const ExpenseForm = ({ footer }: { footer: ReactNode }) => {
   }
 
   const onSubmit = async (form: TransactionForm) => {
-    const transactionService = new TransactionService(await PGliteDrizzleWorker.create());
+    const transactionService = await TransactionService.getInstance<TransactionService>();
     const insertedEntry = await transactionService.insertExpenseTransaction(form);
     console.log('insertedEntry', insertedEntry);
     // TODO: add page update logic
