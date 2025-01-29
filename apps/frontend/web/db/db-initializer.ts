@@ -1,18 +1,20 @@
 import type { Version } from '@/app/api/get-latest-version/route';
-import { DemoService } from '@/app/services/demo-service';
-import { eq } from 'drizzle-orm';
+import { count, eq, type InferInsertModel, type TableConfig } from 'drizzle-orm';
+import type { PgTable } from 'drizzle-orm/pg-core';
+import { drizzle } from 'drizzle-orm/pglite';
+import { DATASET_ACCOUNT_GROUPS } from './dataset/account-groups';
+import { DATASET_ASSET_ACCOUNTS, DATASET_EXPENSE_ACCOUNTS } from './dataset/accounts';
 import { DATASET_COUNTRY } from './dataset/country';
 import { DATASET_CURRENCY_FIAT } from './dataset/currency';
 import * as schema from './drizzle/schema';
-import { type PgliteDrizzle } from './pglite-web-worker';
-import { drizzle } from 'drizzle-orm/pglite';
 import { PgliteClient } from './pglite-client';
+import { type PgliteDrizzle } from './pglite-web-worker';
 
 export class DBInitializer {
   private static instance: DBInitializer;
   public static DEFAULT_CONFIG_KEYS = ['defaultCurrency'];
 
-  private db: PgliteDrizzle | undefined;
+  private db!: PgliteDrizzle;
 
   private isInitialized = false;
   private initializationPromise: Promise<void> | null = null;
@@ -39,7 +41,7 @@ export class DBInitializer {
     }
 
     if (this.initializationPromise) {
-      console.log('Database is initializing. Please wait...');
+      console.log('initializing... please wait');
       await this.initializationPromise;
       return;
     }
@@ -47,6 +49,7 @@ export class DBInitializer {
     this.initializationPromise = this.initialize();
     await this.initializationPromise;
     this.initializationPromise = null;
+    console.log('initialization completed.');
   }
 
   private async initialize() {
@@ -65,8 +68,9 @@ export class DBInitializer {
       await this.insertDefaultConfig(missingDefaultConfigKeys);
     }
 
-    const demoService = new DemoService(this.db!);
-    await demoService.initializeDemoData();
+    if (!(await this.hasAccountGroups())) {
+      await this.insertPresetData();
+    }
 
     this.isInitialized = true;
   }
@@ -155,5 +159,25 @@ export class DBInitializer {
         }
       }
     });
+  }
+
+  // TODO: Change dataset to more generic data
+  private async insertPresetData() {
+    type DatasetInsert = InferInsertModel<typeof schema.accountGroups | typeof schema.accounts>;
+
+    const insertDataset = async (dataset: DatasetInsert[], table: PgTable<TableConfig>) => {
+      await this.db.insert(table).values(dataset).onConflictDoNothing();
+    };
+
+    await Promise.all([
+      insertDataset(DATASET_ACCOUNT_GROUPS, schema.accountGroups),
+      insertDataset(DATASET_ASSET_ACCOUNTS, schema.accounts),
+      insertDataset(DATASET_EXPENSE_ACCOUNTS, schema.accounts),
+    ]);
+  }
+
+  private async hasAccountGroups() {
+    const cnt = (await this.db.select({ count: count() }).from(schema.accountGroups)).at(0)?.count;
+    return (cnt ?? 0) > 0;
   }
 }
