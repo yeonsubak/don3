@@ -54,7 +54,7 @@ export const AmountCurrencyField = ({
               <FormControl>
                 <MoneyInput
                   currency={selectedCurrency!}
-                  placeholder={`0${(selectedCurrency?.isoDigits ?? 0 > 0) ? '.'.padEnd(selectedCurrency?.isoDigits ?? 0, '0') : ''}`}
+                  placeholder={`0${(selectedCurrency?.isoDigits ?? 0 > 0) ? '.'.padEnd((selectedCurrency?.isoDigits ?? 0) + 1, '0') : ''}`}
                   field={field}
                   zForm={zForm}
                 />
