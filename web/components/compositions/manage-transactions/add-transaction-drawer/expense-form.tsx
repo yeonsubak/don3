@@ -98,7 +98,7 @@ export const ExpenseForm = ({ footer }: { footer: ReactNode }) => {
   }, [countryCodeWatch, assetGroupsByCountry, , expenseGroupsByCountry]);
 
   if (isPending1 || isPending2) {
-    return <Skeleton className="h-full w-full" />;
+    return <Skeleton className="min-h-[600px] w-lvh" />;
   }
 
   if (isError1 || isError2) {

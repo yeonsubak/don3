@@ -30,3 +30,5 @@ export const getFirstLastDayInMonth = (_date: Date) => {
     lastDate: date.endOf('month').toJSDate(),
   };
 };
+
+export const invisibleCharMd = 'ㅤ';
