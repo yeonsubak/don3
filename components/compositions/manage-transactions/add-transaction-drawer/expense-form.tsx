@@ -15,11 +15,11 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import type { AccountSelectWithRelations, CountrySelect } from '@/db/drizzle/types';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useQuery } from '@tanstack/react-query';
+import { useQueries } from '@tanstack/react-query';
+import { DateTime } from 'luxon';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState, type ReactNode } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
@@ -34,15 +34,12 @@ export const ExpenseForm = ({ footer }: { footer: ReactNode }) => {
   const { countriesInUse } = useGlobalContext();
   const { setOpen, setSelectedCurrency, currencies } = useTransactionDrawerContext();
 
-  const curDate = new Date();
-  const curHour = curDate.getHours();
-  const curMinute = curDate.getMinutes();
-
+  const curDate = DateTime.now();
   const form = useForm<TransactionForm>({
     resolver: zodResolver(transactionForm),
     defaultValues: {
-      date: curDate,
-      time: { hour: curHour, minute: curMinute },
+      date: curDate.toJSDate(),
+      time: { hour: curDate.get('hour'), minute: curDate.get('minute') },
       journalEntryType: 'expense',
       currencyCode: countriesInUse?.at(0)?.defaultCurrency?.code ?? 'USD',
       amount: '',
@@ -54,29 +51,27 @@ export const ExpenseForm = ({ footer }: { footer: ReactNode }) => {
     },
   });
 
-  const currencyCodeWatch = useWatch({ control: form.control, name: 'currencyCode' });
-  useEffect(() => {
-    setSelectedCurrency(currencies.find((currency) => currency.code === currencyCodeWatch));
-  }, [currencies, currencyCodeWatch, setSelectedCurrency]);
-
   const {
-    data: assetGroupsByCountry,
-    isPending: isPending1,
-    isError: isError1,
-    error: error1,
-  } = useQuery(QUERIES.accounts.assetGroupsByCountry);
-  const {
-    data: expenseGroupsByCountry,
-    isPending: isPending2,
-    isError: isError2,
-    error: error2,
-  } = useQuery(QUERIES.accounts.expenseGroupsByCountry);
+    data: { assetGroupsByCountry, expenseGroupsByCountry },
+    isError,
+    error,
+  } = useQueries({
+    queries: [QUERIES.accounts.assetGroupsByCountry, QUERIES.accounts.expenseGroupsByCountry],
+    combine: (results) => ({
+      data: {
+        assetGroupsByCountry: results[0].data,
+        expenseGroupsByCountry: results[1].data,
+      },
+      isPending: results.some((result) => result.isPending),
+      isError: results.some((result) => result.isError),
+      error: results.map((result) => result.error),
+    }),
+  });
 
+  const [countryItems, setCountryItems] = useState<ComboboxItem<CountrySelect>[]>([]);
   const [paidByAccounts, setPaidByAccounts] = useState<ComboboxItem[]>([]);
   const [categoryAccounts, setCategoryAccounts] = useState<ComboboxItem[]>([]);
   const tCountry = useTranslations('countryCode');
-
-  const [countryItems, setCountryItems] = useState<ComboboxItem<CountrySelect>[]>([]);
 
   useEffect(() => {
     setCountryItems(
@@ -88,6 +83,11 @@ export const ExpenseForm = ({ footer }: { footer: ReactNode }) => {
     );
   }, [countriesInUse, tCountry]);
 
+  const currencyCodeWatch = useWatch({ control: form.control, name: 'currencyCode' });
+  useEffect(() => {
+    setSelectedCurrency(currencies.find((currency) => currency.code === currencyCodeWatch));
+  }, [currencies, currencyCodeWatch, setSelectedCurrency]);
+
   const countryCodeWatch = useWatch({ control: form.control, name: 'countryCode' });
   useEffect(() => {
     if (assetGroupsByCountry)
@@ -97,14 +97,8 @@ export const ExpenseForm = ({ footer }: { footer: ReactNode }) => {
     // TODO: Add liability accounts
   }, [countryCodeWatch, assetGroupsByCountry, , expenseGroupsByCountry]);
 
-  if (isPending1 || isPending2) {
-    return <Skeleton className="min-h-[600px] w-lvh" />;
-  }
-
-  if (isError1 || isError2) {
-    return [error1, error2].map((error) =>
-      error ? <p key={error.name}>Error: {error.message}</p> : <></>,
-    );
+  if (isError) {
+    return error.map((e) => <p key={e?.name}>Error: ${e?.message}</p>);
   }
 
   const onSubmit = async (form: TransactionForm) => {
