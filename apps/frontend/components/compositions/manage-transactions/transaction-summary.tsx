@@ -1,8 +1,8 @@
 import { invisibleCharMd } from '@/components/common-functions';
 import type { DateRange } from '@/components/common-types';
+import { SkeletonSimple } from '@/components/primitives/skeleton-simple';
 import { QUERIES } from '@/components/tanstack-queries';
 import { Separator } from '@/components/ui/separator';
-import { Skeleton } from '@/components/ui/skeleton';
 import { useQueries } from '@tanstack/react-query';
 import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from 'react';
 
@@ -45,7 +45,7 @@ export const TransactionSummary = ({ dateRange: { from, to } }: TransactionSumma
   }, [income, expense]);
 
   if (isPending) {
-    return <Skeleton className="h- w-full" />;
+    return <SkeletonSimple heightInPx={97} />;
   }
 
   if (isError) {
