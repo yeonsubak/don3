@@ -1,7 +1,19 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { Bank, Gift, Money, PiggyBank } from '@phosphor-icons/react';
+import {
+  Bank,
+  Bus,
+  Carrot,
+  Gift,
+  HighHeel,
+  HouseLine,
+  Money,
+  PhonePlus,
+  PiggyBank,
+  Umbrella,
+} from '@phosphor-icons/react';
+import { CalendarSync } from 'lucide-react';
 
 type AccountIconProps = {
   iconValue: string | null;
@@ -30,11 +42,32 @@ export const AccountIcon = ({ iconValue }: AccountIconProps) => {
     case 'bank': {
       return <Bank weight="regular" color={colors.indigo} className={IconCn} />;
     }
+    case 'bus': {
+      return <Bus weight="fill" color={colors.lightCoral} className={IconCn} />;
+    }
+    case 'calendar-sync': {
+      return <CalendarSync color={colors.lightCoral} className={IconCn} />;
+    }
+    case 'carrot': {
+      return <Carrot weight="fill" color={colors.lightCoral} className={IconCn} />;
+    }
     case 'gift': {
       return <Gift weight="fill" color={colors.hotPink} className={IconCn} />;
     }
+    case 'high-heel': {
+      return <HighHeel weight="fill" color={colors.lightCoral} className={IconCn} />;
+    }
+    case 'house-line': {
+      return <HouseLine weight="fill" color={colors.lightCoral} className={IconCn} />;
+    }
+    case 'phone-plus': {
+      return <PhonePlus weight="fill" color={colors.lightCoral} className={IconCn} />;
+    }
     case 'piggy-bank': {
       return <PiggyBank weight="regular" color={colors.indigo} className={IconCn} />;
+    }
+    case 'umbrella': {
+      return <Umbrella weight="fill" color={colors.lightCoral} className={IconCn} />;
     }
     default: {
       return <Money weight="regular" color={colors.indigo} className={IconCn} />;
