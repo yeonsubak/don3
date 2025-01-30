@@ -6,9 +6,9 @@
       "type": "node-terminal",
       "request": "launch",
       "command": "npm run dev",
-      "cwd": "${workspaceFolder}/web",
+      "cwd": "${workspaceFolder}",
       "enableContentValidation": false,
-      "skipFiles": ["<node_internals>/**", "${workspaceFolder}/web/.next/**"],
+      "skipFiles": ["<node_internals>/**", "${workspaceFolder}/.next/**"],
       "sourceMaps": true,
       "sourceMapPathOverrides": {
         "/turbopack/[project]/*": "${cwd}/*"
@@ -19,9 +19,9 @@
       "type": "chrome",
       "request": "launch",
       "url": "http://localhost:3000",
-      "cwd": "${workspaceFolder}/web",
+      "cwd": "${workspaceFolder}",
       "enableContentValidation": false,
-      "skipFiles": ["<node_internals>/**", "${workspaceFolder}/web/.next/**"],
+      "skipFiles": ["<node_internals>/**", "${workspaceFolder}/.next/**"],
       "sourceMaps": true,
       "sourceMapPathOverrides": {
         "/turbopack/[project]/*": "${cwd}/*"
@@ -31,21 +31,21 @@
       "name": "Next.js: debug full stack",
       "type": "node",
       "request": "launch",
-      "cwd": "${workspaceFolder}/web",
-      "program": "${workspaceFolder}/web/node_modules/next/dist/bin/next",
+      "cwd": "${workspaceFolder}",
+      "program": "${workspaceFolder}/node_modules/next/dist/bin/next",
       "args": ["dev"],
       "enableContentValidation": false,
-      "skipFiles": ["<node_internals>/**", "${workspaceFolder}/web/.next/**"],
+      "skipFiles": ["<node_internals>/**", "${workspaceFolder}/.next/**"],
       "sourceMaps": true,
       "sourceMapPathOverrides": {
-        "/turbopack/[project]/*": "${cwd}/*"
+        "/turbopack/[project]/*": "${workspaceFolder}/*"
       },
       "serverReadyAction": {
         "action": "debugWithChrome",
         "killOnServerStop": true,
         "pattern": "- Local:.+(https?://.+)",
         "uriFormat": "%s",
-        "webRoot": "${workspaceFolder}/web"
+        "webRoot": "${workspaceFolder}"
       }
     }
   ]
