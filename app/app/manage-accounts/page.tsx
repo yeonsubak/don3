@@ -50,10 +50,10 @@ export default function ManageAccounts() {
           return (
             <div key={countryCode}>
               <h2 className={`p-4 text-2xl font-semibold ${idx === 0 ? 'pt-2' : ''}`}>
-                <span className="emoji mr-1">
+                {tCountry(countryCode)}
+                <span className="emoji ml-2">
                   {countriesInUse.find((country) => country.code === countryCode)?.emoji}
                 </span>
-                {tCountry(countryCode)}
               </h2>
               <div className="flex flex-col gap-2">
                 {accountGroup.map((e, idx) => (
