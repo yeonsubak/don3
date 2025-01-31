@@ -1,5 +1,5 @@
 {
-  "id": "c6211a13-1c37-4d40-acd3-6b2a3f662aeb",
+  "id": "b4f555de-cd21-4181-b4cc-22acee7a0f86",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -575,7 +575,7 @@
         },
         "amount": {
           "name": "amount",
-          "type": "numeric",
+          "type": "numeric(15, 2)",
           "primaryKey": false,
           "notNull": true
         },
@@ -628,6 +628,126 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "app.journal_entry_fx_rates": {
+      "name": "journal_entry_fx_rates",
+      "schema": "app",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "byDefault",
+            "name": "journal_entry_fx_rates_id_seq",
+            "schema": "app",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "journal_entry_id": {
+          "name": "journal_entry_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "base_currency_id": {
+          "name": "base_currency_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "target_currency_id": {
+          "name": "target_currency_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rate": {
+          "name": "rate",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "create_at": {
+          "name": "create_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "update_at": {
+          "name": "update_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "journal_entry_fx_rates_journal_entry_id_journal_entries_id_fk": {
+          "name": "journal_entry_fx_rates_journal_entry_id_journal_entries_id_fk",
+          "tableFrom": "journal_entry_fx_rates",
+          "tableTo": "journal_entries",
+          "schemaTo": "app",
+          "columnsFrom": [
+            "journal_entry_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "journal_entry_fx_rates_base_currency_id_currencies_id_fk": {
+          "name": "journal_entry_fx_rates_base_currency_id_currencies_id_fk",
+          "tableFrom": "journal_entry_fx_rates",
+          "tableTo": "currencies",
+          "schemaTo": "app",
+          "columnsFrom": [
+            "base_currency_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "journal_entry_fx_rates_target_currency_id_currencies_id_fk": {
+          "name": "journal_entry_fx_rates_target_currency_id_currencies_id_fk",
+          "tableFrom": "journal_entry_fx_rates",
+          "tableTo": "currencies",
+          "schemaTo": "app",
+          "columnsFrom": [
+            "target_currency_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "journal_entry_fx_rates_unq_entry_base_target": {
+          "name": "journal_entry_fx_rates_unq_entry_base_target",
+          "nullsNotDistinct": false,
+          "columns": [
+            "journal_entry_id",
+            "base_currency_id",
+            "target_currency_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "app.transactions": {
       "name": "transactions",
       "schema": "app",
@@ -669,7 +789,7 @@
         },
         "amount": {
           "name": "amount",
-          "type": "numeric",
+          "type": "numeric(15, 2)",
           "primaryKey": false,
           "notNull": true
         },

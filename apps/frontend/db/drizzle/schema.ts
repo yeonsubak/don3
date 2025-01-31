@@ -97,7 +97,7 @@ export const journalEntries = appSchema.table('journal_entries', {
   currencyId: integer()
     .notNull()
     .references(() => currencies.id),
-  amount: numeric({ scale: 4 }).notNull(),
+  amount: numeric({ precision: 15, scale: 2 }).notNull(),
   title: varchar({ length: 255 }),
   description: text(),
   createAt: timestamp({ withTimezone: true }).defaultNow(),
@@ -106,6 +106,47 @@ export const journalEntries = appSchema.table('journal_entries', {
 
 export const journalEntriesRelations = relations(journalEntries, ({ many }) => ({
   transactions: many(transactions),
+}));
+
+export const journalEntryFxRates = appSchema.table(
+  'journal_entry_fx_rates',
+  {
+    id: integer().primaryKey().generatedByDefaultAsIdentity().notNull(),
+    journalEntryId: integer()
+      .notNull()
+      .references(() => journalEntries.id),
+    baseCurrencyId: integer()
+      .notNull()
+      .references(() => currencies.id),
+    targetCurrencyId: integer()
+      .notNull()
+      .references(() => currencies.id),
+    rate: numeric({ scale: 8 }).notNull(),
+    createAt: timestamp({ withTimezone: true }).defaultNow(),
+    updateAt: timestamp({ withTimezone: true }),
+  },
+  (t) => [
+    unique('journal_entry_fx_rates_unq_entry_base_target').on(
+      t.journalEntryId,
+      t.baseCurrencyId,
+      t.targetCurrencyId,
+    ),
+  ],
+);
+
+export const journalEntryFxRatesRelations = relations(journalEntryFxRates, ({ one }) => ({
+  journalEntry: one(journalEntries, {
+    fields: [journalEntryFxRates.journalEntryId],
+    references: [journalEntries.id],
+  }),
+  baseCurrency: one(currencies, {
+    fields: [journalEntryFxRates.baseCurrencyId],
+    references: [currencies.id],
+  }),
+  targetCurrency: one(currencies, {
+    fields: [journalEntryFxRates.targetCurrencyId],
+    references: [currencies.id],
+  }),
 }));
 
 export const transactions = appSchema.table('transactions', {
@@ -119,7 +160,7 @@ export const transactions = appSchema.table('transactions', {
   currencyId: integer()
     .notNull()
     .references(() => currencies.id),
-  amount: numeric({ scale: 4 }).notNull(),
+  amount: numeric({ precision: 15, scale: 2 }).notNull(),
   description: text(),
   createAt: timestamp({ withTimezone: true }).defaultNow(),
   updateAt: timestamp({ withTimezone: true }),
