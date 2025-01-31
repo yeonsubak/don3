@@ -66,7 +66,7 @@ export const TimeInput = ({ format, time, setTime }: TimeInputProps) => {
           type="number"
           placeholder="00"
           maxLength={2}
-          max={format === '12h' ? 12 : 24}
+          max={59}
           min={0}
           className={inputCn}
           value={time?.minute}
