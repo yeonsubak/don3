@@ -104,8 +104,12 @@ export const journalEntries = appSchema.table('journal_entries', {
   updateAt: timestamp({ withTimezone: true }),
 });
 
-export const journalEntriesRelations = relations(journalEntries, ({ many }) => ({
+export const journalEntriesRelations = relations(journalEntries, ({ many, one }) => ({
   transactions: many(transactions),
+  fxRate: one(journalEntryFxRates, {
+    fields: [journalEntries.id],
+    references: [journalEntryFxRates.journalEntryId],
+  }),
 }));
 
 export const journalEntryFxRates = appSchema.table(
@@ -173,13 +177,31 @@ export const transactionsRelations = relations(transactions, ({ one }) => ({
   }),
 }));
 
-export const users = appSchema.table('users', {
-  id: uuid().primaryKey().defaultRandom(),
-  createAt: timestamp({ withTimezone: true }).defaultNow(),
-  updateAt: timestamp({ withTimezone: true }),
-});
+// export const users = appSchema.table('users', {
+//   id: uuid().primaryKey().defaultRandom(),
+//   createAt: timestamp({ withTimezone: true }).defaultNow(),
+//   updateAt: timestamp({ withTimezone: true }),
+// });
 
-export const countries = appSchema.table(
+/**
+ * Config Schema
+ */
+export const configSchema = pgSchema('config');
+
+export const information = configSchema.table(
+  'information',
+  {
+    id: integer().primaryKey().generatedByDefaultAsIdentity().notNull(),
+    name: varchar({ length: 255 }).notNull(),
+    value: varchar({ length: 255 }).notNull(),
+  },
+  (t) => [
+    index('information_idx_name_value').on(t.name, t.value),
+    unique('information_unq_name').on(t.name),
+  ],
+);
+
+export const countries = configSchema.table(
   'countries',
   {
     id: integer().primaryKey().generatedByDefaultAsIdentity().notNull(),
@@ -203,7 +225,7 @@ export const countriesRelations = relations(countries, ({ one }) => ({
 
 export const currencyTypeEnum = pgEnum('currency_type', ['fiat', 'crypto']);
 
-export const currencies = appSchema.table(
+export const currencies = configSchema.table(
   'currencies',
   {
     id: integer().primaryKey().generatedByDefaultAsIdentity().notNull(),
@@ -225,21 +247,3 @@ export const currencies = appSchema.table(
 export const currenciesRelations = relations(currencies, ({ many }) => ({
   countriesInUse: many(countries),
 }));
-
-/**
- * Config Schema
- */
-export const configSchema = pgSchema('config');
-
-export const information = configSchema.table(
-  'information',
-  {
-    id: integer().primaryKey().generatedByDefaultAsIdentity().notNull(),
-    name: varchar({ length: 255 }).notNull(),
-    value: varchar({ length: 255 }).notNull(),
-  },
-  (t) => [
-    index('information_idx_name_value').on(t.name, t.value),
-    unique('information_unq_name').on(t.name),
-  ],
-);

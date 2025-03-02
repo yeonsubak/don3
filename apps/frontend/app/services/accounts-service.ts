@@ -118,6 +118,9 @@ export class AccountsService extends Service {
   public async getAccountById(id: number) {
     return await this.drizzle.query.accounts.findFirst({
       where: (accounts, { eq }) => eq(accounts.id, id),
+      with: {
+        currency: true,
+      },
     });
   }
 }

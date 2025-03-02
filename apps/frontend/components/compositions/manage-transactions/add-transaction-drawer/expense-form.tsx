@@ -24,15 +24,15 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useState, type ReactNode } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { TimeSelector } from '../../time-selector';
-import { AmountCurrencyField } from './amount-currency-field';
-import { CalendarField } from './calendar-field';
+import { AmountCurrencyField } from './fields/amount-currency-field';
+import { CalendarField } from './fields/calendar-field';
 import { mapAccounts } from './common-functions';
 import { useTransactionDrawerContext } from './drawer-context';
 import { transactionForm, type TransactionForm } from './form-schema';
 
 export const ExpenseForm = ({ footer }: { footer: ReactNode }) => {
   const { countriesInUse } = useGlobalContext();
-  const { setOpen, setSelectedCurrency, currencies } = useTransactionDrawerContext();
+  const { setOpen } = useTransactionDrawerContext();
 
   const curDate = DateTime.now();
   const form = useForm<TransactionForm>({
@@ -43,11 +43,13 @@ export const ExpenseForm = ({ footer }: { footer: ReactNode }) => {
       journalEntryType: 'expense',
       currencyCode: countriesInUse?.at(0)?.defaultCurrency?.code ?? 'USD',
       amount: '',
+      fxRate: '',
       title: '',
       description: '',
       debitAccountId: -1,
       creditAccountId: -1,
       countryCode: countriesInUse.at(0)?.code ?? '',
+      isFx: false,
     },
   });
 
@@ -83,11 +85,6 @@ export const ExpenseForm = ({ footer }: { footer: ReactNode }) => {
     );
   }, [countriesInUse, tCountry]);
 
-  const currencyCodeWatch = useWatch({ control: form.control, name: 'currencyCode' });
-  useEffect(() => {
-    setSelectedCurrency(currencies.find((currency) => currency.code === currencyCodeWatch));
-  }, [currencies, currencyCodeWatch, setSelectedCurrency]);
-
   const countryCodeWatch = useWatch({ control: form.control, name: 'countryCode' });
   useEffect(() => {
     if (assetGroupsByCountry)
@@ -95,7 +92,7 @@ export const ExpenseForm = ({ footer }: { footer: ReactNode }) => {
     if (expenseGroupsByCountry)
       setCategoryAccounts(mapAccounts(expenseGroupsByCountry, countryCodeWatch));
     // TODO: Add liability accounts
-  }, [countryCodeWatch, assetGroupsByCountry, , expenseGroupsByCountry]);
+  }, [countryCodeWatch, assetGroupsByCountry, expenseGroupsByCountry, form]);
 
   if (isError) {
     return error.map((e) => <p key={e?.name}>Error: ${e?.message}</p>);
@@ -214,6 +211,8 @@ export const ExpenseForm = ({ footer }: { footer: ReactNode }) => {
         <AmountCurrencyField
           currencyFieldName="currencyCode"
           amountFieldName="amount"
+          fxRateFieldName="fxRate"
+          isFxFieldName="isFx"
           zForm={form}
         />
         <FormField

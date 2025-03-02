@@ -1,5 +1,5 @@
 import type { Version } from '@/app/api/get-latest-version/route';
-import { count, eq, type InferInsertModel, type TableConfig } from 'drizzle-orm';
+import { count, type InferInsertModel, type TableConfig } from 'drizzle-orm';
 import type { PgTable } from 'drizzle-orm/pg-core';
 import { drizzle } from 'drizzle-orm/pglite';
 import { DATASET_ACCOUNT_GROUPS } from './dataset/account-groups';
@@ -12,11 +12,11 @@ import { type PgliteDrizzle } from './pglite-web-worker';
 
 export class DBInitializer {
   private static instance: DBInitializer;
-  public static DEFAULT_CONFIG_KEYS = ['defaultCurrency'];
+  public static DEFAULT_CONFIG_KEYS = ['defaultCurrency', 'defaultLanguage'];
 
   private db!: PgliteDrizzle;
 
-  private isInitialized = false;
+  public static isInitialized = false;
   private initializationPromise: Promise<void> | null = null;
 
   private constructor() {}
@@ -36,7 +36,7 @@ export class DBInitializer {
   }
 
   public async ensureDbReady() {
-    if (this.isInitialized) {
+    if (DBInitializer.isInitialized) {
       return;
     }
 
@@ -70,7 +70,9 @@ export class DBInitializer {
       await this.insertPresetData();
     }
 
-    this.isInitialized = true;
+    console.log('DB Initialization completed.');
+
+    DBInitializer.isInitialized = true;
   }
 
   private async getLatestVersion(): Promise<Version> {
@@ -79,8 +81,8 @@ export class DBInitializer {
 
   private async validateSchemaVersion(schemaVersion: string) {
     try {
-      const localSchemaVersion = await this.db?.query.information.findFirst({
-        where: eq(schema.information.name, 'schemaVersion'),
+      const localSchemaVersion = await this.db.query.information.findFirst({
+        where: ({ name }, { eq }) => eq(name, 'schemaVersion'),
       });
 
       return localSchemaVersion?.value === schemaVersion;
@@ -92,9 +94,9 @@ export class DBInitializer {
   private async updateSchema() {
     // Create schemas and tables to the IndexedDb
     const fetched = await (await fetch('/api/get-schema-data', { method: 'GET' })).json();
-    await this.db?.$client.exec(fetched.sql);
+    await this.db.$client.exec(fetched.sql);
     await this.db
-      ?.insert(schema.information)
+      .insert(schema.information)
       .values({ name: 'schemaVersion', value: fetched.version })
       .onConflictDoUpdate({
         target: schema.information.name,
@@ -104,8 +106,9 @@ export class DBInitializer {
   }
 
   private async validateDataset(datasetVersion: string) {
-    const localDatasetVersion = await this.db?.query.information.findFirst({
-      where: eq(schema.information.name, 'datasetVersion'),
+    const check = await this.db.select().from(schema.information);
+    const localDatasetVersion = await this.db.query.information.findFirst({
+      where: ({ name }, { eq }) => eq(name, 'datasetVersion'),
     });
 
     return localDatasetVersion?.value === datasetVersion;
@@ -114,12 +117,12 @@ export class DBInitializer {
   private async updateDataset() {
     // Insert foundation data
     await Promise.all([
-      this.db?.insert(schema.currencies).values(DATASET_CURRENCY_FIAT).onConflictDoNothing(),
-      this.db?.insert(schema.countries).values(DATASET_COUNTRY).onConflictDoNothing(),
+      this.db.insert(schema.currencies).values(DATASET_CURRENCY_FIAT).onConflictDoNothing(),
+      this.db.insert(schema.countries).values(DATASET_COUNTRY).onConflictDoNothing(),
     ]);
 
     await this.db
-      ?.insert(schema.information)
+      .insert(schema.information)
       .values({ name: 'datasetVersion', value: '0.0.1' })
       .onConflictDoUpdate({
         target: schema.information.name,
@@ -132,7 +135,7 @@ export class DBInitializer {
   private async getMissingDefaultConfig() {
     const storedKeys = (
       await this.db
-        ?.select({
+        .select({
           key: schema.information.name,
         })
         .from(schema.information)
@@ -142,18 +145,29 @@ export class DBInitializer {
   }
 
   private async insertDefaultConfig(missingKeys: typeof DBInitializer.DEFAULT_CONFIG_KEYS) {
+    const lang = navigator.languages.at(0);
+
     missingKeys.forEach(async (key) => {
       switch (key) {
         case 'defaultCurrency': {
-          const countryCodeAlpha2 = navigator.languages.at(0)?.substring(3, 5) ?? 'US';
-          const country = await this.db?.query.countries.findFirst({
-            where: eq(schema.countries.codeAlpha2, countryCodeAlpha2),
+          const countryCodeAlpha2 = lang?.substring(3, 5) ?? 'US';
+          const country = await this.db.query.countries.findFirst({
+            where: ({ codeAlpha2 }, { eq }) => eq(codeAlpha2, countryCodeAlpha2),
             with: { defaultCurrency: true },
           });
           await this.db
-            ?.insert(schema.information)
+            .insert(schema.information)
             .values({ name: 'defaultCurrency', value: country?.defaultCurrency?.code ?? 'USD' })
             .onConflictDoNothing();
+          break;
+        }
+        case 'defaultLanguage': {
+          const langCodeAlpha2 = lang?.substring(0, 2) ?? 'en';
+          await this.db
+            .insert(schema.information)
+            .values({ name: 'defaultLanguage', value: langCodeAlpha2 })
+            .onConflictDoNothing();
+          break;
         }
       }
     });
