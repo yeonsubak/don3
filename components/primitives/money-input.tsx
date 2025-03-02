@@ -1,25 +1,25 @@
 'use client';
 
 import type { CurrencySelect } from '@/db/drizzle/types';
-import type { ChangeEvent, Dispatch, SetStateAction } from 'react';
+import { cn } from '@/lib/utils';
+import type { ChangeEvent, ComponentProps, Dispatch, SetStateAction } from 'react';
 import type {
   ControllerRenderProps,
   FieldValue,
   FieldValues,
   UseFormReturn,
 } from 'react-hook-form';
-import { Input } from '../ui/input';
+import { parseMoney } from '../common-functions';
 import type { TailwindClass } from '../common-types';
-import { cn } from '@/lib/utils';
-import { parseNumber } from '../common-functions';
+import { Input } from '../ui/input';
 
 type MoneyInputProps = {
   currency: CurrencySelect;
-  placeholder: string;
+  placeholder?: string;
   inputState?: [string, Dispatch<SetStateAction<string>>];
   field?: ControllerRenderProps<FieldValue<FieldValues>>;
   zForm?: UseFormReturn<FieldValue<FieldValues>>;
-  className?: TailwindClass;
+  onChange?: (input: ReturnType<typeof parseMoney>) => void;
 };
 
 export const MoneyInput = ({
@@ -29,7 +29,8 @@ export const MoneyInput = ({
   field,
   zForm,
   className,
-}: MoneyInputProps) => {
+  onChange,
+}: MoneyInputProps & ComponentProps<'input'>) => {
   // Validation for conflicting or missing props
   if ((inputState && (field || zForm)) || (field && !zForm) || (zForm && !field)) {
     throw new Error(
@@ -37,27 +38,24 @@ export const MoneyInput = ({
     );
   }
 
-  const parseMoney = (value: string): string => {
-    const parsedValue = parseNumber(value, currency.isoDigits);
-    if (!parsedValue) return '';
+  const handleChange = (input: string, onChangeCallback?: (parsedValue: string) => void) => {
+    const money = parseMoney(input, currency);
+    if (onChange) onChange(money);
 
-    return Number(parsedValue).toLocaleString();
-  };
-
-  const handleChange = (value: string, onChangeCallback?: (parsedValue: string) => void) => {
-    const parsedValue = parseMoney(value);
-    if (onChangeCallback) onChangeCallback(parsedValue);
+    if (onChangeCallback) onChangeCallback(money.formatted);
   };
 
   const _className = cn('text-right', className);
 
   if (field) {
     const { name, ...restField } = field;
+
     return (
       <Input
         type="text"
+        variant="ghost"
         placeholder={placeholder}
-        inputMode="numeric"
+        inputMode="decimal"
         className={_className}
         {...restField}
         onChange={({ target }: ChangeEvent<HTMLInputElement>) => {
@@ -74,9 +72,10 @@ export const MoneyInput = ({
     return (
       <Input
         type="text"
+        variant="ghost"
         placeholder={placeholder}
         value={value}
-        inputMode="numeric"
+        inputMode="decimal"
         className={_className}
         onChange={({ target }: ChangeEvent<HTMLInputElement>) => {
           handleChange(target.value, setValue);

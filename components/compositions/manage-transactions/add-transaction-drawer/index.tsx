@@ -37,7 +37,7 @@ export const AddTransactionDrawer = () => {
             Add
           </Button>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="max-w-[540px]">
           <DialogHeader>
             <DialogTitle>Add transaction</DialogTitle>
             <DialogDescription></DialogDescription>
@@ -45,9 +45,7 @@ export const AddTransactionDrawer = () => {
           <TransactionFormTab
             footer={
               <DialogFooter>
-                <Button type="submit" variant="default">
-                  Save
-                </Button>
+                <LocalButton />
                 <DialogClose asChild>
                   <Button variant="outline">Cancel</Button>
                 </DialogClose>
@@ -60,9 +58,9 @@ export const AddTransactionDrawer = () => {
   }
 
   return (
-    <Drawer open={open} onOpenChange={setOpen}>
+    <Drawer open={open} onOpenChange={setOpen} autoFocus={open}>
       <DrawerTrigger asChild>
-        <Button variant="default" className="w-full text-lg font-bold" inert={open}>
+        <Button variant="default" className="w-full text-lg" inert={open}>
           Add
         </Button>
       </DrawerTrigger>
@@ -74,9 +72,7 @@ export const AddTransactionDrawer = () => {
         <TransactionFormTab
           footer={
             <DrawerFooter className="px-0">
-              <Button type="submit" variant="default">
-                Save
-              </Button>
+              <LocalButton />
               <DrawerClose asChild>
                 <Button variant="outline">Cancel</Button>
               </DrawerClose>
@@ -87,3 +83,9 @@ export const AddTransactionDrawer = () => {
     </Drawer>
   );
 };
+
+const LocalButton = () => (
+  <Button type="submit" variant="default" disableOnProcess>
+    Save
+  </Button>
+);

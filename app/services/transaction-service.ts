@@ -3,14 +3,22 @@
 import { parseNumber } from '@/components/common-functions';
 import type { TransactionForm } from '@/components/compositions/manage-transactions/add-transaction-drawer/form-schema';
 import * as schema from '@/db/drizzle/schema';
-import type { JournalEntryType, PgliteTransaction, TransactionInsert } from '@/db/drizzle/types';
+import type {
+  CurrencySelect,
+  JournalEntryType,
+  PgliteTransaction,
+  TransactionInsert,
+} from '@/db/drizzle/types';
 import { DateTime } from 'luxon';
 import { Service } from './abstract-service';
 import { ConfigService } from './config-service';
+import { AccountsService } from './accounts-service';
 
 export class TransactionService extends Service {
   protected static instance: TransactionService;
+
   private configService!: ConfigService;
+  private accountsService!: AccountsService;
 
   private constructor() {
     super();
@@ -20,19 +28,26 @@ export class TransactionService extends Service {
     if (!TransactionService.instance) {
       TransactionService.instance = new TransactionService();
       TransactionService.instance.configService = await ConfigService.getInstance();
+      TransactionService.instance.accountsService = await AccountsService.getInstance();
     }
 
     return TransactionService.instance;
   }
 
-  public async getIncomeSummary(from: Date, to: Date) {
+  public async getIncomeSummary(from: Date, to: Date, baseCurrency: CurrencySelect) {
     const incomeEntries = await this.getJournalEntries('income', { from, to });
-    return incomeEntries.reduce((acc, cur) => acc + (parseNumber(cur.amount) ?? 0), 0);
+
+    return incomeEntries.reduce((acc, cur) => {
+      return acc + (parseNumber(cur.amount, baseCurrency.isoDigits) ?? 0);
+    }, 0);
   }
 
-  public async getExpenseSummary(from: Date, to: Date) {
+  public async getExpenseSummary(from: Date, to: Date, baseCurrency: CurrencySelect) {
     const expenseEntries = await this.getJournalEntries('expense', { from, to });
-    return expenseEntries.reduce((acc, cur) => acc + (parseNumber(cur.amount) ?? 0), 0);
+    return expenseEntries.reduce(
+      (acc, cur) => acc + (parseNumber(cur.amount, baseCurrency.isoDigits) ?? 0),
+      0,
+    );
   }
 
   public async getJournalEntryById(id: number) {
@@ -46,12 +61,17 @@ export class TransactionService extends Service {
 
   public async insertExpenseTransaction(form: TransactionForm) {
     const currency = await this.configService.getCurrencyByCode(form.currencyCode);
+    const debitAccount = await this.accountsService.getAccountById(form.debitAccountId);
+    if (!debitAccount) {
+      throw new Error('Invalid debit account');
+    }
+
     const entryId = await this.drizzle.transaction(async (tx) => {
       try {
-        const amount = parseNumber(form.amount);
+        let amount = parseNumber(form.amount, currency?.isoDigits);
 
         if (!amount) {
-          throw new Error('Amount field cannot be null');
+          throw new Error('Invalid amount');
         }
 
         if (!currency) {
@@ -64,18 +84,34 @@ export class TransactionService extends Service {
           throw new Error('Insert to journal Entry failed');
         }
 
+        if (form.fxRate) {
+          const fxRate = parseNumber(form.fxRate, 10);
+          if (!fxRate) {
+            throw new Error('Invalid FxRate');
+          }
+
+          amount = amount * fxRate;
+
+          tx.insert(schema.journalEntryFxRates).values({
+            journalEntryId: journalEntry.id,
+            baseCurrencyId: debitAccount.currency.id,
+            targetCurrencyId: currency.id,
+            rate: fxRate.toFixed(10),
+          });
+        }
+
         const debitTransaction: TransactionInsert = {
-          journalEntryId: journalEntry?.id,
-          accountId: form.debitAccountId,
+          journalEntryId: journalEntry.id,
+          accountId: form.creditAccountId,
           currencyId: currency.id,
-          amount: (amount * -1).toString(10),
+          amount: amount.toFixed(currency.isoDigits),
         };
 
         const creditTransaction: TransactionInsert = {
-          journalEntryId: journalEntry?.id,
-          accountId: form.creditAccountId,
+          journalEntryId: journalEntry.id,
+          accountId: form.debitAccountId,
           currencyId: currency.id,
-          amount: amount.toString(10),
+          amount: (amount * -1).toFixed(currency.isoDigits),
         };
 
         await Promise.all([
@@ -127,6 +163,9 @@ export class TransactionService extends Service {
     return await this.drizzle.query.journalEntries.findMany({
       where: ({ date, type }, { between, and, eq }) =>
         and(eq(type, entryType), between(date, from, to)),
+      with: {
+        fxRate: true,
+      },
     });
   }
 }

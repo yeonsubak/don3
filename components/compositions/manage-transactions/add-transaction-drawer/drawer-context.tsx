@@ -16,28 +16,28 @@ import {
   type SetStateAction,
 } from 'react';
 
-type TransactionDrawerContext = {
+export type TransactionDrawerContext = {
   open: boolean;
   setOpen: Dispatch<SetStateAction<boolean>>;
   currencies: CurrencySelect[];
   currencyComboItems: ComboboxItem<CurrencySelect>[];
-  selectedCurrency: CurrencySelect | undefined;
-  setSelectedCurrency: Dispatch<SetStateAction<CurrencySelect | undefined>>;
 };
 export const TransactionDrawerContext = createContext<TransactionDrawerContext | null>(null);
 
 export const TransactionDrawerContextProvider = ({ children }: { children: ReactNode }) => {
   const [open, setOpen] = useState(false);
-  const [currencies, setCurrencies] = useState<CurrencySelect[]>([]);
+  const { currencies } = useGlobalContext();
   const [currencyComboItems, setCurrencyComboItems] = useState<ComboboxItem<CurrencySelect>[]>([]);
-  const [selectedCurrency, setSelectedCurrency] = useState<CurrencySelect | undefined>();
   const { defaultCurrency } = useGlobalContext();
 
-  const { isPending, isError, error, data: currencyData } = useQuery(QUERIES.config.currencies);
-  const { data: currenciesInUseData } = useQuery(QUERIES.config.currenciesInUse);
+  const {
+    data: currenciesInUseData,
+    isPending,
+    isError,
+    error,
+  } = useQuery(QUERIES.config.currenciesInUse);
 
   useEffect(() => {
-    setCurrencies(currencyData ?? []);
     setCurrencyComboItems(() => {
       const convert = (currencies: CurrencySelect[]) => {
         return currencies.map((currency) => ({
@@ -52,10 +52,10 @@ export const TransactionDrawerContextProvider = ({ children }: { children: React
         value: 'Favorite',
         children: convert(currenciesInUseData ?? []),
       };
-      return [favorite, ...convert(currencyData ?? [])];
+      return [favorite, ...convert(currencies ?? [])];
     });
     // setSelectedCurrency(defaultCurrency);
-  }, [currencyData, currenciesInUseData, defaultCurrency]);
+  }, [currencies, currenciesInUseData, defaultCurrency]);
 
   if (isPending) {
     return <Skeleton className="h-full w-full" />;
@@ -72,8 +72,6 @@ export const TransactionDrawerContextProvider = ({ children }: { children: React
         setOpen,
         currencies,
         currencyComboItems,
-        selectedCurrency,
-        setSelectedCurrency,
       }}
     >
       {children}

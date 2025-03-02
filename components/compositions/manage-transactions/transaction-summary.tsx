@@ -3,7 +3,7 @@ import type { DateRange } from '@/components/common-types';
 import { SkeletonSimple } from '@/components/primitives/skeleton-simple';
 import { QUERIES } from '@/components/tanstack-queries';
 import { Separator } from '@/components/ui/separator';
-import { useQueries } from '@tanstack/react-query';
+import { useQueries, useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from 'react';
 
 type TransactionSummaryProps = {
@@ -12,17 +12,22 @@ type TransactionSummaryProps = {
 };
 
 export const TransactionSummary = ({ dateRange: { from, to } }: TransactionSummaryProps) => {
-  const { data, isPending, isError, error } = useQueries({
+  const { data: defaultCurrency } = useQuery(QUERIES.config.defaultCurrency);
+
+  const {
+    data: { incomeSummary, expenseSummary },
+    isPending,
+    isError,
+    error,
+  } = useQueries({
     queries: [
-      QUERIES.transaction.getIncomeSummary(from, to),
-      QUERIES.transaction.getExpenseSummary(from, to),
-      QUERIES.config.defaultCurrency,
+      QUERIES.transaction.getIncomeSummary(from, to, defaultCurrency!),
+      QUERIES.transaction.getExpenseSummary(from, to, defaultCurrency!),
     ],
     combine: (results) => ({
       data: {
         incomeSummary: results[0].data,
         expenseSummary: results[1].data,
-        defaultCurrency: results[2].data,
       },
       isPending: results.some((result) => result.isPending),
       isError: results.some((result) => result.isError),
@@ -31,9 +36,9 @@ export const TransactionSummary = ({ dateRange: { from, to } }: TransactionSumma
   });
 
   useEffect(() => {
-    setIncome(data.incomeSummary ?? 0);
-    setExpense(data.expenseSummary ?? 0);
-  }, [data.expenseSummary, data.incomeSummary]);
+    setIncome(incomeSummary ?? 0);
+    setExpense(expenseSummary ?? 0);
+  }, [expenseSummary, incomeSummary]);
 
   const [income, setIncome] = useState<number>(0);
   const [expense, setExpense] = useState<number>(0);
@@ -49,24 +54,24 @@ export const TransactionSummary = ({ dateRange: { from, to } }: TransactionSumma
   }
 
   if (isError) {
-    return error.map((e) => <p key={e?.name}>Error: ${e?.message}</p>);
+    return error.map((e, i) => <p key={i}>Error: ${e?.message}</p>);
   }
 
   return (
-    <div className="flex flex-col gap-1 font-normal">
-      <div className="flex flex-row gap-8 text-xl">
+    <div className="flex w-full flex-col gap-2 text-lg font-normal md:w-96 md:rounded-lg md:p-4">
+      <div className="flex flex-row gap-8">
         <p className="grow text-left">Income</p>
-        <p className="grow text-right text-blue-800">
-          {data.defaultCurrency?.symbol.padEnd(currencyPadding, invisibleCharMd)}
+        <p className="text-primary grow text-right">
+          {defaultCurrency?.symbol.padEnd(currencyPadding, invisibleCharMd)}
           {income.toLocaleString()}
         </p>
       </div>
-      <div className="flex flex-row gap-8 text-xl">
+      <div className="flex flex-row gap-8">
         <p className="grow text-left">Expense</p>
         <p className="grow text-right text-red-700">-{expense.toLocaleString()}</p>
       </div>
       <Separator />
-      <div className="flex flex-row gap-8 text-xl">
+      <div className="flex flex-row gap-8">
         <p className="grow">Total</p>
         <p className="grow text-right">{total.toLocaleString()}</p>
       </div>

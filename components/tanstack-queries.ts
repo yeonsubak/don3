@@ -3,7 +3,9 @@
 import { AccountsService } from '@/app/services/accounts-service';
 import { ConfigService } from '@/app/services/config-service';
 import { TransactionService } from '@/app/services/transaction-service';
-import { queryOptions } from '@tanstack/react-query';
+import { DBInitializer } from '@/db/db-initializer';
+import type { CurrencySelect } from '@/db/drizzle/types';
+import { queryOptions, skipToken } from '@tanstack/react-query';
 
 const getConfigService = async () => await ConfigService.getInstance<ConfigService>();
 const getAccountsService = async () => await AccountsService.getInstance<AccountsService>();
@@ -12,6 +14,10 @@ const getTransactionService = async () =>
 
 export const QUERIES = {
   config: {
+    countries: queryOptions({
+      queryKey: ['countries'],
+      queryFn: async () => await (await getConfigService()).getAllCountries(),
+    }),
     countriesInUse: queryOptions({
       queryKey: ['countriesInUse'],
       queryFn: async () => await (await getConfigService()).getCountriesInUse(),
@@ -40,15 +46,17 @@ export const QUERIES = {
     }),
   },
   transaction: {
-    getIncomeSummary: (from: Date, to: Date) =>
+    getIncomeSummary: (from: Date, to: Date, baseCurrency: CurrencySelect) =>
       queryOptions({
-        queryKey: ['getIncomeSummary', { from, to }],
-        queryFn: async () => await (await getTransactionService()).getIncomeSummary(from, to),
+        queryKey: ['getIncomeSummary', { from, to, baseCurrency }],
+        queryFn: async () =>
+          await (await getTransactionService()).getIncomeSummary(from, to, baseCurrency),
       }),
-    getExpenseSummary: (from: Date, to: Date) =>
+    getExpenseSummary: (from: Date, to: Date, baseCurrency: CurrencySelect) =>
       queryOptions({
-        queryKey: ['getExpenseSummary', { from, to }],
-        queryFn: async () => await (await getTransactionService()).getExpenseSummary(from, to),
+        queryKey: ['getExpenseSummary', { from, to, baseCurrency }],
+        queryFn: async () =>
+          await (await getTransactionService()).getExpenseSummary(from, to, baseCurrency),
       }),
   },
 };

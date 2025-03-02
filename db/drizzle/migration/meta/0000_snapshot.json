@@ -1,5 +1,5 @@
 {
-  "id": "b4f555de-cd21-4181-b4cc-22acee7a0f86",
+  "id": "aab4f829-29a5-49b2-9e3c-2c7e7d6b2d20",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -182,7 +182,7 @@
           "name": "accounts_currency_id_currencies_id_fk",
           "tableFrom": "accounts",
           "tableTo": "currencies",
-          "schemaTo": "app",
+          "schemaTo": "config",
           "columnsFrom": [
             "currency_id"
           ],
@@ -196,7 +196,7 @@
           "name": "accounts_country_id_countries_id_fk",
           "tableFrom": "accounts",
           "tableTo": "countries",
-          "schemaTo": "app",
+          "schemaTo": "config",
           "columnsFrom": [
             "country_id"
           ],
@@ -227,9 +227,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "app.countries": {
+    "config.countries": {
       "name": "countries",
-      "schema": "app",
+      "schema": "config",
       "columns": {
         "id": {
           "name": "id",
@@ -239,7 +239,7 @@
           "identity": {
             "type": "byDefault",
             "name": "countries_id_seq",
-            "schema": "app",
+            "schema": "config",
             "increment": "1",
             "startWith": "1",
             "minValue": "1",
@@ -337,9 +337,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "app.currencies": {
+    "config.currencies": {
       "name": "currencies",
-      "schema": "app",
+      "schema": "config",
       "columns": {
         "id": {
           "name": "id",
@@ -349,7 +349,7 @@
           "identity": {
             "type": "byDefault",
             "name": "currencies_id_seq",
-            "schema": "app",
+            "schema": "config",
             "increment": "1",
             "startWith": "1",
             "minValue": "1",
@@ -611,7 +611,7 @@
           "name": "journal_entries_currency_id_currencies_id_fk",
           "tableFrom": "journal_entries",
           "tableTo": "currencies",
-          "schemaTo": "app",
+          "schemaTo": "config",
           "columnsFrom": [
             "currency_id"
           ],
@@ -707,7 +707,7 @@
           "name": "journal_entry_fx_rates_base_currency_id_currencies_id_fk",
           "tableFrom": "journal_entry_fx_rates",
           "tableTo": "currencies",
-          "schemaTo": "app",
+          "schemaTo": "config",
           "columnsFrom": [
             "base_currency_id"
           ],
@@ -721,7 +721,7 @@
           "name": "journal_entry_fx_rates_target_currency_id_currencies_id_fk",
           "tableFrom": "journal_entry_fx_rates",
           "tableTo": "currencies",
-          "schemaTo": "app",
+          "schemaTo": "config",
           "columnsFrom": [
             "target_currency_id"
           ],
@@ -847,7 +847,7 @@
           "name": "transactions_currency_id_currencies_id_fk",
           "tableFrom": "transactions",
           "tableTo": "currencies",
-          "schemaTo": "app",
+          "schemaTo": "config",
           "columnsFrom": [
             "currency_id"
           ],
@@ -858,39 +858,6 @@
           "onUpdate": "no action"
         }
       },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "app.users": {
-      "name": "users",
-      "schema": "app",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "create_at": {
-          "name": "create_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "now()"
-        },
-        "update_at": {
-          "name": "update_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
