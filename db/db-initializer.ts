@@ -6,7 +6,7 @@ import { DATASET_ACCOUNT_GROUPS } from './dataset/account-groups';
 import { DATASET_ASSET_ACCOUNTS, DATASET_EXPENSE_ACCOUNTS } from './dataset/accounts';
 import { DATASET_COUNTRY } from './dataset/country';
 import { DATASET_CURRENCY_FIAT } from './dataset/currency';
-import * as schema from './drizzle/schema';
+import schema from './drizzle/schema';
 import { PgliteClient } from './pglite-client';
 import { type PgliteDrizzle } from './pglite-web-worker';
 

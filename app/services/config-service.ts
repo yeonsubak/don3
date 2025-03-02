@@ -1,8 +1,9 @@
 'use client';
 
-import { accounts } from '@/db/drizzle/schema';
+import schema from '@/db/drizzle/schema';
 import { Service } from './abstract-service';
-import * as schema from '@/db/drizzle/schema';
+
+const { accounts } = schema;
 
 export class ConfigService extends Service {
   protected static instance: ConfigService;

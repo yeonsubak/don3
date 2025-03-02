@@ -22,12 +22,14 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { accounts } from '@/db/drizzle/schema';
+import schema from '@/db/drizzle/schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { AccountTypeToggle } from './account-type-toggle';
+
+const { accounts } = schema;
 
 export const ACCOUNT_FORM_SCHEMA = z.object({
   accountName: z

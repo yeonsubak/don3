@@ -2,7 +2,7 @@
 
 import { parseNumber } from '@/components/common-functions';
 import type { TransactionForm } from '@/components/compositions/manage-transactions/add-transaction-drawer/form-schema';
-import * as schema from '@/db/drizzle/schema';
+import schema from '@/db/drizzle/schema';
 import type {
   CurrencySelect,
   JournalEntryType,
@@ -11,8 +11,10 @@ import type {
 } from '@/db/drizzle/types';
 import { DateTime } from 'luxon';
 import { Service } from './abstract-service';
-import { ConfigService } from './config-service';
 import { AccountsService } from './accounts-service';
+import { ConfigService } from './config-service';
+
+const { transactions, journalEntries, journalEntryFxRates } = schema;
 
 export class TransactionService extends Service {
   protected static instance: TransactionService;
@@ -92,7 +94,7 @@ export class TransactionService extends Service {
 
           amount = amount * fxRate;
 
-          tx.insert(schema.journalEntryFxRates).values({
+          tx.insert(journalEntryFxRates).values({
             journalEntryId: journalEntry.id,
             baseCurrencyId: debitAccount.currency.id,
             targetCurrencyId: currency.id,
@@ -129,7 +131,7 @@ export class TransactionService extends Service {
   }
 
   private async insertTransaction(tx: PgliteTransaction, data: TransactionInsert) {
-    await tx.insert(schema.transactions).values(data);
+    await tx.insert(transactions).values(data);
   }
 
   private async insertJournalEntry(
@@ -143,7 +145,7 @@ export class TransactionService extends Service {
     datetime.set({ hour: time.hour, minute: time.minute, second: 0, millisecond: 0 });
     return (
       await tx
-        .insert(schema.journalEntries)
+        .insert(journalEntries)
         .values({
           type: journalEntryType,
           date: datetime.toJSDate(),
