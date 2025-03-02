@@ -1,6 +1,6 @@
 import type { BuildQueryResult, DBQueryConfig, ExtractTablesWithRelations } from 'drizzle-orm';
 import type { PgliteTransaction as _PgliteTransaction } from 'drizzle-orm/pglite';
-import * as schema from './schema';
+import schema from './schema';
 
 type Schema = ExtractTablesWithRelations<typeof schema>;
 export type IncludeRelation<TableName extends keyof Schema> = DBQueryConfig<

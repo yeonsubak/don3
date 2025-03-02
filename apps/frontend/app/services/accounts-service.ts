@@ -1,7 +1,7 @@
 'use client';
 
 import type { ACCOUNT_FORM_SCHEMA } from '@/components/compositions/manage-accounts/manage-account-card';
-import { accounts, countries, currencies } from '@/db/drizzle/schema';
+import schema from '@/db/drizzle/schema';
 import type {
   AccountGroupSelectWithRelations,
   AccountGroupType,
@@ -10,6 +10,8 @@ import type {
 import { eq } from 'drizzle-orm';
 import type { z } from 'zod';
 import { Service } from './abstract-service';
+
+const { accounts, countries, currencies } = schema;
 
 export class AccountsService extends Service {
   protected static instance: AccountsService;

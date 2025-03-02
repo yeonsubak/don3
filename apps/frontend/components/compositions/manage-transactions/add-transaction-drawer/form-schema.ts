@@ -1,6 +1,8 @@
 import { parseNumber } from '@/components/common-functions';
-import { journalEntryTypeEnum } from '@/db/drizzle/schema';
+import schema from '@/db/drizzle/schema';
 import { z } from 'zod';
+
+const { journalEntryTypeEnum } = schema;
 
 export type TransactionForm = z.infer<typeof transactionForm>;
 
