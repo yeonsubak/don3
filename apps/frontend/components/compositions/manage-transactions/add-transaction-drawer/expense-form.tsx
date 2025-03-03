@@ -29,7 +29,7 @@ import { CalendarField } from './fields/calendar-field';
 import { mapAccounts } from './common-functions';
 import { useTransactionDrawerContext } from './drawer-context';
 import { transactionForm, type TransactionForm } from './form-schema';
-import { useTransactionContext } from '@/app/app/manage-transactions/transaction-context';
+import { useTransactionContext } from '@/components/compositions/manage-transactions/transaction-context';
 
 export const ExpenseForm = ({ footer }: { footer: ReactNode }) => {
   const { countriesInUse, defaultCurrency } = useGlobalContext();
