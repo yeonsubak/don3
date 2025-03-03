@@ -21,6 +21,7 @@ type AmountCurrencyFieldProps = {
   amountFieldName: string;
   currencyFieldName: string;
   fxRateFieldName: string;
+  fxAmountFieldName: string;
   isFxFieldName: string;
   zForm?: UseFormReturn<FieldValue<FieldValues>>;
   setFxRateOpen?: Dispatch<SetStateAction<boolean>>;
@@ -30,6 +31,7 @@ export const AmountCurrencyField = ({
   currencyFieldName,
   amountFieldName,
   fxRateFieldName,
+  fxAmountFieldName,
   isFxFieldName,
   zForm,
 }: AmountCurrencyFieldProps) => {
@@ -107,12 +109,13 @@ export const AmountCurrencyField = ({
         />
       </div>
       {isFxRateOpen && defaultCurrency ? (
-        <FxRateField
+        <FxField
           zForm={zForm}
-          fxRateFieldName={fxRateFieldName}
           baseCurrency={defaultCurrency}
           targetCurrency={selectedCurrency!}
-          amountFieldName="amount"
+          fxRateFieldName={fxRateFieldName}
+          amountFieldName={amountFieldName}
+          fxAmountFieldName={fxAmountFieldName}
         />
       ) : (
         <></>
@@ -121,22 +124,21 @@ export const AmountCurrencyField = ({
   );
 };
 
-const FxRateField = ({
-  zForm,
-  fxRateFieldName,
-  baseCurrency,
-  targetCurrency,
-  amountFieldName,
-}: {
-  zForm: AmountCurrencyFieldProps['zForm'];
+type FxFieldProps = {
   baseCurrency: CurrencySelect;
   targetCurrency: CurrencySelect;
-  fxRateFieldName: string;
-  amountFieldName: string;
-}) => {
-  const [convertedAmount, setConvertedAmount] = useState<string>('');
-  const amountWatch: string = useWatch({ control: zForm?.control, name: amountFieldName });
-  const fxRateWatch: string = useWatch({ control: zForm?.control, name: fxRateFieldName });
+} & Partial<AmountCurrencyFieldProps>;
+
+const FxField = ({
+  zForm,
+  baseCurrency,
+  targetCurrency,
+  fxRateFieldName,
+  fxAmountFieldName,
+  amountFieldName,
+}: FxFieldProps) => {
+  const amountWatch: string = useWatch({ control: zForm?.control, name: amountFieldName! });
+  const fxRateWatch: string = useWatch({ control: zForm?.control, name: fxRateFieldName! });
   const inversedFxRate = useMemo(() => {
     const inversed = 1 / (parseNumber(fxRateWatch, 10) ?? 0);
     const digits = inversed > 1 ? 2 : 10;
@@ -152,8 +154,8 @@ const FxRateField = ({
 
   useEffect(() => {
     const { formatted } = exchange(fxRateWatch);
-    setConvertedAmount(formatted);
-  }, [convertedAmount, amountWatch, fxRateWatch]);
+    zForm?.setValue(fxAmountFieldName!, formatted);
+  }, [amountWatch, fxRateWatch]);
 
   const isInverseFxRateFinite = useMemo(
     () => Number.isFinite(Number(inversedFxRate)),
@@ -166,12 +168,12 @@ const FxRateField = ({
         <FormLabel>Exchange Rate</FormLabel>
         <FormField
           control={zForm?.control}
-          name={fxRateFieldName}
+          name={fxRateFieldName!}
           render={({ field }) => {
             const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
               field.onChange(event);
               const { formatted } = exchange(event.target.value);
-              setConvertedAmount(formatted);
+              zForm?.setValue(fxAmountFieldName!, formatted);
             };
             return (
               <FormItem>
@@ -197,15 +199,24 @@ const FxRateField = ({
         />
       </div>
       <div className="basis-1/2">
-        <Label>Converted Amount</Label>
-        <div className="flex flex-row items-center gap-1">
-          <span>{baseCurrency.symbol}</span>
-          <MoneyInput
-            currency={baseCurrency}
-            inputState={[convertedAmount, setConvertedAmount]}
-            readOnly
-          />
-        </div>
+        <FormLabel>Converted Amount</FormLabel>
+        <FormField
+          control={zForm?.control}
+          name={fxAmountFieldName!}
+          render={({ field }) => {
+            return (
+              <FormItem>
+                <FormControl>
+                  <div className="flex flex-row items-center gap-1">
+                    <span>{baseCurrency.symbol}</span>
+                    <MoneyInput currency={baseCurrency} field={field} zForm={zForm} readOnly />
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
+        />
       </div>
     </div>
   );

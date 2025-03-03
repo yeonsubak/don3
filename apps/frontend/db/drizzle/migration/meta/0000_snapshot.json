@@ -1,5 +1,5 @@
 {
-  "id": "7beec449-6ce5-4325-8d37-8aa009de9a3f",
+  "id": "bdcc834b-6c92-486e-b3e9-9ca8ee5d0bfd",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -475,12 +475,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "currency_id": {
-          "name": "currency_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
         "amount": {
           "name": "amount",
           "type": "numeric(15, 2)",
@@ -530,20 +524,6 @@
           "schemaTo": "app",
           "columnsFrom": [
             "account_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "transactions_currency_id_currencies_id_fk": {
-          "name": "transactions_currency_id_currencies_id_fk",
-          "tableFrom": "transactions",
-          "tableTo": "currencies",
-          "schemaTo": "config",
-          "columnsFrom": [
-            "currency_id"
           ],
           "columnsTo": [
             "id"

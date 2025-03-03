@@ -9,7 +9,9 @@ import type {
   PgliteTransaction,
   TransactionInsert,
 } from '@/db/drizzle/types';
+import { and, between, eq } from 'drizzle-orm';
 import { DateTime } from 'luxon';
+import type { FetchFxRate } from '../api/get-latest-fx-rate/route';
 import { Service } from './abstract-service';
 import { AccountsService } from './accounts-service';
 import { ConfigService } from './config-service';
@@ -36,20 +38,49 @@ export class TransactionService extends Service {
     return TransactionService.instance;
   }
 
-  public async getIncomeSummary(from: Date, to: Date, baseCurrency: CurrencySelect) {
+  public async getSummary(from: Date, to: Date, baseCurrency: CurrencySelect) {
     const incomeEntries = await this.getJournalEntries('income', { from, to });
-
-    return incomeEntries.reduce((acc, cur) => {
-      return acc + (parseNumber(cur.amount, baseCurrency.isoDigits) ?? 0);
-    }, 0);
-  }
-
-  public async getExpenseSummary(from: Date, to: Date, baseCurrency: CurrencySelect) {
     const expenseEntries = await this.getJournalEntries('expense', { from, to });
-    return expenseEntries.reduce(
-      (acc, cur) => acc + (parseNumber(cur.amount, baseCurrency.isoDigits) ?? 0),
-      0,
-    );
+    const currencies = incomeEntries.concat(expenseEntries).map((entry) => entry.currency);
+
+    if (incomeEntries.length === 0 && expenseEntries.length === 0) {
+      return {
+        income: 0,
+        expense: 0,
+      };
+    }
+
+    let fxRates: FetchFxRate | null = null;
+    if (!currencies.every((currency) => currency.id === baseCurrency.id)) {
+      const diffCurrencyCodes = currencies
+        .filter((currency) => currency.id !== baseCurrency.id)
+        .map((currency) => currency.code);
+
+      const params = new URLSearchParams({
+        baseCurrency: baseCurrency.code,
+        targetCurrency: diffCurrencyCodes.join(','),
+      });
+
+      fxRates = await (
+        await fetch(`/api/get-latest-fx-rate?${params.toString()}`, { method: 'GET' })
+      ).json();
+    }
+
+    const calculateSummary = (entries: Awaited<ReturnType<typeof this.getJournalEntries>>) =>
+      entries.reduce((acc, cur) => {
+        const amount = parseNumber(cur.amount, cur.currency.isoDigits) ?? 0;
+        if (cur.currencyId !== baseCurrency.id) {
+          const fxRate = parseNumber(fxRates?.rates[cur.currency.code] ?? '', 10) ?? 1;
+          return acc + amount / fxRate;
+        }
+
+        return acc + amount;
+      }, 0);
+
+    return {
+      income: Number(calculateSummary(incomeEntries).toFixed(baseCurrency.isoDigits)),
+      expense: Number(calculateSummary(expenseEntries).toFixed(baseCurrency.isoDigits)),
+    };
   }
 
   public async getJournalEntryById(id: number) {
@@ -62,58 +93,44 @@ export class TransactionService extends Service {
   }
 
   public async insertExpenseTransaction(form: TransactionForm) {
-    const currency = await this.configService.getCurrencyByCode(form.currencyCode);
     const debitAccount = await this.accountsService.getAccountById(form.debitAccountId);
-    if (!debitAccount) {
-      throw new Error('Invalid debit account');
-    }
+    if (!debitAccount) throw new Error('Invalid debit account');
+
+    const baseCurrency = debitAccount.currency;
+    const formCurrency = await this.configService.getCurrencyByCode(form.currencyCode);
+    if (!formCurrency) throw new Error('Failed to fetch currency');
 
     const entryId = await this.drizzle.transaction(async (tx) => {
       try {
-        let amount = parseNumber(form.amount, currency?.isoDigits);
+        let amount = parseNumber(form.fxRate ? form.fxAmount : form.amount, baseCurrency.isoDigits);
+        if (!amount) throw new Error('Invalid amount');
 
-        if (!amount) {
-          throw new Error('Invalid amount');
-        }
+        const journalEntry = await this.insertJournalEntry(tx, baseCurrency.id, amount, form);
 
-        if (!currency) {
-          throw new Error('Failed to fetch currency');
-        }
-
-        const journalEntry = await this.insertJournalEntry(tx, currency.id, amount, form);
-
-        if (!journalEntry) {
-          throw new Error('Insert to journal Entry failed');
-        }
+        if (!journalEntry) throw new Error('Insert to journal Entry failed');
 
         if (form.fxRate) {
           const fxRate = parseNumber(form.fxRate, 10);
-          if (!fxRate) {
-            throw new Error('Invalid FxRate');
-          }
+          if (!fxRate) throw new Error('Invalid FxRate');
 
-          amount = amount * fxRate;
-
-          tx.insert(journalEntryFxRates).values({
+          await tx.insert(journalEntryFxRates).values({
             journalEntryId: journalEntry.id,
             baseCurrencyId: debitAccount.currency.id,
-            targetCurrencyId: currency.id,
+            targetCurrencyId: formCurrency.id,
             rate: fxRate.toFixed(10),
           });
         }
 
         const debitTransaction: TransactionInsert = {
           journalEntryId: journalEntry.id,
-          accountId: form.creditAccountId,
-          currencyId: currency.id,
-          amount: amount.toFixed(currency.isoDigits),
+          accountId: form.debitAccountId,
+          amount: (amount * -1).toFixed(baseCurrency.isoDigits),
         };
 
         const creditTransaction: TransactionInsert = {
           journalEntryId: journalEntry.id,
-          accountId: form.debitAccountId,
-          currencyId: currency.id,
-          amount: (amount * -1).toFixed(currency.isoDigits),
+          accountId: form.creditAccountId,
+          amount: amount.toFixed(baseCurrency.isoDigits),
         };
 
         await Promise.all([
@@ -127,6 +144,7 @@ export class TransactionService extends Service {
         tx.rollback();
       }
     });
+
     return await this.getJournalEntryById(entryId ?? -1);
   }
 
@@ -163,10 +181,10 @@ export class TransactionService extends Service {
     { from, to }: { from: Date; to: Date },
   ) {
     return await this.drizzle.query.journalEntries.findMany({
-      where: ({ date, type }, { between, and, eq }) =>
-        and(eq(type, entryType), between(date, from, to)),
+      where: ({ date, type }) => and(eq(type, entryType), between(date, from, to)),
       with: {
         fxRate: true,
+        currency: true,
       },
     });
   }

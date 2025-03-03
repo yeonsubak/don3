@@ -39,6 +39,10 @@ export type AccountGroupSelectWithRelations = InferResultType<
 
 export type JournalEntryInsert = typeof schema.journalEntries.$inferInsert;
 export type JournalEntrySelect = typeof schema.journalEntries.$inferSelect;
+export type JournalEntrySelectWithRelations = InferResultType<
+  'journalEntries',
+  { fxRate: true; currency: true; transactions: true }
+>;
 export type JournalEntryType = (typeof schema.journalEntryTypeEnum.enumValues)[number];
 
 export type TransactionInsert = typeof schema.transactions.$inferInsert;

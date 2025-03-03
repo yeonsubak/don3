@@ -16,6 +16,7 @@ export const baseForm = z.object({
   currencyCode: z.string().min(3).max(3),
   amount: z.string().min(1).default('').refine(parseNumber, { message: 'Invalid amount' }),
   fxRate: z.string().default(''),
+  fxAmount: z.string().default(''),
   title: z.string(),
   description: z.string(),
   debitAccountId: z.coerce.number().gt(0, { message: "Please select 'Paid by' account" }),

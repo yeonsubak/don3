@@ -11,6 +11,7 @@ import {
 import { TransactionCalendar } from '@/components/compositions/manage-transactions/transaction-calendar';
 import { TransactionSummary } from '@/components/compositions/manage-transactions/transaction-summary';
 import { useState } from 'react';
+import { TransactionContextProvider } from './transaction-context';
 
 export default function ManageTransactions() {
   const { firstDate, lastDate } = getFirstLastDayInMonth(new Date());
@@ -70,17 +71,19 @@ export default function ManageTransactions() {
   ];
 
   return (
-    <div className="flex flex-col gap-6">
-      <TransactionCalendar />
-      <TransactionSummary dateRange={dateRange} setDateRange={setDateRange} />
-      <div className="flex">
-        <TransactionDrawerContextProvider>
-          <AddTransactionDrawer />
-        </TransactionDrawerContextProvider>
-      </div>
+    <TransactionContextProvider>
+      <div className="flex flex-col gap-6">
+        <TransactionCalendar />
+        <TransactionSummary dateRange={dateRange} setDateRange={setDateRange} />
+        <div className="mb-2">
+          <TransactionDrawerContextProvider>
+            <AddTransactionDrawer />
+          </TransactionDrawerContextProvider>
+        </div>
 
-      {/* Transaction records */}
-      <Transaction items={MOCK_DATA} />
-    </div>
+        {/* Transaction records */}
+        <Transaction items={MOCK_DATA} />
+      </div>
+    </TransactionContextProvider>
   );
 }
