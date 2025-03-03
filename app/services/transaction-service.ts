@@ -5,11 +5,11 @@ import type { TransactionForm } from '@/components/compositions/manage-transacti
 import schema from '@/db/drizzle/schema';
 import type {
   CurrencySelect,
-  JournalEntryType,
+  JournalEntryTypeArray,
   PgliteTransaction,
   TransactionInsert,
 } from '@/db/drizzle/types';
-import { and, between, eq } from 'drizzle-orm';
+import { and, between, inArray } from 'drizzle-orm';
 import { DateTime } from 'luxon';
 import type { FetchFxRate } from '../api/get-latest-fx-rate/route';
 import { Service } from './abstract-service';
@@ -39,11 +39,10 @@ export class TransactionService extends Service {
   }
 
   public async getSummary(from: Date, to: Date, baseCurrency: CurrencySelect) {
-    const incomeEntries = await this.getJournalEntries('income', { from, to });
-    const expenseEntries = await this.getJournalEntries('expense', { from, to });
-    const currencies = incomeEntries.concat(expenseEntries).map((entry) => entry.currency);
+    const entries = await this.getJournalEntries(['income', 'expense'], { from, to });
+    const currencies = entries.map((entry) => entry.currency);
 
-    if (incomeEntries.length === 0 && expenseEntries.length === 0) {
+    if (entries.length === 0) {
       return {
         income: 0,
         expense: 0,
@@ -77,10 +76,36 @@ export class TransactionService extends Service {
         return acc + amount;
       }, 0);
 
+    const incomeSummary = calculateSummary(entries.filter((entry) => entry.type === 'income'));
+    const expenseSummary = calculateSummary(entries.filter((entry) => entry.type === 'expense'));
+
     return {
-      income: Number(calculateSummary(incomeEntries).toFixed(baseCurrency.isoDigits)),
-      expense: Number(calculateSummary(expenseEntries).toFixed(baseCurrency.isoDigits)),
+      income: Number(incomeSummary.toFixed(baseCurrency.isoDigits)),
+      expense: Number(expenseSummary.toFixed(baseCurrency.isoDigits)),
     };
+  }
+
+  public async getJournalEntries(
+    entryType: JournalEntryTypeArray,
+    { from, to }: { from?: Date; to?: Date },
+    includeTx: boolean = false,
+  ) {
+    if (!from || !to) throw new Error('Invalid date range');
+
+    return await this.drizzle.query.journalEntries.findMany({
+      where: ({ date, type }) => and(inArray(type, entryType), between(date, from, to)),
+      with: {
+        fxRate: true,
+        currency: true,
+        transactions: includeTx
+          ? {
+              with: {
+                account: true,
+              },
+            }
+          : undefined,
+      },
+    });
   }
 
   public async getJournalEntryById(id: number) {
@@ -174,18 +199,5 @@ export class TransactionService extends Service {
         })
         .returning()
     ).at(0);
-  }
-
-  private async getJournalEntries(
-    entryType: JournalEntryType,
-    { from, to }: { from: Date; to: Date },
-  ) {
-    return await this.drizzle.query.journalEntries.findMany({
-      where: ({ date, type }) => and(eq(type, entryType), between(date, from, to)),
-      with: {
-        fxRate: true,
-        currency: true,
-      },
-    });
   }
 }

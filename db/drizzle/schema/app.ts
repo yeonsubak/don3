@@ -171,6 +171,10 @@ export const transactionsRelations = relations(transactions, ({ one }) => ({
     fields: [transactions.journalEntryId],
     references: [journalEntries.id],
   }),
+  account: one(accounts, {
+    fields: [transactions.accountId],
+    references: [accounts.id],
+  }),
 }));
 
 // export const users = appSchema.table('users', {

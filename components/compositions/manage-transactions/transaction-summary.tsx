@@ -1,4 +1,4 @@
-import { useTransactionContext } from '@/app/app/manage-transactions/transaction-context';
+import { useTransactionContext } from '@/components/compositions/manage-transactions/transaction-context';
 import { invisibleCharMd } from '@/components/common-functions';
 import type { DateRange } from '@/components/common-types';
 import { SkeletonSimple } from '@/components/primitives/skeleton-simple';

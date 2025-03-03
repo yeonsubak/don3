@@ -8,32 +8,85 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { cn } from '@/lib/utils';
 import { flexRender, getCoreRowModel, useReactTable, type ColumnDef } from '@tanstack/react-table';
+import { cn } from '@/lib/utils';
+import { useTransactionContext } from './transaction-context';
+import { useQuery } from '@tanstack/react-query';
+import { QUERIES } from '@/components/tanstack-queries';
+import { useEffect } from 'react';
+import type { AccountSelect, JournalEntryType } from '@/db/drizzle/types';
+import { parseMoney } from '@/components/common-functions';
+import { SkeletonSimple } from '@/components/primitives/skeleton-simple';
 
 export type TransactionItem = {
   id: number;
   title: string;
   currencySymbol: string;
-  amount: number;
-  type: 'incoming' | 'outgoing';
+  amount: string;
+  type: JournalEntryType;
   category: string;
   icon: string;
   date: Date;
 };
 
-type TransactionProps = {
+type TransactionRecordProps = {
   items: TransactionItem[];
 };
 
-export const Transaction = ({ items }: TransactionProps) => (
-  <>
-    <TransactionMobile items={items} />
-    <TransactionDesktop items={items} />
-  </>
-);
+export const TransactionRecord = () => {
+  const {
+    transactionRecordState: [transactionRecord, setTransactionRecord],
+    calendarDateState: [date, _],
+  } = useTransactionContext();
 
-const TransactionMobile = ({ items }: TransactionProps) => {
+  const { from, to } = date!;
+  const {
+    data: entries,
+    isPending,
+    isError,
+    error,
+  } = useQuery(
+    QUERIES.transaction.getJournalEntries(['income', 'expense', 'transfer'], { from, to }, true),
+  );
+
+  useEffect(() => {
+    if (!entries) return;
+
+    const records: TransactionItem[] = entries.map(
+      ({ id, amount, title, currency, type, transactions, date }) => {
+        type Tx = (typeof transactions)[number] & { account: AccountSelect };
+        const tx = transactions as Tx[];
+        const creditTx = tx.find((_tx) => _tx.account.type === 'credit');
+
+        return {
+          id,
+          date,
+          title: title ?? '',
+          currencySymbol: currency.symbol,
+          amount: parseMoney(amount, currency)?.formatted,
+          type,
+          category: creditTx?.account.name ?? '',
+          icon: creditTx?.account.icon ?? '',
+        };
+      },
+    );
+
+    setTransactionRecord(records);
+  }, [entries]);
+
+  if (isPending) return <SkeletonSimple heightInPx={97} />;
+
+  if (isError) return <p>Error: ${error.message}</p>;
+
+  return (
+    <>
+      <TransactionMobile items={transactionRecord} />
+      <TransactionDesktop items={transactionRecord} />
+    </>
+  );
+};
+
+const TransactionMobile = ({ items }: TransactionRecordProps) => {
   return (
     <div className="flex flex-col gap-6 md:hidden">
       {items.map(({ id, amount, category, currencySymbol, date, icon, title, type }) => (
@@ -54,21 +107,24 @@ const TransactionMobile = ({ items }: TransactionProps) => {
                 <p className="text-xs text-zinc-600 dark:text-zinc-400">
                   {date.toLocaleDateString()}
                 </p>
-                <Badge variant="secondary">{category}</Badge>
               </div>
             </div>
             <div className="flex items-center gap-1.5 pl-3">
               <span
                 className={cn(
                   'text-sm font-medium',
-                  type === 'incoming'
+                  type === 'income'
                     ? 'text-emerald-600 dark:text-emerald-400'
-                    : 'text-red-600 dark:text-red-400',
+                    : type === 'expense'
+                      ? 'text-red-600 dark:text-red-400'
+                      : 'text-blue-600 dark:text-blue-400',
                 )}
               >
-                {type === 'incoming' ? '+' : '-'}
-                {currencySymbol}
-                {amount.toFixed(2)}
+                <span className="mr-1">
+                  {type === 'income' ? '+' : type === 'expense' ? '-' : ''}
+                </span>
+                <span className="mr-1">{currencySymbol}</span>
+                <span>{amount}</span>
               </span>
             </div>
           </div>
@@ -78,7 +134,8 @@ const TransactionMobile = ({ items }: TransactionProps) => {
   );
 };
 
-const TransactionDesktop = ({ items }: TransactionProps) => {
+const TransactionDesktop = ({ items }: TransactionRecordProps) => {
+  /*  Using Data Table
   const columns: ColumnDef<TransactionItem>[] = [
     {
       accessorKey: 'title',
@@ -98,13 +155,13 @@ const TransactionDesktop = ({ items }: TransactionProps) => {
     },
   ];
 
+  
   const table = useReactTable({
     data: items,
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
 
-  /*  Using Data Table
   return (
     <div className="hidden overflow-hidden md:block">
       <Table>
@@ -191,14 +248,18 @@ const TransactionDesktop = ({ items }: TransactionProps) => {
                   <div
                     className={cn(
                       'text-sm font-medium',
-                      type === 'incoming'
-                        ? 'text-green-600 dark:text-green-400'
-                        : 'text-red-600 dark:text-red-400',
+                      type === 'income'
+                        ? 'text-emerald-600 dark:text-emerald-400'
+                        : type === 'expense'
+                          ? 'text-red-600 dark:text-red-400'
+                          : 'text-blue-600 dark:text-blue-400',
                     )}
                   >
-                    {type === 'incoming' ? '+' : '-'}
-                    {currencySymbol}
-                    {amount.toFixed(2)}
+                    <span className="mr-1">
+                      {type === 'income' ? '+' : type === 'expense' ? '-' : ''}
+                    </span>
+                    <span className="mr-1">{currencySymbol}</span>
+                    <span>{amount}</span>
                   </div>
                 </td>
                 <td className="px-4 py-4 whitespace-nowrap">
