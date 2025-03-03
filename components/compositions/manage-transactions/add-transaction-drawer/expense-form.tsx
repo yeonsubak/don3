@@ -29,9 +29,10 @@ import { CalendarField } from './fields/calendar-field';
 import { mapAccounts } from './common-functions';
 import { useTransactionDrawerContext } from './drawer-context';
 import { transactionForm, type TransactionForm } from './form-schema';
+import { useTransactionContext } from '@/app/app/manage-transactions/transaction-context';
 
 export const ExpenseForm = ({ footer }: { footer: ReactNode }) => {
-  const { countriesInUse } = useGlobalContext();
+  const { countriesInUse, defaultCurrency } = useGlobalContext();
   const { setOpen } = useTransactionDrawerContext();
 
   const curDate = DateTime.now();
@@ -44,6 +45,7 @@ export const ExpenseForm = ({ footer }: { footer: ReactNode }) => {
       currencyCode: countriesInUse?.at(0)?.defaultCurrency?.code ?? 'USD',
       amount: '',
       fxRate: '',
+      fxAmount: '',
       title: '',
       description: '',
       debitAccountId: -1,
@@ -98,11 +100,25 @@ export const ExpenseForm = ({ footer }: { footer: ReactNode }) => {
     return error.map((e) => <p key={e?.name}>Error: ${e?.message}</p>);
   }
 
+  const {
+    calendarDateState: [calendarDate],
+    incomeSummaryState: [income, setIncome],
+    expenseSummaryState: [expense, setExpense],
+  } = useTransactionContext();
+
   const onSubmit = async (form: TransactionForm) => {
     const transactionService = await TransactionService.getInstance<TransactionService>();
     const insertedEntry = await transactionService.insertExpenseTransaction(form);
     console.log('insertedEntry', insertedEntry);
     // TODO: add page update logic
+    const summary = await transactionService.getSummary(
+      calendarDate?.from!,
+      calendarDate?.to!,
+      defaultCurrency!,
+    );
+    setIncome(summary.income);
+    setExpense(summary.expense);
+
     setOpen(false);
   };
 
@@ -212,6 +228,7 @@ export const ExpenseForm = ({ footer }: { footer: ReactNode }) => {
           currencyFieldName="currencyCode"
           amountFieldName="amount"
           fxRateFieldName="fxRate"
+          fxAmountFieldName="fxAmount"
           isFxFieldName="isFx"
           zForm={form}
         />

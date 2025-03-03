@@ -105,6 +105,10 @@ export const journalEntriesRelations = relations(journalEntries, ({ many, one })
     fields: [journalEntries.id],
     references: [journalEntryFxRates.journalEntryId],
   }),
+  currency: one(currencies, {
+    fields: [journalEntries.currencyId],
+    references: [currencies.id],
+  }),
 }));
 
 export const journalEntryFxRates = appSchema.table(
@@ -156,9 +160,6 @@ export const transactions = appSchema.table('transactions', {
   accountId: integer()
     .notNull()
     .references(() => accounts.id), // TODO: Add onDelete, onUpdate policy
-  currencyId: integer()
-    .notNull()
-    .references(() => currencies.id),
   amount: numeric({ precision: 15, scale: 2 }).notNull(),
   description: text(),
   createAt: timestamp({ withTimezone: true }).defaultNow(),

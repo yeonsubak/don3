@@ -1,22 +1,18 @@
 import { useGlobalContext } from '@/app/app/global-context';
+import { useTransactionContext } from '@/app/app/manage-transactions/transaction-context';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover } from '@/components/ui/popover';
 import { PopoverContent, PopoverTrigger } from '@radix-ui/react-popover';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { DateTime } from 'luxon';
-import { useState } from 'react';
 import type { DateRange } from 'react-day-picker';
 
 export const TransactionCalendar = () => {
   const { defaultLanguage } = useGlobalContext();
-
-  const now = DateTime.now();
-
-  const [date, setDate] = useState<DateRange | undefined>({
-    from: now.startOf('month').toJSDate(),
-    to: now.endOf('month').toJSDate(),
-  });
+  const {
+    calendarDateState: [date, setDate],
+  } = useTransactionContext();
 
   const handlePreviousMonth = () => {};
   const handleNextMonth = () => {};
@@ -38,7 +34,7 @@ export const TransactionCalendar = () => {
             defaultMonth={date?.from}
             selected={date}
             onSelect={setDate}
-            numberOfMonths={2}
+            numberOfMonths={1}
           />
         </PopoverContent>
       </Popover>
