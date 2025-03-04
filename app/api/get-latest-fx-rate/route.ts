@@ -6,10 +6,11 @@ import { NextResponse, type NextRequest } from 'next/server';
 import postgres from 'postgres';
 
 export type FetchFxRate = {
+  amount: number;
+  base: string;
   date: string;
-  baseCurrency: string;
   rates: {
-    [key: string]: string;
+    [key: string]: number;
   };
 };
 
@@ -32,37 +33,37 @@ export async function GET(
 
   const targetCurrencies = to.split(',');
   const now = DateTime.now();
-  const fourHourBefore = now.minus({ hours: 4 }).toUTC();
+  const fourHourBefore = now.minus({ hours: 4 });
 
-  const latestForexes = await db
+  const latestForex = await db
     .selectDistinctOn([schema.forex.baseCurrency, schema.forex.targetCurrency])
     .from(schema.forex)
     .where(
       and(
         eq(schema.forex.baseCurrency, from),
-        inArray(schema.forex.targetCurrency, targetCurrencies),
-        between(schema.forex.createdAt, fourHourBefore.toISO(), now.toISO()),
+        between(schema.forex.createAt, fourHourBefore.toISO(), now.toISO()),
       ),
     )
-    .orderBy(schema.forex.baseCurrency, schema.forex.targetCurrency, desc(schema.forex.createdAt));
+    .orderBy(schema.forex.baseCurrency, schema.forex.targetCurrency, desc(schema.forex.createAt));
 
   if (
-    latestForexes.length > 0 &&
-    latestForexes.every((e) => targetCurrencies.includes(e.targetCurrency))
+    latestForex.length > 0 &&
+    latestForex.every((e) => targetCurrencies.includes(e.targetCurrency))
   ) {
     const resObj: FetchFxRate = {
-      date: latestForexes.at(0)!.date,
-      baseCurrency: from,
+      amount: 1,
+      date: latestForex.at(0)!.date,
+      base: from,
       rates: {},
     };
-    latestForexes.forEach((e) => {
-      resObj.rates[e.targetCurrency] = e.rate;
+    latestForex.forEach((e) => {
+      resObj.rates[e.targetCurrency] = parseFloat(e.rate);
     });
 
     return NextResponse.json(resObj);
   }
 
-  const res = await fetch(`https://api.frankfurter.dev/v1/latest?base=${from}&symbols=${to}`, {
+  const res = await fetch(`https://api.frankfurter.dev/v1/latest?base=${from}`, {
     method: 'GET',
   });
 
@@ -73,22 +74,17 @@ export async function GET(
     );
   }
 
-  const data = await res.json();
-  const refined: FetchFxRate = {
-    date: data.date,
-    baseCurrency: from,
-    rates: data.rates,
-  };
+  const fetched: FetchFxRate = await res.json();
 
-  const insertObj: ForexInsert[] = Object.entries(refined.rates).map(([key, value]) => ({
-    date: refined.date,
+  const insertObj: ForexInsert[] = Object.entries(fetched.rates).map(([key, value]) => ({
+    date: fetched.date,
     baseCurrency: from,
     targetCurrency: key,
-    rate: value,
+    rate: value.toFixed(5),
   }));
   await db.insert(schema.forex).values(insertObj);
 
-  return NextResponse.json(refined);
+  return NextResponse.json(fetched);
 }
 
 type ForexInsert = typeof schema.forex.$inferInsert;
