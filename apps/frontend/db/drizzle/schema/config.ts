@@ -8,6 +8,8 @@ import {
   unique,
   uniqueIndex,
   varchar,
+  date,
+  numeric,
 } from 'drizzle-orm/pg-core';
 
 export const configSchema = pgSchema('config');
@@ -37,7 +39,10 @@ export const countries = configSchema.table(
     createAt: timestamp({ withTimezone: true }).defaultNow(),
     updateAt: timestamp({ withTimezone: true }),
   },
-  (t) => [index('countries_idx_code_id').on(t.code, t.id)],
+  (t) => [
+    index('countries_idx_code_id').on(t.code, t.id),
+    index('countries_idx_code_alpha_2_code').on(t.codeAlpha2, t.code),
+  ],
 );
 
 export const countriesRelations = relations(countries, ({ one }) => ({
@@ -71,3 +76,22 @@ export const currencies = configSchema.table(
 export const currenciesRelations = relations(currencies, ({ many }) => ({
   countriesInUse: many(countries),
 }));
+
+export const forex = configSchema.table(
+  'forex',
+  {
+    id: integer().primaryKey().generatedByDefaultAsIdentity().notNull(),
+    date: date().notNull(),
+    baseCurrency: varchar('base_currency').notNull(),
+    targetCurrency: varchar('target_currency').notNull(),
+    rate: numeric().notNull(),
+    createAt: timestamp('create_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+  },
+  (t) => [
+    index('forex_idx_create_at_base_currency_target_currency').on(
+      t.createAt,
+      t.baseCurrency,
+      t.targetCurrency,
+    ),
+  ],
+);
