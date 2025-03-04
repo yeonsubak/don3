@@ -1,5 +1,9 @@
+import { useGlobalContext } from '@/app/app/global-context';
+import { parseMoney, parseNumber } from '@/components/common-functions';
 import { Combobox } from '@/components/primitives/combobox';
 import { MoneyInput } from '@/components/primitives/money-input';
+import { SkeletonSimple } from '@/components/primitives/skeleton-simple';
+import { QUERIES } from '@/components/tanstack-queries';
 import {
   FormControl,
   FormDescription,
@@ -9,13 +13,11 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import type { CountrySelect, CurrencySelect } from '@/db/drizzle/types';
+import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from 'react';
 import { useWatch, type FieldValue, type FieldValues, type UseFormReturn } from 'react-hook-form';
 import { useTransactionDrawerContext } from '../drawer-context';
-import type { CountrySelect, CurrencySelect } from '@/db/drizzle/types';
-import { useGlobalContext } from '@/app/app/global-context';
-import { Label } from '@/components/ui/label';
-import { parseMoney, parseNumber } from '@/components/common-functions';
 
 type AmountCurrencyFieldProps = {
   amountFieldName: string;
@@ -137,6 +139,21 @@ const FxField = ({
   fxAmountFieldName,
   amountFieldName,
 }: FxFieldProps) => {
+  const {
+    data: fetchedFxRate,
+    isPending,
+    isError,
+    error,
+  } = useQuery(QUERIES.config.getLatestFxRate(targetCurrency, [baseCurrency]));
+  useEffect(() => {
+    if (!fetchedFxRate) return;
+
+    const [{ rate }] = fetchedFxRate;
+    const parsedRate = parseNumber(rate, 5) ?? 1;
+    const normalized = parsedRate.toFixed(parsedRate >= 1 ? 2 : 5);
+    zForm?.setValue(fxRateFieldName!, normalized);
+  }, [fetchedFxRate, baseCurrency, targetCurrency]);
+
   const amountWatch: string = useWatch({ control: zForm?.control, name: amountFieldName! });
   const fxRateWatch: string = useWatch({ control: zForm?.control, name: fxRateFieldName! });
   const inversedFxRate = useMemo(() => {
@@ -161,6 +178,10 @@ const FxField = ({
     () => Number.isFinite(Number(inversedFxRate)),
     [inversedFxRate],
   );
+
+  if (isPending) return <SkeletonSimple heightInPx={20} />;
+
+  if (isError) return <p>Error: ${error.message}</p>;
 
   return (
     <div className="flex flex-row gap-3">
