@@ -1,5 +1,5 @@
 {
-  "id": "bdcc834b-6c92-486e-b3e9-9ca8ee5d0bfd",
+  "id": "03b103eb-93be-4826-a2ae-d67cef343864",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -66,7 +66,38 @@
           "default": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "account_groups_idx_parent_group_id": {
+          "name": "account_groups_idx_parent_group_id",
+          "columns": [
+            {
+              "expression": "parent_group_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "account_groups_idx_type": {
+          "name": "account_groups_idx_type",
+          "columns": [
+            {
+              "expression": "type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "account_groups_parent_group_id_account_groups_id_fk": {
           "name": "account_groups_parent_group_id_account_groups_id_fk",
@@ -176,7 +207,53 @@
           "notNull": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "accounts_idx_type": {
+          "name": "accounts_idx_type",
+          "columns": [
+            {
+              "expression": "type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "accounts_idx_country_id": {
+          "name": "accounts_idx_country_id",
+          "columns": [
+            {
+              "expression": "country_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "accounts_idx_account_group_id": {
+          "name": "accounts_idx_account_group_id",
+          "columns": [
+            {
+              "expression": "account_group_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "accounts_currency_id_currencies_id_fk": {
           "name": "accounts_currency_id_currencies_id_fk",
@@ -299,7 +376,38 @@
           "notNull": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "journal_entries_idx_type": {
+          "name": "journal_entries_idx_type",
+          "columns": [
+            {
+              "expression": "type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "journal_entries_idx_date": {
+          "name": "journal_entries_idx_date",
+          "columns": [
+            {
+              "expression": "date",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "journal_entries_currency_id_currencies_id_fk": {
           "name": "journal_entries_currency_id_currencies_id_fk",
@@ -381,7 +489,35 @@
           "notNull": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "journal_entry_fx_rates_idx_create_at_base_currency_id_target_currency_id": {
+          "name": "journal_entry_fx_rates_idx_create_at_base_currency_id_target_currency_id",
+          "columns": [
+            {
+              "expression": "create_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "base_currency_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "target_currency_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "journal_entry_fx_rates_journal_entry_id_journal_entries_id_fk": {
           "name": "journal_entry_fx_rates_journal_entry_id_journal_entries_id_fk",
@@ -501,7 +637,38 @@
           "notNull": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "transactions_idx_journal_entry_id": {
+          "name": "transactions_idx_journal_entry_id",
+          "columns": [
+            {
+              "expression": "journal_entry_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "transactions_idx_account_id": {
+          "name": "transactions_idx_account_id",
+          "columns": [
+            {
+              "expression": "account_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "transactions_journal_entry_id_journal_entries_id_fk": {
           "name": "transactions_journal_entry_id_journal_entries_id_fk",
@@ -615,6 +782,27 @@
             },
             {
               "expression": "id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "countries_idx_code_alpha_2_code": {
+          "name": "countries_idx_code_alpha_2_code",
+          "columns": [
+            {
+              "expression": "code_alpha2",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "code",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -760,6 +948,95 @@
             }
           ],
           "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "config.forex": {
+      "name": "forex",
+      "schema": "config",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "byDefault",
+            "name": "forex_id_seq",
+            "schema": "config",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "date": {
+          "name": "date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "base_currency": {
+          "name": "base_currency",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "target_currency": {
+          "name": "target_currency",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rate": {
+          "name": "rate",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "create_at": {
+          "name": "create_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "forex_idx_create_at_base_currency_target_currency": {
+          "name": "forex_idx_create_at_base_currency_target_currency",
+          "columns": [
+            {
+              "expression": "create_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "base_currency",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "target_currency",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
           "concurrently": false,
           "method": "btree",
           "with": {}
