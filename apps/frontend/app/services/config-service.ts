@@ -1,9 +1,13 @@
 'use client';
 
 import schema from '@/db/drizzle/schema';
+import type { CurrencySelect, ForexInsert } from '@/db/drizzle/types';
+import { and, between, desc, eq, inArray } from 'drizzle-orm';
+import { DateTime } from 'luxon';
+import type { FetchFxRate } from '../api/get-latest-fx-rate/route';
 import { Service } from './abstract-service';
 
-const { accounts } = schema;
+const { accounts, forex } = schema;
 
 export class ConfigService extends Service {
   protected static instance: ConfigService;
@@ -86,5 +90,52 @@ export class ConfigService extends Service {
           eq(code, 'USD'), // Widely used
         ),
     });
+  }
+
+  public async getLatestFxRate(baseCurrency: CurrencySelect, targetCurrencies: CurrencySelect[]) {
+    const targetCurrencyCodes = targetCurrencies.map((currency) => currency.code);
+
+    const now = DateTime.now();
+    const fourHourBefore = now.minus({ hours: 4 });
+
+    const fxRates = await this.drizzle
+      .selectDistinctOn([forex.baseCurrency, forex.targetCurrency])
+      .from(forex)
+      .where(
+        and(
+          eq(forex.baseCurrency, baseCurrency.code),
+          inArray(forex.targetCurrency, targetCurrencyCodes),
+          between(forex.createAt, fourHourBefore.toJSDate(), now.toJSDate()),
+        ),
+      )
+      .orderBy(forex.baseCurrency, forex.targetCurrency, desc(forex.createAt));
+
+    if (
+      fxRates.length > 0 &&
+      fxRates.every((rate) => targetCurrencyCodes.includes(rate.targetCurrency))
+    ) {
+      return fxRates;
+    }
+
+    const params = new URLSearchParams({
+      baseCurrency: baseCurrency.code,
+      targetCurrency: targetCurrencyCodes.join(','),
+    });
+
+    const fetchedFxRates: FetchFxRate = await (
+      await fetch(`/api/get-latest-fx-rate?${params.toString()}`, { method: 'GET' })
+    ).json();
+
+    const insertObj: ForexInsert[] = Object.entries(fetchedFxRates.rates).map(([key, value]) => ({
+      date: fetchedFxRates.date,
+      baseCurrency: baseCurrency.code,
+      targetCurrency: key,
+      rate: value.toFixed(5),
+    }));
+    const insertResults = await this.drizzle.insert(forex).values(insertObj).returning();
+
+    fxRates.concat(insertResults);
+
+    return fxRates;
   }
 }

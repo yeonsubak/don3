@@ -52,3 +52,6 @@ export type TransactionSelect = typeof schema.transactions.$inferSelect;
 export type AccountGroupType = (typeof schema.accountGroupTypeEnum.enumValues)[number];
 
 export type PgliteTransaction = _PgliteTransaction<typeof schema, Schema>;
+
+export type ForexInsert = typeof schema.forex.$inferInsert;
+export type ForexSelect = typeof schema.forex.$inferSelect;

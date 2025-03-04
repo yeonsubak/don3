@@ -5,13 +5,13 @@ import type { TransactionForm } from '@/components/compositions/manage-transacti
 import schema from '@/db/drizzle/schema';
 import type {
   CurrencySelect,
+  ForexSelect,
   JournalEntryTypeArray,
   PgliteTransaction,
   TransactionInsert,
 } from '@/db/drizzle/types';
 import { and, between, inArray } from 'drizzle-orm';
 import { DateTime } from 'luxon';
-import type { FetchFxRate } from '../api/get-latest-fx-rate/route';
 import { Service } from './abstract-service';
 import { AccountsService } from './accounts-service';
 import { ConfigService } from './config-service';
@@ -40,7 +40,9 @@ export class TransactionService extends Service {
 
   public async getSummary(from: Date, to: Date, baseCurrency: CurrencySelect) {
     const entries = await this.getJournalEntries(['income', 'expense'], { from, to });
-    const currencies = entries.map((entry) => entry.currency);
+    const diffCurrencies = entries
+      .map((entry) => entry.currency)
+      .filter((currency) => currency.id !== baseCurrency.id);
 
     if (entries.length === 0) {
       return {
@@ -49,28 +51,18 @@ export class TransactionService extends Service {
       };
     }
 
-    let fxRates: FetchFxRate | null = null;
-    if (!currencies.every((currency) => currency.id === baseCurrency.id)) {
-      const diffCurrencyCodes = currencies
-        .filter((currency) => currency.id !== baseCurrency.id)
-        .map((currency) => currency.code);
-
-      const params = new URLSearchParams({
-        baseCurrency: baseCurrency.code,
-        targetCurrency: diffCurrencyCodes.join(','),
-      });
-
-      fxRates = await (
-        await fetch(`/api/get-latest-fx-rate?${params.toString()}`, { method: 'GET' })
-      ).json();
+    let fxRates: ForexSelect[] | null = null;
+    if (diffCurrencies.length > 0) {
+      fxRates = await this.configService.getLatestFxRate(baseCurrency, diffCurrencies);
     }
 
     const calculateSummary = (entries: Awaited<ReturnType<typeof this.getJournalEntries>>) =>
       entries.reduce((acc, cur) => {
         const amount = parseNumber(cur.amount, cur.currency.isoDigits) ?? 0;
         if (cur.currencyId !== baseCurrency.id) {
-          const fxRate = parseNumber(fxRates?.rates[cur.currency.code] ?? '', 10) ?? 1;
-          return acc + amount / fxRate;
+          const fxRate = fxRates?.find((fx) => fx.targetCurrency === cur.currency.code);
+          const parsedRate = parseNumber(fxRate?.rate ?? '', 10) ?? 1;
+          return acc + amount / parsedRate;
         }
 
         return acc + amount;

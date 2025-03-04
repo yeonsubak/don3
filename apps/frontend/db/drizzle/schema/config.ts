@@ -85,7 +85,7 @@ export const forex = configSchema.table(
     baseCurrency: varchar('base_currency').notNull(),
     targetCurrency: varchar('target_currency').notNull(),
     rate: numeric().notNull(),
-    createAt: timestamp('create_at', { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+    createAt: timestamp('create_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (t) => [
     index('forex_idx_create_at_base_currency_target_currency').on(
