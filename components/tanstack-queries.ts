@@ -33,6 +33,12 @@ export const QUERIES = {
       queryKey: ['defaultCurrency'],
       queryFn: async () => await (await getConfigService()).getDefaultCurrency(),
     }),
+    getLatestFxRate: (baseCurrency: CurrencySelect, targetCurrencies: CurrencySelect[]) =>
+      queryOptions({
+        queryKey: ['getLatestFxRate'],
+        queryFn: async () =>
+          await (await getConfigService()).getLatestFxRate(baseCurrency, targetCurrencies),
+      }),
   },
   accounts: {
     assetGroupsByCountry: queryOptions({
