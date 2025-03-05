@@ -1,11 +1,13 @@
 'use client';
 
 import { parseNumber } from '@/components/common-functions';
-import type { TransactionForm } from '@/components/compositions/manage-transactions/add-transaction-drawer/form-schema';
+import type {
+  ExpenseTxForm,
+  IncomeTxForm,
+} from '@/components/compositions/manage-transactions/add-transaction-drawer/forms/form-schema';
 import schema from '@/db/drizzle/schema';
 import type {
   CurrencySelect,
-  ForexSelect,
   JournalEntryTypeArray,
   PgliteTransaction,
   TransactionInsert,
@@ -104,12 +106,26 @@ export class TransactionService extends Service {
     return await this.drizzle.query.journalEntries.findFirst({
       where: (journalEntries, { eq }) => eq(journalEntries.id, id),
       with: {
-        transactions: true,
+        transactions: {
+          with: {
+            account: true,
+          },
+        },
+        currency: true,
+        fxRate: true,
       },
     });
   }
 
-  public async insertExpenseTransaction(form: TransactionForm) {
+  public async insertExpenseTransaction(form: ExpenseTxForm) {
+    return this.insertTx(form, 'income');
+  }
+
+  public async insertIncomeTransaction(form: IncomeTxForm) {
+    return this.insertTx(form, 'expense');
+  }
+
+  private async insertTx(form: IncomeTxForm | ExpenseTxForm, type: 'income' | 'expense') {
     const debitAccount = await this.accountsService.getAccountById(form.debitAccountId);
     if (!debitAccount) throw new Error('Invalid debit account');
 
@@ -141,18 +157,18 @@ export class TransactionService extends Service {
         const debitTransaction: TransactionInsert = {
           journalEntryId: journalEntry.id,
           accountId: form.debitAccountId,
-          amount: (amount * -1).toFixed(baseCurrency.isoDigits),
+          amount: amount.toFixed(baseCurrency.isoDigits),
         };
 
         const creditTransaction: TransactionInsert = {
           journalEntryId: journalEntry.id,
           accountId: form.creditAccountId,
-          amount: amount.toFixed(baseCurrency.isoDigits),
+          amount: (amount * -1).toFixed(baseCurrency.isoDigits),
         };
 
         await Promise.all([
-          this.insertTransaction(tx, debitTransaction),
-          this.insertTransaction(tx, creditTransaction),
+          tx.insert(transactions).values(type === 'income' ? creditTransaction : debitTransaction),
+          tx.insert(transactions).values(type === 'income' ? debitTransaction : creditTransaction),
         ]);
 
         return journalEntry.id;
@@ -165,15 +181,11 @@ export class TransactionService extends Service {
     return await this.getJournalEntryById(entryId ?? -1);
   }
 
-  private async insertTransaction(tx: PgliteTransaction, data: TransactionInsert) {
-    await tx.insert(transactions).values(data);
-  }
-
   private async insertJournalEntry(
     tx: PgliteTransaction,
     currencyId: number,
     amount: number,
-    { journalEntryType, date, time, title, description }: TransactionForm,
+    { journalEntryType, date, time, title, description }: ExpenseTxForm,
   ) {
     const systemTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const datetime = DateTime.fromJSDate(date, { zone: systemTimezone });
