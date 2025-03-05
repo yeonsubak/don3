@@ -1,20 +1,14 @@
 import { useGlobalContext } from '@/app/app/global-context';
 import type { CountrySelect } from '@/db/drizzle/types';
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Combobox, type ComboboxItem, type ComboboxProps } from '../primitives/combobox';
 
-interface CountryComboboxProps extends ComboboxProps {
+export interface CountryComboboxProps extends ComboboxProps {
   mode: 'all' | 'inUse';
 }
 
-export const CountryCombobox = ({
-  mode,
-  field,
-  zForm,
-  searchable,
-  ...props
-}: CountryComboboxProps) => {
+export const CountryCombobox = ({ mode, ...props }: CountryComboboxProps) => {
   const { countriesInUse, countries } = useGlobalContext();
   const tCountry = useTranslations('countryCode');
 
@@ -31,7 +25,7 @@ export const CountryCombobox = ({
   };
 
   const [countryItems, setCountryItems] = useState<ComboboxItem<CountrySelect>[]>(
-    mode === 'inUse' ? mapToCountryItems(countries) : mapToCountryItems(countriesInUse),
+    mode === 'inUse' ? mapToCountryItems(countriesInUse) : mapToCountryItems(countries),
   );
 
   return (
@@ -39,12 +33,6 @@ export const CountryCombobox = ({
       items={countryItems}
       searchable={mode === 'all'}
       popoverContentAlign="start"
-      onSelectFn={(currentValue) => {
-        const currencyCode =
-          countriesInUse.find((country) => country.code === currentValue)?.defaultCurrency?.code ??
-          'USD';
-        zForm?.setValue('currencyCode', currencyCode);
-      }}
       {...props}
     />
   );

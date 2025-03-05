@@ -5,11 +5,14 @@ import type {
   JournalEntrySelectWithRelations,
 } from '@/db/drizzle/types';
 import type { ReactNode } from 'react';
+import type { FieldValue, FieldValues, UseFormReturn } from 'react-hook-form';
 
 export interface TxFormProps {
   footer: ReactNode;
   onSuccess: (entry: JournalEntrySelectWithRelations[]) => Promise<void>;
 }
+
+export type Form = UseFormReturn<FieldValue<FieldValues>>;
 
 export const mapAccounts = (
   groupAccountsByCountry: GroupAccountsByCountry,
@@ -30,3 +33,5 @@ export const mapAccounts = (
     })),
   }));
 };
+
+export type AccountComboItem = ReturnType<typeof mapAccounts>[number];
