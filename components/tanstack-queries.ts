@@ -3,7 +3,7 @@
 import { AccountsService } from '@/app/services/accounts-service';
 import { ConfigService } from '@/app/services/config-service';
 import { TransactionService } from '@/app/services/transaction-service';
-import type { CurrencySelect, JournalEntryTypeArray } from '@/db/drizzle/types';
+import type { AccountGroupType, CurrencySelect, JournalEntryTypeArray } from '@/db/drizzle/types';
 import { queryOptions } from '@tanstack/react-query';
 
 const getConfigService = async () => await ConfigService.getInstance<ConfigService>();
@@ -41,14 +41,11 @@ export const QUERIES = {
       }),
   },
   accounts: {
-    assetGroupsByCountry: queryOptions({
-      queryKey: ['assetGroupsByCountry'],
-      queryFn: async () => await (await getAccountsService()).getAcountsByCountry('asset'),
-    }),
-    expenseGroupsByCountry: queryOptions({
-      queryKey: ['expenseGroupsByCountry'],
-      queryFn: async () => await (await getAccountsService()).getAcountsByCountry('expense'),
-    }),
+    getAccountGroupsByCountry: (groupType: AccountGroupType) =>
+      queryOptions({
+        queryKey: ['getAccountsByCountry', groupType],
+        queryFn: async () => await (await getAccountsService()).getAcountsByCountry(groupType),
+      }),
   },
   transaction: {
     getSummary: (from: Date, to: Date, baseCurrency: CurrencySelect) =>

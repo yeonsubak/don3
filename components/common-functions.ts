@@ -35,6 +35,7 @@ export const getDecimalSeparator = (locale?: string) => {
 export const parseMoney = (
   value: string,
   { isoDigits }: CurrencySelect,
+  forceMinimumDigits?: boolean,
 ): { value: number; formatted: string } => {
   const parsedValue = parseNumber(value, isoDigits);
   if (!parsedValue) return { value: 0, formatted: '' };
@@ -44,6 +45,7 @@ export const parseMoney = (
 
   const result = new Intl.NumberFormat(undefined, {
     maximumFractionDigits: isoDigits,
+    minimumFractionDigits: forceMinimumDigits ? isoDigits : undefined,
   }).format(parsedValue);
   return {
     value: parsedValue,

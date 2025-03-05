@@ -5,6 +5,7 @@ import {
   flattenComboboxItems,
   type ComboboxItem,
 } from '@/components/primitives/combobox';
+import { SkeletonSimple } from '@/components/primitives/skeleton-simple';
 import { QUERIES } from '@/components/tanstack-queries';
 import {
   Form,
@@ -21,23 +22,20 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueries } from '@tanstack/react-query';
 import { DateTime } from 'luxon';
 import { useTranslations } from 'next-intl';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
-import { TimeSelector } from '../../time-selector';
-import { AmountCurrencyField } from './fields/amount-currency-field';
-import { CalendarField } from './fields/calendar-field';
-import { mapAccounts } from './common-functions';
-import { useTransactionDrawerContext } from './drawer-context';
-import { transactionForm, type TransactionForm } from './form-schema';
-import { useTransactionContext } from '@/components/compositions/manage-transactions/transaction-context';
+import { TimeSelector } from '../../../time-selector';
+import { AmountCurrencyField } from '../fields/amount-currency-field';
+import { CalendarField } from '../fields/calendar-field';
+import { mapAccounts, type TxFormProps } from './common';
+import { expenseTxForm, type ExpenseTxForm } from './form-schema';
 
-export const ExpenseForm = ({ footer }: { footer: ReactNode }) => {
-  const { countriesInUse, defaultCurrency } = useGlobalContext();
-  const { setOpen } = useTransactionDrawerContext();
+export const ExpenseForm = ({ footer, onSuccess }: TxFormProps) => {
+  const { countriesInUse } = useGlobalContext();
 
   const curDate = DateTime.now();
-  const form = useForm<TransactionForm>({
-    resolver: zodResolver(transactionForm),
+  const form = useForm<ExpenseTxForm>({
+    resolver: zodResolver(expenseTxForm),
     defaultValues: {
       date: curDate.toJSDate(),
       time: { hour: curDate.get('hour'), minute: curDate.get('minute') },
@@ -56,15 +54,21 @@ export const ExpenseForm = ({ footer }: { footer: ReactNode }) => {
   });
 
   const {
-    data: { assetGroupsByCountry, expenseGroupsByCountry },
+    data: { assetGroupsByCountry, liabilityGroupsByCountry, expenseGroupsByCountry },
+    isPending,
     isError,
     error,
   } = useQueries({
-    queries: [QUERIES.accounts.assetGroupsByCountry, QUERIES.accounts.expenseGroupsByCountry],
+    queries: [
+      QUERIES.accounts.getAccountGroupsByCountry('asset'),
+      QUERIES.accounts.getAccountGroupsByCountry('liability'),
+      QUERIES.accounts.getAccountGroupsByCountry('expense'),
+    ],
     combine: (results) => ({
       data: {
         assetGroupsByCountry: results[0].data,
-        expenseGroupsByCountry: results[1].data,
+        liabilityGroupsByCountry: results[1].data,
+        expenseGroupsByCountry: results[2].data,
       },
       isPending: results.some((result) => result.isPending),
       isError: results.some((result) => result.isError),
@@ -89,38 +93,30 @@ export const ExpenseForm = ({ footer }: { footer: ReactNode }) => {
 
   const countryCodeWatch = useWatch({ control: form.control, name: 'countryCode' });
   useEffect(() => {
-    if (assetGroupsByCountry)
-      setPaidByAccounts(mapAccounts(assetGroupsByCountry, countryCodeWatch));
-    if (expenseGroupsByCountry)
-      setCategoryAccounts(mapAccounts(expenseGroupsByCountry, countryCodeWatch));
-    // TODO: Add liability accounts
-  }, [countryCodeWatch, assetGroupsByCountry, expenseGroupsByCountry, form]);
+    if (assetGroupsByCountry && liabilityGroupsByCountry) {
+      const assets = mapAccounts(assetGroupsByCountry, countryCodeWatch);
+      const liabilities = mapAccounts(liabilityGroupsByCountry, countryCodeWatch);
+      setPaidByAccounts([...assets, ...liabilities]);
+    }
+  }, [countryCodeWatch, assetGroupsByCountry, liabilityGroupsByCountry]);
+  useEffect(() => {
+    if (expenseGroupsByCountry) {
+      const expenses = mapAccounts(expenseGroupsByCountry, countryCodeWatch);
+      setCategoryAccounts(expenses);
+    }
+  }, [countryCodeWatch, expenseGroupsByCountry]);
 
-  if (isError) {
-    return error.map((e) => <p key={e?.name}>Error: ${e?.message}</p>);
-  }
-
-  const {
-    calendarDateState: [calendarDate],
-    incomeSummaryState: [income, setIncome],
-    expenseSummaryState: [expense, setExpense],
-  } = useTransactionContext();
-
-  const onSubmit = async (form: TransactionForm) => {
+  const onSubmit = async (form: ExpenseTxForm) => {
     const transactionService = await TransactionService.getInstance<TransactionService>();
     const insertedEntry = await transactionService.insertExpenseTransaction(form);
-    console.log('insertedEntry', insertedEntry);
-    // TODO: add page update logic
-    const summary = await transactionService.getSummary(
-      calendarDate?.from!,
-      calendarDate?.to!,
-      defaultCurrency!,
-    );
-    setIncome(summary.income);
-    setExpense(summary.expense);
+    if (!insertedEntry) throw new Error('Error ocurred while on inserting the transaction.');
 
-    setOpen(false);
+    await onSuccess([insertedEntry]);
   };
+
+  if (isError) return error.map((e) => <p key={e?.name}>Error: ${e?.message}</p>);
+
+  if (isPending) return <SkeletonSimple heightInPx={97} />;
 
   return (
     <Form {...form}>

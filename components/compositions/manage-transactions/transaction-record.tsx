@@ -1,22 +1,17 @@
-import { AccountIcon } from '@/components/primitives/account-icon';
-import { Badge } from '@/components/ui/badge';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { flexRender, getCoreRowModel, useReactTable, type ColumnDef } from '@tanstack/react-table';
-import { cn } from '@/lib/utils';
-import { useTransactionContext } from './transaction-context';
-import { useQuery } from '@tanstack/react-query';
-import { QUERIES } from '@/components/tanstack-queries';
-import { useEffect } from 'react';
-import type { AccountSelect, JournalEntryType } from '@/db/drizzle/types';
 import { parseMoney } from '@/components/common-functions';
+import { AccountIcon } from '@/components/primitives/account-icon';
 import { SkeletonSimple } from '@/components/primitives/skeleton-simple';
+import { QUERIES } from '@/components/tanstack-queries';
+import { Badge } from '@/components/ui/badge';
+import type {
+  AccountSelect,
+  JournalEntrySelectWithRelations,
+  JournalEntryType,
+} from '@/db/drizzle/types';
+import { cn } from '@/lib/utils';
+import { useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
+import { useTransactionContext } from './transaction-context';
 
 export type TransactionItem = {
   id: number;
@@ -27,6 +22,27 @@ export type TransactionItem = {
   category: string;
   icon: string;
   date: Date;
+};
+
+export const mapToTransactionItems = (
+  entries: JournalEntrySelectWithRelations[],
+): TransactionItem[] => {
+  return entries.map(({ id, amount, title, currency, type, transactions, date }) => {
+    type Tx = (typeof transactions)[number] & { account: AccountSelect };
+    const tx = transactions as Tx[];
+    const creditTx = tx.find((_tx) => _tx.account.type === 'credit');
+
+    return {
+      id,
+      date,
+      title: title ?? '',
+      currencySymbol: currency.symbol,
+      amount: parseMoney(amount, currency, true)?.formatted,
+      type,
+      category: creditTx?.account.name ?? '',
+      icon: creditTx?.account.icon ?? '',
+    };
+  });
 };
 
 type TransactionRecordProps = {
@@ -52,25 +68,8 @@ export const TransactionRecord = () => {
   useEffect(() => {
     if (!entries) return;
 
-    const records: TransactionItem[] = entries.map(
-      ({ id, amount, title, currency, type, transactions, date }) => {
-        type Tx = (typeof transactions)[number] & { account: AccountSelect };
-        const tx = transactions as Tx[];
-        const creditTx = tx.find((_tx) => _tx.account.type === 'credit');
-
-        return {
-          id,
-          date,
-          title: title ?? '',
-          currencySymbol: currency.symbol,
-          amount: parseMoney(amount, currency)?.formatted,
-          type,
-          category: creditTx?.account.name ?? '',
-          icon: creditTx?.account.icon ?? '',
-        };
-      },
-    );
-
+    const records: TransactionItem[] = mapToTransactionItems(entries);
+    records.sort((a, b) => b.date.getTime() - a.date.getTime());
     setTransactionRecord(records);
   }, [entries]);
 
@@ -107,12 +106,13 @@ const TransactionMobile = ({ items }: TransactionRecordProps) => {
                 <p className="text-xs text-zinc-600 dark:text-zinc-400">
                   {date.toLocaleDateString()}
                 </p>
+                <Badge variant="secondary">{category}</Badge>
               </div>
             </div>
             <div className="flex items-center gap-1.5 pl-3">
               <span
                 className={cn(
-                  'text-sm font-medium',
+                  'text-right text-sm font-medium',
                   type === 'income'
                     ? 'text-emerald-600 dark:text-emerald-400'
                     : type === 'expense'
@@ -247,7 +247,7 @@ const TransactionDesktop = ({ items }: TransactionRecordProps) => {
                 <td className="px-4 py-4 whitespace-nowrap">
                   <div
                     className={cn(
-                      'text-sm font-medium',
+                      'text-right text-sm font-medium',
                       type === 'income'
                         ? 'text-emerald-600 dark:text-emerald-400'
                         : type === 'expense'
