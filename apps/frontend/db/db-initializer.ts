@@ -3,7 +3,7 @@ import { count, type InferInsertModel, type TableConfig } from 'drizzle-orm';
 import type { PgTable } from 'drizzle-orm/pg-core';
 import { drizzle } from 'drizzle-orm/pglite';
 import { DATASET_ACCOUNT_GROUPS } from './dataset/account-groups';
-import { DATASET_ASSET_ACCOUNTS, DATASET_EXPENSE_ACCOUNTS } from './dataset/accounts';
+import { DATASET_ACCOUNTS } from './dataset/accounts';
 import { DATASET_COUNTRY } from './dataset/country';
 import { DATASET_CURRENCY_FIAT } from './dataset/currency';
 import schema from './drizzle/schema';
@@ -183,8 +183,7 @@ export class DBInitializer {
 
     await Promise.all([
       insertDataset(DATASET_ACCOUNT_GROUPS, schema.accountGroups),
-      insertDataset(DATASET_ASSET_ACCOUNTS, schema.accounts),
-      insertDataset(DATASET_EXPENSE_ACCOUNTS, schema.accounts),
+      insertDataset(DATASET_ACCOUNTS, schema.accounts),
     ]);
   }
 
