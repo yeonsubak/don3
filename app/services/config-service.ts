@@ -98,7 +98,7 @@ export class ConfigService extends Service {
     const now = DateTime.now();
     const fourHourBefore = now.minus({ hours: 4 });
 
-    const fxRates = await this.drizzle
+    let fxRates = await this.drizzle
       .selectDistinctOn([forex.baseCurrency, forex.targetCurrency])
       .from(forex)
       .where(
@@ -109,6 +109,7 @@ export class ConfigService extends Service {
         ),
       )
       .orderBy(forex.baseCurrency, forex.targetCurrency, desc(forex.createAt));
+    console.log('');
 
     if (
       fxRates.length > 0 &&
@@ -132,9 +133,7 @@ export class ConfigService extends Service {
       targetCurrency: key,
       rate: value.toFixed(5),
     }));
-    const insertResults = await this.drizzle.insert(forex).values(insertObj).returning();
-
-    fxRates.concat(insertResults);
+    fxRates = await this.drizzle.insert(forex).values(insertObj).returning();
 
     return fxRates;
   }
