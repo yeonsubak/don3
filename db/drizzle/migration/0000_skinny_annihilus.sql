@@ -2,7 +2,7 @@ CREATE SCHEMA "app";
 --> statement-breakpoint
 CREATE SCHEMA "config";
 --> statement-breakpoint
-CREATE TYPE "public"."account_group_type" AS ENUM('asset', 'liability', 'expense', 'uncategorized');--> statement-breakpoint
+CREATE TYPE "public"."account_group_type" AS ENUM('asset', 'liability', 'income', 'expense', 'uncategorized');--> statement-breakpoint
 CREATE TYPE "public"."account_type" AS ENUM('debit', 'credit');--> statement-breakpoint
 CREATE TYPE "public"."journal_entry_type" AS ENUM('income', 'expense', 'transfer');--> statement-breakpoint
 CREATE TYPE "public"."currency_type" AS ENUM('fiat', 'crypto');--> statement-breakpoint

@@ -17,7 +17,6 @@ import { countries, currencies } from './config';
 export const appSchema = pgSchema('app');
 
 export const accountTypeEnum = pgEnum('account_type', ['debit', 'credit']);
-
 export const accounts = appSchema.table(
   'accounts',
   {
@@ -45,7 +44,6 @@ export const accounts = appSchema.table(
     index('accounts_idx_account_group_id').on(t.accountGroupId),
   ],
 );
-
 export const accountsRelations = relations(accounts, ({ one }) => ({
   group: one(accountGroups, {
     fields: [accounts.accountGroupId],
@@ -64,10 +62,10 @@ export const accountsRelations = relations(accounts, ({ one }) => ({
 export const accountGroupTypeEnum = pgEnum('account_group_type', [
   'asset',
   'liability',
+  'income',
   'expense',
   'uncategorized',
 ]);
-
 export const accountGroups = appSchema.table(
   'account_groups',
   {
@@ -86,7 +84,6 @@ export const accountGroups = appSchema.table(
     index('account_groups_idx_type').on(t.type),
   ],
 );
-
 export const accountGroupsRelations = relations(accountGroups, ({ one, many }) => ({
   accounts: many(accounts),
   parentGroup: one(accountGroups, {
@@ -100,7 +97,6 @@ export const accountGroupsRelations = relations(accountGroups, ({ one, many }) =
 }));
 
 export const journalEntryTypeEnum = pgEnum('journal_entry_type', ['income', 'expense', 'transfer']);
-
 export const journalEntries = appSchema.table(
   'journal_entries',
   {
@@ -121,7 +117,6 @@ export const journalEntries = appSchema.table(
     index('journal_entries_idx_date').on(t.date),
   ],
 );
-
 export const journalEntriesRelations = relations(journalEntries, ({ many, one }) => ({
   transactions: many(transactions),
   fxRate: one(journalEntryFxRates, {
@@ -164,7 +159,6 @@ export const journalEntryFxRates = appSchema.table(
     ),
   ],
 );
-
 export const journalEntryFxRatesRelations = relations(journalEntryFxRates, ({ one }) => ({
   journalEntry: one(journalEntries, {
     fields: [journalEntryFxRates.journalEntryId],
@@ -200,7 +194,6 @@ export const transactions = appSchema.table(
     index('transactions_idx_account_id').on(t.accountId),
   ],
 );
-
 export const transactionsRelations = relations(transactions, ({ one }) => ({
   journalEntry: one(journalEntries, {
     fields: [transactions.journalEntryId],

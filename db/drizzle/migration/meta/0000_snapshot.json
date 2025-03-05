@@ -1,5 +1,5 @@
 {
-  "id": "03b103eb-93be-4826-a2ae-d67cef343864",
+  "id": "e2a88af3-356c-4ab8-988b-a3ccfa7aa88e",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -1129,6 +1129,7 @@
       "values": [
         "asset",
         "liability",
+        "income",
         "expense",
         "uncategorized"
       ]
