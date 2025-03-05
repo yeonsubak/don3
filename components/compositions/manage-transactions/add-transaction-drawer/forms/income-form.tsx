@@ -1,5 +1,6 @@
 import { useGlobalContext } from '@/app/app/global-context';
 import { TransactionService } from '@/app/services/transaction-service';
+import { CountryCombobox } from '@/components/compositions/country-combobox';
 import { TimeSelector } from '@/components/compositions/time-selector';
 import type { ComboboxItem } from '@/components/primitives/combobox';
 import { Combobox, flattenComboboxItems } from '@/components/primitives/combobox';
@@ -69,20 +70,9 @@ export const IncomeForm = ({ footer, onSuccess }: TxFormProps) => {
     }),
   });
 
-  const [countryItems, setCountryItems] = useState<ComboboxItem<CountrySelect>[]>([]);
   const [accounts, setAccounts] = useState<ComboboxItem[]>([]);
   const [categoryAccounts, setCategoryAccounts] = useState<ComboboxItem[]>([]);
   const tCountry = useTranslations('countryCode');
-
-  useEffect(() => {
-    setCountryItems(
-      countriesInUse.map((country) => ({
-        label: tCountry(country.code),
-        value: country.code,
-        data: country,
-      })),
-    );
-  }, [countriesInUse, tCountry]);
 
   const countryCodeWatch = useWatch({ control: form.control, name: 'countryCode' });
   useEffect(() => {
@@ -146,19 +136,7 @@ export const IncomeForm = ({ footer, onSuccess }: TxFormProps) => {
             <FormItem className="flex flex-col">
               <FormLabel>Country</FormLabel>
               <FormControl>
-                <Combobox
-                  items={countryItems}
-                  field={field}
-                  zForm={form}
-                  searchable={false}
-                  popoverContentAlign="start"
-                  onSelectFn={(currentValue) => {
-                    const currencyCode =
-                      countriesInUse.find((country) => country.code === currentValue)
-                        ?.defaultCurrency?.code ?? 'USD';
-                    form.setValue('currencyCode', currencyCode);
-                  }}
-                />
+                <CountryCombobox mode="inUse" field={field} zForm={form} />
               </FormControl>
             </FormItem>
           )}
