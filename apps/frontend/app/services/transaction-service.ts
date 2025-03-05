@@ -51,10 +51,10 @@ export class TransactionService extends Service {
       };
     }
 
-    let fxRates: ForexSelect[] | null = null;
-    if (diffCurrencies.length > 0) {
-      fxRates = await this.configService.getLatestFxRate(baseCurrency, diffCurrencies);
-    }
+    const fxRates =
+      diffCurrencies.length > 0
+        ? await this.configService.getLatestFxRate(baseCurrency, diffCurrencies)
+        : null;
 
     const calculateSummary = (entries: Awaited<ReturnType<typeof this.getJournalEntries>>) =>
       entries.reduce((acc, cur) => {
