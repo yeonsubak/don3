@@ -1,30 +1,20 @@
 import { useGlobalContext } from '@/app/app/global-context';
 import { TransactionService } from '@/app/services/transaction-service';
-import { CountryCombobox } from '@/components/compositions/country-combobox';
-import { TimeSelector } from '@/components/compositions/time-selector';
-import type { ComboboxItem } from '@/components/primitives/combobox';
-import { Combobox, flattenComboboxItems } from '@/components/primitives/combobox';
 import { QUERIES } from '@/components/tanstack-queries';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import type { AccountSelectWithRelations, CountrySelect } from '@/db/drizzle/types';
+import { Form } from '@/components/ui/form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueries } from '@tanstack/react-query';
 import { DateTime } from 'luxon';
-import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
+import { AccountField } from '../fields/account-field';
 import { AmountCurrencyField } from '../fields/amount-currency-field';
-import { CalendarField } from '../fields/calendar-field';
-import { mapAccounts, type TxFormProps } from './common';
+import { CountryField } from '../fields/country-field';
+import { DateField } from '../fields/date-field';
+import { DescriptionField } from '../fields/description-field';
+import { TimeField } from '../fields/time-field';
+import { TitleField } from '../fields/title-field';
+import { mapAccounts, type AccountComboItem, type TxFormProps } from './common';
 import { incomeTxForm, type IncomeTxForm } from './form-schema';
 
 export const IncomeForm = ({ footer, onSuccess }: TxFormProps) => {
@@ -70,9 +60,8 @@ export const IncomeForm = ({ footer, onSuccess }: TxFormProps) => {
     }),
   });
 
-  const [accounts, setAccounts] = useState<ComboboxItem[]>([]);
-  const [categoryAccounts, setCategoryAccounts] = useState<ComboboxItem[]>([]);
-  const tCountry = useTranslations('countryCode');
+  const [accounts, setAccounts] = useState<AccountComboItem[]>([]);
+  const [categoryAccounts, setCategoryAccounts] = useState<AccountComboItem[]>([]);
 
   const countryCodeWatch = useWatch({ control: form.control, name: 'countryCode' });
   useEffect(() => {
@@ -104,90 +93,22 @@ export const IncomeForm = ({ footer, onSuccess }: TxFormProps) => {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-2 px-4">
         <div className="grid grid-cols-2 grid-rows-1 gap-3">
-          <FormField
-            control={form.control}
-            name="date"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Date</FormLabel>
-                <CalendarField field={field} closeOnSelect />
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="time"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Time</FormLabel>
-                <FormControl>
-                  <TimeSelector field={field} zForm={form} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <DateField zForm={form} />
+          <TimeField zForm={form} />
         </div>
-        <FormField
-          control={form.control}
-          name="countryCode"
-          render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel>Country</FormLabel>
-              <FormControl>
-                <CountryCombobox mode="inUse" field={field} zForm={form} />
-              </FormControl>
-            </FormItem>
-          )}
-        />
+        <CountryField zForm={form} />
         <div className="grid grid-cols-2 grid-rows-1 gap-3">
-          <FormField
-            control={form.control}
-            name="debitAccountId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Account</FormLabel>
-                <FormControl>
-                  <Combobox
-                    items={accounts}
-                    field={field}
-                    zForm={form}
-                    onSelectFn={(currentValue) => {
-                      const flat = flattenComboboxItems(
-                        accounts,
-                      ) as ComboboxItem<AccountSelectWithRelations>[];
-                      const paidByAccount = flat.find(
-                        (account) => account.value === currentValue,
-                      )?.data;
-                      if (paidByAccount) {
-                        form.setValue('currencyCode', paidByAccount.currency.code);
-                      }
-                    }}
-                    popoverContentClass="w-fit"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+          <AccountField
+            label="Account"
+            fieldName="debitAccountId"
+            accountItems={accounts}
+            zForm={form}
           />
-          <FormField
-            control={form.control}
-            name="creditAccountId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Category</FormLabel>
-                <FormControl>
-                  <Combobox
-                    items={categoryAccounts}
-                    field={field}
-                    zForm={form}
-                    popoverContentClass="w-fit"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+          <AccountField
+            label="Category"
+            fieldName="creditAccountId"
+            accountItems={categoryAccounts}
+            zForm={form}
           />
         </div>
         <AmountCurrencyField
@@ -198,32 +119,8 @@ export const IncomeForm = ({ footer, onSuccess }: TxFormProps) => {
           isFxFieldName="isFx"
           zForm={form}
         />
-        <FormField
-          control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Title</FormLabel>
-              <FormControl>
-                <Input type="text" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <Textarea rows={6} {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <TitleField zForm={form} />
+        <DescriptionField zForm={form} />
         {footer}
       </form>
     </Form>

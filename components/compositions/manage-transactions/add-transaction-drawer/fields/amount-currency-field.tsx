@@ -16,8 +16,9 @@ import { Input } from '@/components/ui/input';
 import type { CountrySelect, CurrencySelect } from '@/db/drizzle/types';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from 'react';
-import { useWatch, type FieldValue, type FieldValues, type UseFormReturn } from 'react-hook-form';
+import { useWatch } from 'react-hook-form';
 import { useTransactionDrawerContext } from '../drawer-context';
+import type { Form } from '../forms/common';
 
 type AmountCurrencyFieldProps = {
   amountFieldName: string;
@@ -25,7 +26,7 @@ type AmountCurrencyFieldProps = {
   fxRateFieldName: string;
   fxAmountFieldName: string;
   isFxFieldName: string;
-  zForm?: UseFormReturn<FieldValue<FieldValues>>;
+  zForm?: Form;
   setFxRateOpen?: Dispatch<SetStateAction<boolean>>;
 };
 
