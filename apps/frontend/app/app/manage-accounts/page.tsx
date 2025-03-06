@@ -1,14 +1,16 @@
 'use client';
 
 import { AccountsService, type GroupAccountsByCountry } from '@/app/services/accounts-service';
-import { AccountGroupTopLevel } from '@/components/compositions/manage-accounts/account-group-top-level';
-import type { accounts } from '@/db/drizzle/schema';
-import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { cn } from '@/lib/utils';
-import type { CountrySelect } from '@/db/drizzle/types';
 import { ConfigService } from '@/app/services/config-service';
+import { AccountGroupTopLevel } from '@/components/compositions/manage-accounts/account-group-top-level';
+import schema from '@/db/drizzle/schema';
+import type { CountrySelect } from '@/db/drizzle/types';
+import { cn } from '@/lib/utils';
+import { useQuery } from '@tanstack/react-query';
+import { useTranslations } from 'next-intl';
+import { useState } from 'react';
+
+const { accounts } = schema;
 
 export type AccountList = (typeof accounts.$inferSelect)[];
 

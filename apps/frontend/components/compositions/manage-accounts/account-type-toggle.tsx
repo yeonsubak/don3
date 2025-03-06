@@ -1,9 +1,11 @@
 'use client';
 
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { accounts } from '@/db/drizzle/schema';
+import schema from '@/db/drizzle/schema';
 import { cn } from '@/lib/utils';
 import type { ControllerRenderProps } from 'react-hook-form';
+
+const { accounts } = schema;
 
 export const AccountTypeToggle = (field: ControllerRenderProps) => {
   return (
@@ -24,7 +26,7 @@ export const AccountTypeToggle = (field: ControllerRenderProps) => {
               'capitalize',
               accountType === 'debit'
                 ? 'data-[state=on]:bg-blue-400'
-                : 'data-[state=on]:bg-rose-400'
+                : 'data-[state=on]:bg-rose-400',
             )}
           >
             {accountType}

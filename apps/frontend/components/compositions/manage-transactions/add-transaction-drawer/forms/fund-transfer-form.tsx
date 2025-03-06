@@ -82,7 +82,7 @@ export const FundTransferForm = ({ footer, onSuccess }: TxFormProps) => {
     }
 
     setAccounts(mapped);
-  }, [assetGroupsByCountry, liabilityGroupsByCountry]);
+  }, [assetGroupsByCountry, liabilityGroupsByCountry, countriesInUse, isMultiCountry, tCountry]);
 
   if (isError) {
     return error.map((e) => <p key={e?.name}>Error: ${e?.message}</p>);

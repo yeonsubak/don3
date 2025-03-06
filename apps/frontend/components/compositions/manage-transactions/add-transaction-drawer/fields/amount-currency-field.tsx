@@ -13,9 +13,9 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import type { CountrySelect, CurrencySelect } from '@/db/drizzle/types';
+import type { CurrencySelect } from '@/db/drizzle/types';
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from 'react';
+import { useCallback, useEffect, useMemo, useRef, type Dispatch, type SetStateAction } from 'react';
 import { useWatch } from 'react-hook-form';
 import { useTransactionDrawerContext } from '../drawer-context';
 import type { Form } from '../forms/common';
@@ -40,29 +40,51 @@ export const AmountCurrencyField = ({
 }: AmountCurrencyFieldProps) => {
   const { countries } = useGlobalContext();
   const { currencyComboItems, currencies } = useTransactionDrawerContext();
-  const [defaultCurrency, setDefaultCurrency] = useState<CurrencySelect>();
-  const [selectedCurrency, setSelectedCurrency] = useState<CurrencySelect>();
-  const [selectedCountry, setSelectedCountry] = useState<CountrySelect>();
 
   const currencyCodeWatch = useWatch({ control: zForm?.control, name: 'currencyCode' });
-  useEffect(() => {
-    setSelectedCurrency(currencies.find((currency) => currency.code === currencyCodeWatch));
-  }, [currencyCodeWatch, currencies]);
-
   const countryCodeWatch = useWatch({ control: zForm?.control, name: 'countryCode' });
-  useEffect(() => {
-    const country = countries.find((country) => country.code === countryCodeWatch);
-    setSelectedCountry(country);
-    setDefaultCurrency(currencies.find((currency) => currency.id === country?.defaultCurrencyId));
-  }, [countryCodeWatch, countries, currencies]);
 
-  const isFxRateOpen = useMemo<boolean>(() => {
-    const result = selectedCurrency?.id !== selectedCountry?.defaultCurrencyId;
-    if (result) {
-      zForm?.setValue(isFxFieldName, true);
+  const selectedCurrency = useMemo(
+    () => currencies.find((currency) => currency.code === currencyCodeWatch),
+    [currencyCodeWatch, currencies],
+  );
+  const selectedCountry = useMemo(
+    () => countries.find((country) => country.code === countryCodeWatch),
+    [countryCodeWatch, countries],
+  );
+  const defaultCurrency = useMemo(
+    () => currencies.find((currency) => currency.id === selectedCountry?.defaultCurrencyId),
+    [selectedCountry, currencies],
+  );
+
+  const isFxRateOpen = useMemo(
+    () => selectedCurrency?.id !== selectedCountry?.defaultCurrencyId,
+    [selectedCurrency, selectedCountry],
+  );
+
+  const setValueRef = useRef(zForm?.setValue);
+  const getValuesRef = useRef(zForm?.getValues);
+
+  useEffect(() => {
+    setValueRef.current = zForm?.setValue;
+    getValuesRef.current = zForm?.getValues;
+  }, [zForm]);
+
+  useEffect(() => {
+    if (isFxRateOpen) {
+      setValueRef.current?.(isFxFieldName, true);
     }
-    return result;
-  }, [selectedCurrency, selectedCountry]);
+  }, [isFxRateOpen, isFxFieldName]);
+
+  useEffect(() => {
+    if (!isFxRateOpen || !selectedCurrency || !selectedCountry) return;
+
+    const isDiff = selectedCurrency.id !== selectedCountry.defaultCurrencyId;
+    const curVal = getValuesRef.current?.(isFxFieldName);
+    if (isDiff !== curVal) {
+      setValueRef.current?.(isFxFieldName, isDiff);
+    }
+  }, [selectedCurrency, selectedCountry, isFxRateOpen, isFxFieldName]);
 
   return (
     <>
@@ -148,14 +170,21 @@ const FxField = ({
     isError,
     error,
   } = useQuery(QUERIES.config.getLatestFxRate(targetCurrency, [baseCurrency]));
+
+  const setValueRef = useRef(zForm?.setValue);
+  const getValuesRef = useRef(zForm?.getValues);
+
   useEffect(() => {
-    if (!fetchedFxRate) return;
+    if (!fetchedFxRate || !fxRateFieldName) return;
 
     const [{ rate }] = fetchedFxRate;
     const parsedRate = parseNumber(rate, 5) ?? 1;
     const normalized = parsedRate.toFixed(parsedRate >= 1 ? 2 : 5);
-    zForm?.setValue(fxRateFieldName!, normalized);
-  }, [fetchedFxRate, baseCurrency, targetCurrency]);
+
+    if (getValuesRef.current?.(fxRateFieldName) !== normalized) {
+      setValueRef.current?.(fxRateFieldName, normalized);
+    }
+  }, [fetchedFxRate, fxRateFieldName]);
 
   const amountWatch: string = useWatch({ control: zForm?.control, name: amountFieldName! });
   const fxRateWatch: string = useWatch({ control: zForm?.control, name: fxRateFieldName! });
@@ -166,19 +195,22 @@ const FxField = ({
         : (parseNumber(fxRateWatch, 10) ?? 0);
     const digits = inversed > 1 ? 2 : 10;
     return inversed.toFixed(digits);
-  }, [fxRateWatch]);
+  }, [fxRateWatch, mode]);
 
-  const exchange = (rate: string) => {
-    const exchangeRate = parseNumber(rate, 10) ?? 0;
-    const amount = parseNumber(amountWatch, baseCurrency.isoDigits) ?? 0;
-    const exchanged = amount * exchangeRate;
-    return parseMoney(exchanged.toFixed(baseCurrency.isoDigits), baseCurrency);
-  };
+  const exchange = useCallback(
+    (rate: string) => {
+      const exchangeRate = parseNumber(rate, 10) ?? 0;
+      const amount = parseNumber(amountWatch, baseCurrency.isoDigits) ?? 0;
+      const exchanged = amount * exchangeRate;
+      return parseMoney(exchanged.toFixed(baseCurrency.isoDigits), baseCurrency);
+    },
+    [amountWatch, baseCurrency],
+  );
 
   useEffect(() => {
     const { formatted } = exchange(fxRateWatch);
-    zForm?.setValue(fxAmountFieldName!, formatted);
-  }, [amountWatch, fxRateWatch]);
+    setValueRef.current?.(fxAmountFieldName!, formatted);
+  }, [amountWatch, fxRateWatch, exchange, fxAmountFieldName]);
 
   const isInverseFxRateFinite = useMemo(
     () => Number.isFinite(Number(inversedFxRate)),
@@ -258,33 +290,32 @@ export const TransferAmountCurrencyField = ({
 }: AmountCurrencyFieldProps) => {
   const { accounts } = useGlobalContext();
   const { currencyComboItems } = useTransactionDrawerContext();
-  const [debitCurrency, setDebitCurrency] = useState<CurrencySelect>();
-  const [creditCurrency, setCreditCurrency] = useState<CurrencySelect>();
 
   const debitAccountWatch = useWatch({ control: zForm?.control, name: 'debitAccountId' });
-  useEffect(() => {
-    const debitAccount = accounts.find(({ id }) => id === parseInt(debitAccountWatch));
-    if (debitAccount) {
-      setDebitCurrency(debitAccount?.currency);
-    }
-  }, [accounts, debitAccountWatch]);
-
   const creditAccountWatch = useWatch({ control: zForm?.control, name: 'creditAccountId' });
-  useEffect(() => {
+
+  const debitCurrency = useMemo(() => {
+    const debitAccount = accounts.find(({ id }) => id === parseInt(debitAccountWatch));
+    return debitAccount?.currency;
+  }, [accounts, debitAccountWatch]);
+  const creditCurrency = useMemo(() => {
     const creditAccount = accounts.find(({ id }) => id === Number(creditAccountWatch));
-    if (creditAccount) {
-      setCreditCurrency(creditAccount.currency);
+    return creditAccount?.currency;
+  }, [accounts, creditAccountWatch]);
+
+  const isFxRateOpen = useMemo(
+    () => debitCurrency && creditCurrency && debitCurrency.id !== creditCurrency.id,
+    [debitCurrency, creditCurrency],
+  );
+
+  const setValueRef = useRef(zForm?.setValue);
+
+  useEffect(() => {
+    setValueRef.current?.('isFx', isFxRateOpen);
+    if (creditCurrency) {
+      setValueRef.current?.('currencyCode', creditCurrency.code);
     }
-
-    const isFx =
-      [debitCurrency, creditAccount].every((value) => !!value) &&
-      debitCurrency?.id !== creditAccount?.currency?.id;
-    zForm?.setValue('isFx', isFx);
-    zForm?.setValue('currencyCode', creditAccount?.currency?.code);
-  }, [accounts, creditAccountWatch, debitCurrency]);
-
-  const isFxWatch = useWatch({ control: zForm?.control, name: 'isFx' });
-  const isFxRateOpen = useMemo<boolean>(() => isFxWatch, [isFxWatch]);
+  }, [isFxRateOpen, creditCurrency]);
 
   return (
     <>
