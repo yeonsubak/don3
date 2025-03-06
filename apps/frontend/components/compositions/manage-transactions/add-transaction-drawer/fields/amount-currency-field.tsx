@@ -78,7 +78,7 @@ export const AmountCurrencyField = ({
                   items={currencyComboItems}
                   field={field}
                   zForm={zForm}
-                  buttenLabelRenderFn={() => {
+                  buttonLabelRenderFn={() => {
                     const currency = currencyComboItems.find(
                       (currency) => currency.value === field.value,
                     );
@@ -300,7 +300,7 @@ export const TransferAmountCurrencyField = ({
                   items={currencyComboItems}
                   field={field}
                   zForm={zForm}
-                  buttenLabelRenderFn={() => {
+                  buttonLabelRenderFn={() => {
                     const currency = currencyComboItems.find(
                       (currency) => currency.value === field.value,
                     );

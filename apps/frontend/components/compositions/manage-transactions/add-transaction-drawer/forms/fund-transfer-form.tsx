@@ -18,7 +18,7 @@ import { mapAccounts, type AccountComboItem, type TxFormProps } from './common';
 import { fundTransferTxForm, type FundTransferTxForm } from './form-schema';
 
 export const FundTransferForm = ({ footer, onSuccess }: TxFormProps) => {
-  const { countriesInUse } = useGlobalContext();
+  const { countriesInUse, isMultiCountry } = useGlobalContext();
 
   const curDate = DateTime.now();
   const form = useForm<FundTransferTxForm>({
@@ -62,18 +62,26 @@ export const FundTransferForm = ({ footer, onSuccess }: TxFormProps) => {
   const [accounts, setAccounts] = useState<AccountComboItem[]>([]);
   const tCountry = useTranslations('countryCode');
   useEffect(() => {
-    if (assetGroupsByCountry && liabilityGroupsByCountry) {
-      const accounts = structuredClone(assetGroupsByCountry);
-      Object.entries(liabilityGroupsByCountry).forEach(([countryCode, groups]) => {
-        accounts[countryCode].push(...groups);
-      });
-      const mapped = mapAccounts(accounts);
+    if (!assetGroupsByCountry || !liabilityGroupsByCountry) return;
+
+    const accounts = structuredClone(assetGroupsByCountry);
+    Object.entries(liabilityGroupsByCountry).forEach(([countryCode, groups]) => {
+      accounts[countryCode].push(...groups);
+    });
+
+    let mapped = mapAccounts(accounts);
+    if (isMultiCountry) {
       mapped.forEach((e) => {
         const country = countriesInUse.find((c) => c.code === e.value);
-        e.label = `${tCountry(e.label)} ${country?.emoji}`;
+        e.label = `${country?.emoji} ${tCountry(e.label)}`;
       });
-      setAccounts(mapped);
+    } else {
+      mapped = Object.values(mapped)
+        .flatMap((e) => e.children)
+        .filter((e) => !!e);
     }
+
+    setAccounts(mapped);
   }, [assetGroupsByCountry, liabilityGroupsByCountry]);
 
   if (isError) {
@@ -101,12 +109,14 @@ export const FundTransferForm = ({ footer, onSuccess }: TxFormProps) => {
             fieldName="debitAccountId"
             accountItems={accounts}
             zForm={form}
+            formType="transfer"
           />
           <AccountField
             label="To"
             fieldName="creditAccountId"
             accountItems={accounts}
             zForm={form}
+            formType="transfer"
           />
         </div>
         <TransferAmountCurrencyField

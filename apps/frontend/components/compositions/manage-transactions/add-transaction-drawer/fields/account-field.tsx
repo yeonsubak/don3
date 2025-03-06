@@ -2,7 +2,6 @@ import {
   Combobox,
   flattenComboboxItems,
   type ComboboxItem,
-  type ComboboxProps,
 } from '@/components/primitives/combobox';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import type { AccountSelectWithRelations, JournalEntryType } from '@/db/drizzle/types';
@@ -15,14 +14,15 @@ type AccountFieldProps = {
   fieldName: FormFieldName;
   accountItems: AccountComboItem[];
   zForm: Form;
-} & { keyRenderFn?: ComboboxProps['keyRenderFn'] };
+  formType?: JournalEntryType;
+};
 
 export const AccountField = ({
   label,
   fieldName,
   zForm,
   accountItems,
-  keyRenderFn,
+  formType,
 }: AccountFieldProps) => {
   const journalEntryType: JournalEntryType = useWatch({
     control: zForm.control,
@@ -45,22 +45,32 @@ export const AccountField = ({
     <FormField
       control={zForm.control}
       name={fieldName}
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>{label}</FormLabel>
-          <FormControl>
-            <Combobox
-              items={accountItems}
-              field={field}
-              zForm={zForm}
-              onSelectFn={defaultOnSelectFn}
-              popoverContentClass="w-fit"
-              keyRenderFn={keyRenderFn}
-            />
-          </FormControl>
-          <FormMessage />
-        </FormItem>
-      )}
+      render={({ field }) => {
+        const buttonLabelWithFlag = () => {
+          const items = flattenComboboxItems(
+            accountItems,
+          ) as ComboboxItem<AccountSelectWithRelations>[];
+          const account = items.find((account) => account.value === field.value);
+          return account ? `${account?.data?.country.emoji} ${account?.label}` : 'Select';
+        };
+
+        return (
+          <FormItem>
+            <FormLabel>{label}</FormLabel>
+            <FormControl>
+              <Combobox
+                items={accountItems}
+                field={field}
+                zForm={zForm}
+                onSelectFn={defaultOnSelectFn}
+                popoverContentClass="w-fit"
+                buttonLabelRenderFn={formType === 'transfer' ? buttonLabelWithFlag : undefined}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        );
+      }}
     />
   );
 };
