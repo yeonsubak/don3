@@ -27,6 +27,7 @@ export type AccountSelectWithRelations = InferResultType<
   'accounts',
   { group: true; country: true; currency: true }
 >;
+export type AccountType = (typeof schema.accountTypeEnum.enumValues)[number];
 
 export type AccountGroupInsert = typeof schema.accountGroups.$inferInsert;
 export type AccountGroupSelect = typeof schema.accountGroups.$inferSelect;

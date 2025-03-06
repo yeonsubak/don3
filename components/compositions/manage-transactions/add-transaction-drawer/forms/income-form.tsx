@@ -83,7 +83,7 @@ export const IncomeForm = ({ footer, onSuccess }: TxFormProps) => {
 
   const onSubmit = async (form: IncomeTxForm) => {
     const transactionService = await TransactionService.getInstance<TransactionService>();
-    const insertedEntry = await transactionService.insertIncomeTransaction(form);
+    const insertedEntry = await transactionService.insertTransaction(form);
     if (!insertedEntry) throw new Error('Error ocurred while on inserting the transaction.');
 
     await onSuccess([insertedEntry]);

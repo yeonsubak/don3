@@ -70,8 +70,6 @@ export class DBInitializer {
       await this.insertPresetData();
     }
 
-    console.log('DB Initialization completed.');
-
     DBInitializer.isInitialized = true;
   }
 

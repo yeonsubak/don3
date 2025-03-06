@@ -16,22 +16,34 @@ export type Form = UseFormReturn<FieldValue<FieldValues>>;
 
 export const mapAccounts = (
   groupAccountsByCountry: GroupAccountsByCountry,
-  countryCode: string,
+  countryCode?: string,
 ): ComboboxItem<AccountSelectWithRelations>[] => {
-  const groups = groupAccountsByCountry[countryCode];
-  if (!groups) {
-    return [];
-  }
-
-  return groups.map((group) => ({
-    label: group.name,
-    value: group.name,
-    children: group.accounts.map((account) => ({
+  const mapItems = (item: GroupAccountsByCountry[string][number]) => ({
+    label: item.name,
+    value: item.name,
+    children: item.accounts.map((account) => ({
       label: account.name,
       value: account.id.toString(),
       data: account,
     })),
-  }));
+  });
+
+  if (!countryCode) {
+    return Object.entries(groupAccountsByCountry).reduce((acc, cur) => {
+      const [countryCode, groups] = cur;
+      const obj = {
+        label: countryCode,
+        value: countryCode,
+        children: groups.map(mapItems),
+      };
+      acc.push(obj);
+      return acc;
+    }, [] as ComboboxItem<AccountSelectWithRelations>[]);
+  }
+
+  const groups = groupAccountsByCountry[countryCode];
+  if (!groups) return [];
+  return groups.map(mapItems);
 };
 
 export type AccountComboItem = ReturnType<typeof mapAccounts>[number];

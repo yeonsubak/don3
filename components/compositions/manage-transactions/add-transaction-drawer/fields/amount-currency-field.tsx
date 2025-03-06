@@ -130,6 +130,7 @@ export const AmountCurrencyField = ({
 type FxFieldProps = {
   baseCurrency: CurrencySelect;
   targetCurrency: CurrencySelect;
+  mode?: 'normal' | 'inverse';
 } & Partial<AmountCurrencyFieldProps>;
 
 const FxField = ({
@@ -139,6 +140,7 @@ const FxField = ({
   fxRateFieldName,
   fxAmountFieldName,
   amountFieldName,
+  mode = 'normal',
 }: FxFieldProps) => {
   const {
     data: fetchedFxRate,
@@ -158,7 +160,10 @@ const FxField = ({
   const amountWatch: string = useWatch({ control: zForm?.control, name: amountFieldName! });
   const fxRateWatch: string = useWatch({ control: zForm?.control, name: fxRateFieldName! });
   const inversedFxRate = useMemo(() => {
-    const inversed = 1 / (parseNumber(fxRateWatch, 10) ?? 0);
+    const inversed =
+      mode === 'normal'
+        ? 1 / (parseNumber(fxRateWatch, 10) ?? 0)
+        : (parseNumber(fxRateWatch, 10) ?? 0);
     const digits = inversed > 1 ? 2 : 10;
     return inversed.toFixed(digits);
   }, [fxRateWatch]);
@@ -241,5 +246,106 @@ const FxField = ({
         />
       </div>
     </div>
+  );
+};
+
+export const TransferAmountCurrencyField = ({
+  currencyFieldName,
+  amountFieldName,
+  fxRateFieldName,
+  fxAmountFieldName,
+  zForm,
+}: AmountCurrencyFieldProps) => {
+  const { accounts } = useGlobalContext();
+  const { currencyComboItems } = useTransactionDrawerContext();
+  const [debitCurrency, setDebitCurrency] = useState<CurrencySelect>();
+  const [creditCurrency, setCreditCurrency] = useState<CurrencySelect>();
+
+  const debitAccountWatch = useWatch({ control: zForm?.control, name: 'debitAccountId' });
+  useEffect(() => {
+    const debitAccount = accounts.find(({ id }) => id === parseInt(debitAccountWatch));
+    if (debitAccount) {
+      setDebitCurrency(debitAccount?.currency);
+    }
+  }, [accounts, debitAccountWatch]);
+
+  const creditAccountWatch = useWatch({ control: zForm?.control, name: 'creditAccountId' });
+  useEffect(() => {
+    const creditAccount = accounts.find(({ id }) => id === Number(creditAccountWatch));
+    if (creditAccount) {
+      setCreditCurrency(creditAccount.currency);
+    }
+
+    const isFx =
+      [debitCurrency, creditAccount].every((value) => !!value) &&
+      debitCurrency?.id !== creditAccount?.currency?.id;
+    zForm?.setValue('isFx', isFx);
+    zForm?.setValue('currencyCode', creditAccount?.currency?.code);
+  }, [accounts, creditAccountWatch, debitCurrency]);
+
+  const isFxWatch = useWatch({ control: zForm?.control, name: 'isFx' });
+  const isFxRateOpen = useMemo<boolean>(() => isFxWatch, [isFxWatch]);
+
+  return (
+    <>
+      <FormLabel>Amount</FormLabel>
+      <div className="flex flex-row gap-3">
+        <FormField
+          control={zForm?.control}
+          name={currencyFieldName}
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Combobox
+                  items={currencyComboItems}
+                  field={field}
+                  zForm={zForm}
+                  buttenLabelRenderFn={() => {
+                    const currency = currencyComboItems.find(
+                      (currency) => currency.value === field.value,
+                    );
+                    return currency?.label.split('-').map((e) => e.trim())[0] ?? '';
+                  }}
+                  isChevron={false}
+                  popoverButtonClass="min-w-[3.25rem] w-fit justify-center"
+                  popoverContentClass="w-80"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={zForm?.control}
+          name={amountFieldName}
+          render={({ field }) => (
+            <FormItem className="grow self-end">
+              <FormControl>
+                <MoneyInput
+                  currency={debitCurrency!}
+                  placeholder={`0${(debitCurrency?.isoDigits ?? 0 > 0) ? '.'.padEnd((debitCurrency?.isoDigits ?? 0) + 1, '0') : ''}`}
+                  field={field}
+                  zForm={zForm}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+      {isFxRateOpen ? (
+        <FxField
+          zForm={zForm}
+          baseCurrency={debitCurrency!}
+          targetCurrency={creditCurrency!}
+          fxRateFieldName={fxRateFieldName}
+          amountFieldName={amountFieldName}
+          fxAmountFieldName={fxAmountFieldName}
+          mode="inverse"
+        />
+      ) : (
+        <></>
+      )}
+    </>
   );
 };

@@ -3,6 +3,7 @@
 import { parseNumber } from '@/components/common-functions';
 import type {
   ExpenseTxForm,
+  FundTransferTxForm,
   IncomeTxForm,
 } from '@/components/compositions/manage-transactions/add-transaction-drawer/forms/form-schema';
 import schema from '@/db/drizzle/schema';
@@ -117,15 +118,7 @@ export class TransactionService extends Service {
     });
   }
 
-  public async insertExpenseTransaction(form: ExpenseTxForm) {
-    return this.insertTx(form, 'income');
-  }
-
-  public async insertIncomeTransaction(form: IncomeTxForm) {
-    return this.insertTx(form, 'expense');
-  }
-
-  private async insertTx(form: IncomeTxForm | ExpenseTxForm, type: 'income' | 'expense') {
+  public async insertTransaction(form: IncomeTxForm | ExpenseTxForm | FundTransferTxForm) {
     const debitAccount = await this.accountsService.getAccountById(form.debitAccountId);
     if (!debitAccount) throw new Error('Invalid debit account');
 
@@ -157,18 +150,22 @@ export class TransactionService extends Service {
         const debitTransaction: TransactionInsert = {
           journalEntryId: journalEntry.id,
           accountId: form.debitAccountId,
-          amount: amount.toFixed(baseCurrency.isoDigits),
+          amount: (amount * (form.journalEntryType == 'expense' ? -1 : 1)).toFixed(
+            baseCurrency.isoDigits,
+          ),
         };
 
         const creditTransaction: TransactionInsert = {
           journalEntryId: journalEntry.id,
           accountId: form.creditAccountId,
-          amount: (amount * -1).toFixed(baseCurrency.isoDigits),
+          amount: (amount * (form.journalEntryType == 'expense' ? 1 : -1)).toFixed(
+            baseCurrency.isoDigits,
+          ),
         };
 
         await Promise.all([
-          tx.insert(transactions).values(type === 'income' ? creditTransaction : debitTransaction),
-          tx.insert(transactions).values(type === 'income' ? debitTransaction : creditTransaction),
+          tx.insert(transactions).values(debitTransaction),
+          tx.insert(transactions).values(creditTransaction),
         ]);
 
         return journalEntry.id;
@@ -185,7 +182,13 @@ export class TransactionService extends Service {
     tx: PgliteTransaction,
     currencyId: number,
     amount: number,
-    { journalEntryType, date, time, title, description }: ExpenseTxForm,
+    {
+      journalEntryType,
+      date,
+      time,
+      title,
+      description,
+    }: IncomeTxForm | ExpenseTxForm | FundTransferTxForm,
   ) {
     const systemTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const datetime = DateTime.fromJSDate(date, { zone: systemTimezone });
