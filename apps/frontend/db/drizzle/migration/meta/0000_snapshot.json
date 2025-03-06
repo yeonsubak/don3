@@ -1,5 +1,5 @@
 {
-  "id": "e2a88af3-356c-4ab8-988b-a3ccfa7aa88e",
+  "id": "d9f8acf6-15f0-4ba4-9dcb-4b4173140918",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -149,7 +149,7 @@
         },
         "type": {
           "name": "type",
-          "type": "account_type",
+          "type": "debit_credit_enum",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
@@ -598,6 +598,13 @@
             "cache": "1",
             "cycle": false
           }
+        },
+        "type": {
+          "name": "type",
+          "type": "debit_credit_enum",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
         },
         "journal_entry_id": {
           "name": "journal_entry_id",
@@ -1134,8 +1141,8 @@
         "uncategorized"
       ]
     },
-    "public.account_type": {
-      "name": "account_type",
+    "public.debit_credit_enum": {
+      "name": "debit_credit_enum",
       "schema": "public",
       "values": [
         "debit",

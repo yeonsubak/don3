@@ -16,13 +16,13 @@ import { countries, currencies } from './config';
 
 export const appSchema = pgSchema('app');
 
-export const accountTypeEnum = pgEnum('account_type', ['debit', 'credit']);
+export const debitCreditEnum = pgEnum('debit_credit_enum', ['debit', 'credit']);
 export const accounts = appSchema.table(
   'accounts',
   {
     id: integer().primaryKey().generatedByDefaultAsIdentity().notNull(),
     name: varchar({ length: 255 }).notNull(),
-    type: accountTypeEnum().notNull(),
+    type: debitCreditEnum().notNull(),
     currencyId: integer()
       .references(() => currencies.id, { onDelete: 'restrict' })
       .notNull(),
@@ -178,6 +178,7 @@ export const transactions = appSchema.table(
   'transactions',
   {
     id: integer().primaryKey().generatedByDefaultAsIdentity().notNull(),
+    type: debitCreditEnum().notNull(),
     journalEntryId: integer()
       .notNull()
       .references(() => journalEntries.id), // TODO: Add onDelete, onUpdate policy

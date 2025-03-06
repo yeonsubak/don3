@@ -14,16 +14,9 @@ type AccountFieldProps = {
   fieldName: FormFieldName;
   accountItems: AccountComboItem[];
   zForm: Form;
-  formType?: JournalEntryType;
 };
 
-export const AccountField = ({
-  label,
-  fieldName,
-  zForm,
-  accountItems,
-  formType,
-}: AccountFieldProps) => {
+export const AccountField = ({ label, fieldName, zForm, accountItems }: AccountFieldProps) => {
   const journalEntryType: JournalEntryType = useWatch({
     control: zForm.control,
     name: 'journalEntryType',
@@ -64,7 +57,9 @@ export const AccountField = ({
                 zForm={zForm}
                 onSelectFn={defaultOnSelectFn}
                 popoverContentClass="w-fit"
-                buttonLabelRenderFn={formType === 'transfer' ? buttonLabelWithFlag : undefined}
+                buttonLabelRenderFn={
+                  journalEntryType === 'transfer' ? buttonLabelWithFlag : undefined
+                }
               />
             </FormControl>
             <FormMessage />
