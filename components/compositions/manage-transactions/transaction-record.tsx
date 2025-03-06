@@ -71,7 +71,7 @@ export const TransactionRecord = () => {
     const records: TransactionItem[] = mapToTransactionItems(entries);
     records.sort((a, b) => b.date.getTime() - a.date.getTime());
     setTransactionRecord(records);
-  }, [entries]);
+  }, [entries, setTransactionRecord]);
 
   if (isPending) return <SkeletonSimple heightInPx={97} />;
 

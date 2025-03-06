@@ -83,7 +83,13 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
     setCountries(fetchedCountries ?? []);
     setCurrencies(fetchedCurrencies ?? []);
     setAccounts(fetchedAccounts ?? []);
-  }, [fetchedCountriesInUse, fetchedDefaultCurrency, fetchedCurrencies, fetchedAccounts]);
+  }, [
+    fetchedCountries,
+    fetchedCountriesInUse,
+    fetchedDefaultCurrency,
+    fetchedCurrencies,
+    fetchedAccounts,
+  ]);
 
   if (isPending) {
     return <Skeleton className="h-full w-full" />;

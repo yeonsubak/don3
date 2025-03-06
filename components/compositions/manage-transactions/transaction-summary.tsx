@@ -33,7 +33,7 @@ export const TransactionSummary = ({ dateRange: { from, to } }: TransactionSumma
     const { income, expense } = summary;
     setIncome(income);
     setExpense(expense);
-  }, [summary]);
+  }, [summary, setIncome, setExpense]);
 
   // const [expense, setExpense] = useState<number>(0);
   const total = useMemo(() => income - expense, [income, expense]);
