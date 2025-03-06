@@ -18,6 +18,7 @@ const notoColorEmoji = Noto_Color_Emoji({
   display: 'swap',
   preload: true,
   variable: '--font-noto-color-emoji',
+  fallback: ['Pretendard Variable'],
 });
 
 export const metadata: Metadata = {

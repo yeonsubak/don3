@@ -73,7 +73,7 @@
 
 @layer utilities {
   body {
-    font-family: var(--font-pretendard);
+    font-family: var(--font-pretendard), var(--font-noto-color-emoji);
   }
 }
 
@@ -162,12 +162,6 @@
   }
   body {
     @apply bg-background text-foreground;
-  }
-}
-
-@layer components {
-  .emoji {
-    font-family: var(--font-noto-color-emoji);
   }
 }
 
