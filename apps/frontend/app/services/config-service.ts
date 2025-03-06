@@ -109,7 +109,6 @@ export class ConfigService extends Service {
         ),
       )
       .orderBy(forex.baseCurrency, forex.targetCurrency, desc(forex.createAt));
-    console.log('');
 
     if (
       fxRates.length > 0 &&

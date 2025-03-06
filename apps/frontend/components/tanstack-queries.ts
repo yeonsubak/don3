@@ -46,6 +46,10 @@ export const QUERIES = {
         queryKey: ['getAccountsByCountry', groupType],
         queryFn: async () => await (await getAccountsService()).getAcountsByCountry(groupType),
       }),
+    getAllAccounts: queryOptions({
+      queryKey: ['getAllAccounts'],
+      queryFn: async () => await (await getAccountsService()).getAllAccounts(),
+    }),
   },
   transaction: {
     getSummary: (from: Date, to: Date, baseCurrency: CurrencySelect) =>

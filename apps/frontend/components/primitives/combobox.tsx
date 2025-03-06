@@ -1,6 +1,5 @@
 'use client';
 
-import { Check, ChevronsUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Command,
@@ -12,6 +11,7 @@ import {
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
+import { Check, ChevronsUpDown } from 'lucide-react';
 import { useState } from 'react';
 import type {
   ControllerRenderProps,
@@ -20,7 +20,6 @@ import type {
   UseFormReturn,
 } from 'react-hook-form';
 import type { TailwindClass } from '../common-types';
-import { Separator } from '../ui/separator';
 
 export interface ComboboxItem<T = unknown> {
   label: string;
@@ -28,6 +27,7 @@ export interface ComboboxItem<T = unknown> {
   keywords?: string[];
   data?: T;
   children?: ComboboxItem<T>[];
+  recursiveCnt?: number;
 }
 
 export type ComboboxProps = {
@@ -45,6 +45,7 @@ export type ComboboxProps = {
   popoverContentClass?: TailwindClass;
   popoverContentSide?: 'top' | 'right' | 'bottom' | 'left';
   popoverContentAlign?: 'start' | 'center' | 'end';
+  keyRenderFn?: (item: ComboboxItem) => string;
 };
 
 export const flattenComboboxItems = (items: ComboboxItem[]): ComboboxItem[] => {
@@ -77,20 +78,22 @@ export const Combobox = ({
   popoverContentClass,
   popoverContentSide = 'bottom',
   popoverContentAlign = 'center',
+  keyRenderFn,
 }: ComboboxProps) => {
   const [open, setOpen] = useState(false);
 
   const Item = (item: ComboboxItem) => {
     if (item.children && item.children.length > 0) {
       return (
-        <>
-          <CommandGroup heading={item.label}>
-            {item.children.map((child) => (
-              <Item key={child.value} {...child} />
-            ))}
-          </CommandGroup>
-          <Separator />
-        </>
+        <CommandGroup heading={item.label} className="this-is-command-group">
+          {item.children.map((child) => (
+            <Item
+              key={keyRenderFn ? keyRenderFn(child) : child.value}
+              recursiveCnt={item.recursiveCnt}
+              {...child}
+            />
+          ))}
+        </CommandGroup>
       );
     }
 
@@ -137,7 +140,9 @@ export const Combobox = ({
           {searchable ? <CommandInput placeholder={searchPlaceholder} /> : <></>}
           <CommandList>
             <CommandEmpty>{notFoundPlaceholder}</CommandEmpty>
-            {items?.map((item) => <Item key={item.value} {...item} />)}
+            {items?.map((item) => (
+              <Item key={keyRenderFn ? keyRenderFn(item) : item.value} {...item} />
+            ))}
           </CommandList>
         </Command>
       </PopoverContent>

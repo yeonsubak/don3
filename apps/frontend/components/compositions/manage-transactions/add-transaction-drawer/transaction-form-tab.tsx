@@ -9,6 +9,7 @@ import { useTransactionContext } from '../transaction-context';
 import { mapToTransactionItems } from '../transaction-record';
 import { useTransactionDrawerContext } from './drawer-context';
 import { ExpenseForm } from './forms/expense-form';
+import { FundTransferForm } from './forms/fund-transfer-form';
 import { IncomeForm } from './forms/income-form';
 
 export const TransactionFormTab = ({ footer }: { footer: ReactNode }) => {
@@ -62,7 +63,9 @@ export const TransactionFormTab = ({ footer }: { footer: ReactNode }) => {
       <TabsContent value="income">
         <IncomeForm footer={footer} onSuccess={onSuccess} />
       </TabsContent>
-      <TabsContent value="transfer"></TabsContent>
+      <TabsContent value="transfer">
+        <FundTransferForm footer={footer} onSuccess={onSuccess} />
+      </TabsContent>
     </Tabs>
   );
 };
