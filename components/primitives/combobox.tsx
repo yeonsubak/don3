@@ -20,6 +20,7 @@ import type {
   UseFormReturn,
 } from 'react-hook-form';
 import type { TailwindClass } from '../common-types';
+import { Separator } from '../ui/separator';
 
 export interface ComboboxItem<T = unknown> {
   label: string;
@@ -39,7 +40,7 @@ export type ComboboxProps = {
   field?: ControllerRenderProps<FieldValue<FieldValues>>;
   zForm?: UseFormReturn<FieldValue<FieldValues>>;
   isChevron?: boolean;
-  buttenLabelRenderFn?: () => string;
+  buttonLabelRenderFn?: () => string;
   onSelectFn?: (currentValue: string) => void;
   popoverButtonClass?: TailwindClass;
   popoverContentClass?: TailwindClass;
@@ -63,7 +64,7 @@ export const Combobox = ({
   field,
   zForm,
   isChevron = true,
-  buttenLabelRenderFn = () => {
+  buttonLabelRenderFn = () => {
     if (field?.value && field.value.length > 0) {
       return (
         flattenComboboxItems(items ?? []).find((item) => item.value === field.value)?.label ??
@@ -82,25 +83,29 @@ export const Combobox = ({
 }: ComboboxProps) => {
   const [open, setOpen] = useState(false);
 
-  const Item = (item: ComboboxItem) => {
-    if (item.children && item.children.length > 0) {
+  const Item = ({ children, label, recursiveCnt = 0, value, keywords, data }: ComboboxItem) => {
+    if (children && children.length > 0) {
+      recursiveCnt += 1;
       return (
-        <CommandGroup heading={item.label} className="this-is-command-group">
-          {item.children.map((child) => (
-            <Item
-              key={keyRenderFn ? keyRenderFn(child) : child.value}
-              recursiveCnt={item.recursiveCnt}
-              {...child}
-            />
-          ))}
-        </CommandGroup>
+        <>
+          <CommandGroup heading={label} className="this-is-command-group">
+            {children.map((child) => (
+              <Item
+                key={keyRenderFn ? keyRenderFn(child) : child.value}
+                recursiveCnt={recursiveCnt}
+                {...child}
+              />
+            ))}
+          </CommandGroup>
+          {recursiveCnt === 1 ? <Separator /> : <></>}
+        </>
       );
     }
 
     return (
       <CommandItem
-        value={item.value}
-        keywords={item.keywords ?? [item.label]}
+        value={value}
+        keywords={keywords ?? [label]}
         onSelect={(currentValue) => {
           if (onSelectFn) {
             onSelectFn(currentValue);
@@ -109,12 +114,12 @@ export const Combobox = ({
           zForm?.setValue(field!.name, currentValue);
           setOpen(false);
         }}
-        data={item.data}
+        data={data}
       >
         <Check
-          className={cn('mr-2 h-4 w-4', field?.value === item.value ? 'opacity-100' : 'opacity-0')}
+          className={cn('mr-2 h-4 w-4', field?.value === value ? 'opacity-100' : 'opacity-0')}
         />
-        {item.label}
+        {label}
       </CommandItem>
     );
   };
@@ -127,7 +132,7 @@ export const Combobox = ({
           role="combobox"
           className={cn('justify-between', popoverButtonClass ? popoverButtonClass : 'w-full')}
         >
-          <span className="overflow-hidden text-ellipsis">{buttenLabelRenderFn()}</span>
+          <span className="overflow-hidden text-ellipsis">{buttonLabelRenderFn()}</span>
           {isChevron ? <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" /> : <></>}
         </Button>
       </PopoverTrigger>
