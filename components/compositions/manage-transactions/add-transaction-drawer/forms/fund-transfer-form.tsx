@@ -109,14 +109,12 @@ export const FundTransferForm = ({ footer, onSuccess }: TxFormProps) => {
             fieldName="debitAccountId"
             accountItems={accounts}
             zForm={form}
-            formType="transfer"
           />
           <AccountField
             label="To"
             fieldName="creditAccountId"
             accountItems={accounts}
             zForm={form}
-            formType="transfer"
           />
         </div>
         <TransferAmountCurrencyField

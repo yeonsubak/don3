@@ -30,7 +30,7 @@ export const mapToTransactionItems = (
   return entries.map(({ id, amount, title, currency, type, transactions, date }) => {
     type Tx = (typeof transactions)[number] & { account: AccountSelect };
     const tx = transactions as Tx[];
-    const creditTx = tx.find((_tx) => _tx.account.type === 'credit');
+    const creditTx = tx.find((e) => e.type === 'credit') as Tx;
 
     return {
       id,

@@ -147,20 +147,19 @@ export class TransactionService extends Service {
           });
         }
 
+        const signIdentifier = form.journalEntryType === 'income' ? 1 : -1;
         const debitTransaction: TransactionInsert = {
+          type: 'debit',
           journalEntryId: journalEntry.id,
           accountId: form.debitAccountId,
-          amount: (amount * (form.journalEntryType == 'expense' ? -1 : 1)).toFixed(
-            baseCurrency.isoDigits,
-          ),
+          amount: (amount * signIdentifier).toFixed(baseCurrency.isoDigits),
         };
 
         const creditTransaction: TransactionInsert = {
+          type: 'credit',
           journalEntryId: journalEntry.id,
           accountId: form.creditAccountId,
-          amount: (amount * (form.journalEntryType == 'expense' ? 1 : -1)).toFixed(
-            baseCurrency.isoDigits,
-          ),
+          amount: (amount * signIdentifier * -1).toFixed(baseCurrency.isoDigits),
         };
 
         await Promise.all([

@@ -341,7 +341,6 @@ export const TransferAmountCurrencyField = ({
           fxRateFieldName={fxRateFieldName}
           amountFieldName={amountFieldName}
           fxAmountFieldName={fxAmountFieldName}
-          mode="inverse"
         />
       ) : (
         <></>
