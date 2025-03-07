@@ -4,7 +4,7 @@ import {
   type ComboboxItem,
 } from '@/components/primitives/combobox';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import type { AccountSelectWithRelations, JournalEntryType } from '@/db/drizzle/types';
+import type { AccountSelectAll, JournalEntryType } from '@/db/drizzle/types';
 import { useWatch } from 'react-hook-form';
 import type { AccountComboItem, Form } from '../forms/common';
 import type { FormFieldName } from '../forms/form-schema';
@@ -27,7 +27,7 @@ export const AccountField = ({ label, fieldName, zForm, accountItems }: AccountF
       return;
     }
 
-    const flat = flattenComboboxItems(accountItems) as ComboboxItem<AccountSelectWithRelations>[];
+    const flat = flattenComboboxItems(accountItems) as ComboboxItem<AccountSelectAll>[];
     const debitAccount = flat.find((account) => account.value === currentValue)?.data;
     if (debitAccount) {
       zForm.setValue('currencyCode', debitAccount.currency.code);
@@ -40,9 +40,7 @@ export const AccountField = ({ label, fieldName, zForm, accountItems }: AccountF
       name={fieldName}
       render={({ field }) => {
         const buttonLabelWithFlag = () => {
-          const items = flattenComboboxItems(
-            accountItems,
-          ) as ComboboxItem<AccountSelectWithRelations>[];
+          const items = flattenComboboxItems(accountItems) as ComboboxItem<AccountSelectAll>[];
           const account = items.find((account) => account.value === field.value);
           return account ? `${account?.data?.country.emoji} ${account?.label}` : 'Select';
         };

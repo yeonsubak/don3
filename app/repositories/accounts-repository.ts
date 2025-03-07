@@ -1,5 +1,10 @@
 import { accounts } from '@/db/drizzle/schema';
-import type { AccountGroupType, AccountInsert } from '@/db/drizzle/types';
+import type {
+  AccountGroupType,
+  AccountInsert,
+  AccountSelect,
+  AccountSelectAll,
+} from '@/db/drizzle/types';
 import { Repository } from './abstract-repository';
 
 export class AccountsRepository extends Repository {
@@ -17,7 +22,7 @@ export class AccountsRepository extends Repository {
     return AccountsRepository.instance;
   }
 
-  public async getAllAccounts() {
+  public async getAllAccounts(): Promise<AccountSelectAll[]> {
     return await this.db.query.accounts.findMany({
       with: {
         currency: true,
@@ -27,8 +32,20 @@ export class AccountsRepository extends Repository {
     });
   }
 
+  public async getAccountById(id: number): Promise<AccountSelectAll | undefined> {
+    return await this.db.query.accounts.findFirst({
+      where: (accounts, { eq }) => eq(accounts.id, id),
+      with: {
+        currency: true,
+        country: true,
+        group: true,
+      },
+    });
+  }
+
   public async insertAccount(insert: AccountInsert) {
-    return await this.db.insert(accounts).values(insert).returning();
+    const result = await this.db.insert(accounts).values(insert).returning();
+    return result.at(0);
   }
 
   public async getAccountGroupsByType(
@@ -49,15 +66,6 @@ export class AccountsRepository extends Repository {
             currency: true,
           },
         },
-      },
-    });
-  }
-
-  public async getAccountById(id: number) {
-    return await this.db.query.accounts.findFirst({
-      where: (accounts, { eq }) => eq(accounts.id, id),
-      with: {
-        currency: true,
       },
     });
   }

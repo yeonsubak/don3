@@ -6,7 +6,7 @@ import {
 import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 
 export const CountryField = ({ zForm }: Partial<CountryComboboxProps>) => {
-  const { countriesInUse } = useGlobalContext();
+  const { defaultCurrency } = useGlobalContext();
 
   return (
     <FormField
@@ -21,9 +21,7 @@ export const CountryField = ({ zForm }: Partial<CountryComboboxProps>) => {
               field={field}
               zForm={zForm}
               onSelectFn={(currentValue) => {
-                const currencyCode =
-                  countriesInUse.find((country) => country.code === currentValue)?.defaultCurrency
-                    ?.code ?? 'USD';
+                const currencyCode = defaultCurrency?.code ?? 'USD';
                 zForm?.setValue('currencyCode', currencyCode);
               }}
             />

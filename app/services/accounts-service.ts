@@ -1,15 +1,10 @@
 'use client';
 
-import type {
-  AccountGroupSelectRelations,
-  AccountGroupType,
-  AccountInsert,
-} from '@/db/drizzle/types';
-import type { z } from 'zod';
+import type { CreateAccountForm } from '@/components/compositions/manage-accounts/form-schema';
+import type { AccountGroupSelect, AccountGroupType, AccountInsert } from '@/db/drizzle/types';
 import { AccountsRepository } from '../repositories/accounts-repository';
 import type { ConfigRepository } from '../repositories/config-repository';
 import { Service } from './abstract-service';
-import type { CreateAccountForm } from '@/components/compositions/manage-accounts/form-schema';
 
 export class AccountsService extends Service {
   private accountsRepository: AccountsRepository;
@@ -41,7 +36,10 @@ export class AccountsService extends Service {
       countryId: country.id,
     };
 
-    return await this.accountsRepository.insertAccount(accountInsert);
+    const result = await this.accountsRepository.insertAccount(accountInsert);
+    if (!result) throw new Error('createAccount failed');
+
+    return await this.accountsRepository.getAccountById(result.id);
   }
 
   public async getAcountsByCountry(groupType: AccountGroupType): Promise<GroupAccountsByCountry> {
@@ -69,7 +67,7 @@ export class AccountsService extends Service {
 
 export type GroupAccountsByCountry = Record<
   string,
-  AccountGroupSelectRelations<{
+  AccountGroupSelect<{
     childGroups: true;
     accounts: {
       with: {

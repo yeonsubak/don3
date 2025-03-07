@@ -1,17 +1,13 @@
 import { parseMoney } from '@/components/common-functions';
 import { AccountIcon } from '@/components/primitives/account-icon';
 import { SkeletonSimple } from '@/components/primitives/skeleton-simple';
-import { QUERIES } from '@/components/tanstack-queries';
 import { Badge } from '@/components/ui/badge';
-import type {
-  AccountSelect,
-  JournalEntrySelectWithRelations,
-  JournalEntryType,
-} from '@/db/drizzle/types';
+import type { AccountSelect, JournalEntrySelect, JournalEntryType } from '@/db/drizzle/types';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { useTransactionContext } from './transaction-context';
+import { useQueryContext } from '@/app/app/query-context';
 
 export type TransactionItem = {
   id: number;
@@ -25,7 +21,7 @@ export type TransactionItem = {
 };
 
 export const mapToTransactionItems = (
-  entries: JournalEntrySelectWithRelations[],
+  entries: JournalEntrySelect<{ currency: true; transactions: true }>[],
 ): TransactionItem[] => {
   return entries.map(({ id, amount, title, currency, type, transactions, date }) => {
     type Tx = (typeof transactions)[number] & { account: AccountSelect };
@@ -50,6 +46,8 @@ type TransactionRecordProps = {
 };
 
 export const TransactionRecord = () => {
+  const { QUERIES } = useQueryContext();
+
   const {
     transactionRecordState: [transactionRecord, setTransactionRecord],
     calendarDateState: [date, _],

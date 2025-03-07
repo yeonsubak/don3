@@ -1,9 +1,9 @@
 import { useGlobalContext } from '@/app/app/global-context';
+import { useQueryContext } from '@/app/app/query-context';
 import { parseMoney, parseNumber } from '@/components/common-functions';
 import { Combobox } from '@/components/primitives/combobox';
 import { MoneyInput } from '@/components/primitives/money-input';
 import { SkeletonSimple } from '@/components/primitives/skeleton-simple';
-import { QUERIES } from '@/components/tanstack-queries';
 import {
   FormControl,
   FormDescription,
@@ -164,6 +164,8 @@ const FxField = ({
   amountFieldName,
   mode = 'normal',
 }: FxFieldProps) => {
+  const { QUERIES } = useQueryContext();
+
   const {
     data: fetchedFxRate,
     isPending,

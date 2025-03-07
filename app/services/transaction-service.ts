@@ -6,14 +6,12 @@ import type {
   FundTransferTxForm,
   IncomeTxForm,
 } from '@/components/compositions/manage-transactions/add-transaction-drawer/forms/form-schema';
-import * as schema from '@/db/drizzle/schema';
-import type { CurrencySelect, TransactionInsert } from '@/db/drizzle/types';
+import { transactions } from '@/db/drizzle/schema';
+import type { CurrencySelect, JournalEntryType, TransactionInsert } from '@/db/drizzle/types';
 import type { AccountsRepository } from '../repositories/accounts-repository';
 import { TransactionRepository } from '../repositories/transaction-repository';
 import { Service } from './abstract-service';
 import type { ConfigService } from './config-service';
-
-const { transactions, journalEntries, journalEntryFxRates } = schema;
 
 export class TransactionService extends Service {
   private transactionRepository: TransactionRepository;
@@ -75,6 +73,17 @@ export class TransactionService extends Service {
       income: Number(incomeSummary.toFixed(baseCurrency.isoDigits)),
       expense: Number(expenseSummary.toFixed(baseCurrency.isoDigits)),
     };
+  }
+
+  public async getJournalEntries(
+    entryTypes: JournalEntryType[],
+    dateRange: { from?: Date; to?: Date },
+    includeTx: boolean = false,
+  ) {
+    const { from, to } = dateRange;
+    if (!from || !to) throw new Error('Invalid date range');
+
+    return this.transactionRepository.getJournalEntries(entryTypes, { from, to }, includeTx);
   }
 
   public async insertTransaction(form: IncomeTxForm | ExpenseTxForm | FundTransferTxForm) {

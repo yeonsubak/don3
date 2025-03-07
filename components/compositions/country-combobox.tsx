@@ -1,7 +1,7 @@
 import { useGlobalContext } from '@/app/app/global-context';
 import type { CountrySelect } from '@/db/drizzle/types';
 import { useTranslations } from 'next-intl';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Combobox, type ComboboxItem, type ComboboxProps } from '../primitives/combobox';
 
 export interface CountryComboboxProps extends ComboboxProps {
@@ -33,6 +33,9 @@ export const CountryCombobox = ({ mode, ...props }: CountryComboboxProps) => {
       items={countryItems}
       searchable={mode === 'all'}
       popoverContentAlign="start"
+      placeholder="Select country..."
+      searchPlaceholder="Search country..."
+      notFoundPlaceholder="No country found."
       {...props}
     />
   );

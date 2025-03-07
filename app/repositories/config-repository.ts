@@ -1,12 +1,9 @@
+import { forex } from '@/db/drizzle/schema';
 import type { CurrencySelect, ForexInsert } from '@/db/drizzle/types';
-import { Repository } from './abstract-repository';
-import { accounts, forex } from '@/db/drizzle/schema';
-import { DateTime } from 'luxon';
 import { and, between, desc, eq, inArray } from 'drizzle-orm';
-import type { FetchFxRate } from '../api/get-latest-fx-rate/route';
-
-export const USER_CONFIG_KEYS = ['defaultCurrency', 'defaultLanguage'] as const;
-export type UserConfigKey = (typeof USER_CONFIG_KEYS)[number];
+import { DateTime } from 'luxon';
+import { Repository } from './abstract-repository';
+import type { UserConfigKey } from './helper';
 
 export class ConfigRepository extends Repository {
   protected static instance: ConfigRepository;
@@ -40,7 +37,11 @@ export class ConfigRepository extends Repository {
   }
 
   public async getAllCountries() {
-    return await this.db.query.countries.findMany();
+    return await this.db.query.countries.findMany({
+      with: {
+        defaultCurrency: true,
+      },
+    });
   }
 
   public async getCountryByCode(countryCodes: string) {
@@ -52,46 +53,6 @@ export class ConfigRepository extends Repository {
   public async getCountriesByCode(countryCodes: string[]) {
     return await this.db.query.countries.findMany({
       where: ({ code }, { inArray }) => inArray(code, countryCodes),
-    });
-  }
-
-  public async getCountriesInUse() {
-    const inUseCountryId = await this.db
-      .select({
-        countryId: accounts.countryId,
-      })
-      .from(accounts)
-      .groupBy(accounts.countryId);
-
-    return await this.db.query.countries.findMany({
-      where: ({ id }, { inArray }) =>
-        inArray(
-          id,
-          inUseCountryId.map((e) => e.countryId),
-        ),
-      with: {
-        defaultCurrency: true,
-      },
-    });
-  }
-
-  public async getCurrenciesInUse() {
-    const inUseCurrencyId = await this.db
-      .select({
-        currencyId: accounts.currencyId,
-      })
-      .from(accounts)
-      .groupBy(accounts.currencyId);
-
-    return await this.db.query.currencies.findMany({
-      where: ({ id, code }, { inArray, or, eq }) =>
-        or(
-          inArray(
-            id,
-            inUseCurrencyId.map((e) => e.currencyId),
-          ),
-          eq(code, 'USD'), // Widely used
-        ),
     });
   }
 

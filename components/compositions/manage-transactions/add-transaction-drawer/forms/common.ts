@@ -1,23 +1,22 @@
 import type { GroupAccountsByCountry } from '@/app/services/accounts-service';
 import type { ComboboxItem } from '@/components/primitives/combobox';
-import type {
-  AccountSelectWithRelations,
-  JournalEntrySelectWithRelations,
-} from '@/db/drizzle/types';
+import type { AccountSelect, JournalEntrySelect } from '@/db/drizzle/types';
 import type { ReactNode } from 'react';
 import type { FieldValue, FieldValues, UseFormReturn } from 'react-hook-form';
 
 export interface TxFormProps {
   footer: ReactNode;
-  onSuccess: (entry: JournalEntrySelectWithRelations[]) => Promise<void>;
+  onSuccess: (entry: JournalEntrySelect<{ currency: true; transactions: true }>[]) => Promise<void>;
 }
 
 export type Form = UseFormReturn<FieldValue<FieldValues>>;
 
+type _AccountSelect = AccountSelect<{ country: true; currency: true }>;
+
 export const mapAccounts = (
   groupAccountsByCountry: GroupAccountsByCountry,
   countryCode?: string,
-): ComboboxItem<AccountSelectWithRelations>[] => {
+): ComboboxItem<_AccountSelect>[] => {
   const mapItems = (item: GroupAccountsByCountry[string][number]) => ({
     label: item.name,
     value: item.name,
@@ -38,11 +37,12 @@ export const mapAccounts = (
       };
       acc.push(obj);
       return acc;
-    }, [] as ComboboxItem<AccountSelectWithRelations>[]);
+    }, [] as ComboboxItem<_AccountSelect>[]);
   }
 
   const groups = groupAccountsByCountry[countryCode];
   if (!groups) return [];
+
   return groups.map(mapItems);
 };
 

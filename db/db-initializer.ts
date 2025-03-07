@@ -1,5 +1,5 @@
 import type { Version } from '@/app/api/get-latest-version/route';
-import { USER_CONFIG_KEYS, type UserConfigKey } from '@/app/repositories/config-repository';
+import { USER_CONFIG_KEYS, type UserConfigKey } from '@/app/repositories/helper';
 import { count, type InferInsertModel, type TableConfig } from 'drizzle-orm';
 import type { PgTable } from 'drizzle-orm/pg-core';
 import { drizzle } from 'drizzle-orm/pglite';

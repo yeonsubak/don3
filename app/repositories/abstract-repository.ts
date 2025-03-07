@@ -13,8 +13,9 @@ export abstract class Repository {
 
   public static async getInstance<T extends Repository>(): Promise<T> {
     if (!this.instance) {
-      this.instance = await this.createInstance();
-      this.instance.db = await PGliteDrizzleWorker.create();
+      const instance = await this.createInstance();
+      instance.db = await PGliteDrizzleWorker.create();
+      this.instance = instance;
     }
 
     return this.instance as T;

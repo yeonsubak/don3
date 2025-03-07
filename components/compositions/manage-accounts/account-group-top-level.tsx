@@ -1,13 +1,13 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import type { AccountGroupSelectWithRelations } from '@/db/drizzle/types';
+import type { AccountGroupSelect } from '@/db/drizzle/types';
 import { ChevronsUpDown } from 'lucide-react';
 import { useState } from 'react';
 import { Account } from './account';
 
 type AccountGroupTopLevelProps = {
-  accountGroup: AccountGroupSelectWithRelations;
+  accountGroup: AccountGroupSelect<{ accounts: { with: { country: true } } }>;
 };
 
 export const AccountGroupTopLevel = ({ accountGroup }: AccountGroupTopLevelProps) => {

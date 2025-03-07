@@ -1,9 +1,9 @@
 'use client';
 
 import { useGlobalContext } from '@/app/app/global-context';
-import { TransactionService } from '@/app/services/transaction-service';
+import { useServiceContext } from '@/app/app/service-context';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import type { JournalEntrySelectWithRelations } from '@/db/drizzle/types';
+import type { JournalEntrySelect } from '@/db/drizzle/types';
 import { type ReactNode } from 'react';
 import { useTransactionContext } from '../transaction-context';
 import { mapToTransactionItems } from '../transaction-record';
@@ -22,14 +22,19 @@ export const TransactionFormTab = ({ footer }: { footer: ReactNode }) => {
     transactionRecordState: [txRecord, setTxRecord],
   } = useTransactionContext();
 
-  const onSuccess = async (entry: JournalEntrySelectWithRelations[]) => {
-    const transactionService = await TransactionService.getInstance<TransactionService>();
+  const { transactionService } = useServiceContext();
 
-    const summary = await transactionService.getSummary(
-      calendarDate?.from!,
-      calendarDate?.to!,
-      defaultCurrency!,
-    );
+  const onSuccess = async (entry: JournalEntrySelect<{ currency: true; transactions: true }>[]) => {
+    if (!transactionService) throw new Error('TransactionService must be initialized first');
+
+    const dateError = new Error('Date must be selected');
+
+    if (!calendarDate) throw dateError;
+
+    const { from, to } = calendarDate;
+    if (!from || !to) throw dateError;
+
+    const summary = await transactionService.getSummary(from, to, defaultCurrency!);
 
     setIncome(summary.income);
     setExpense(summary.expense);
