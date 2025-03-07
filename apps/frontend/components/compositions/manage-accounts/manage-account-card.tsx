@@ -1,9 +1,7 @@
 'use client';
 
-import type { AccountList } from '@/app/app/manage-accounts/page';
-import { AccountsService } from '@/app/services/accounts-service';
-import { ConfigService } from '@/app/services/config-service';
-import { Combobox, type ComboboxProps } from '@/components/primitives/combobox';
+import { useGlobalContext } from '@/app/app/global-context';
+import { useServiceContext } from '@/app/app/service-context';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -22,66 +20,19 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import schema from '@/db/drizzle/schema';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
+import { CountryCombobox } from '../country-combobox';
+import { CurrencyCombobox } from '../currency-combobox';
 import { AccountTypeToggle } from './account-type-toggle';
+import { createAccountForm, type CreateAccountForm } from './form-schema';
 
-const { accounts } = schema;
+export const ManageAccountCard = () => {
+  const { accounts, setAccounts } = useGlobalContext();
+  const { accountsService } = useServiceContext();
 
-export const ACCOUNT_FORM_SCHEMA = z.object({
-  accountName: z
-    .string()
-    .min(1, {
-      message: 'Name must be at least 1 character.',
-    })
-    .max(255, { message: 'Name must be less than 255 characters.' }),
-  accountType: z.enum(accounts.type.enumValues),
-  currencyCode: z.string().min(3).max(3),
-  countryCode: z.string().min(3).max(3),
-});
-
-type ManageAccountCardProps = {
-  accountList: AccountList;
-  setAccountList: Dispatch<SetStateAction<AccountList>>;
-};
-
-export const ManageAccountCard = ({ accountList, setAccountList }: ManageAccountCardProps) => {
-  const [currencyCombo, setCurrencyCombo] = useState<ComboboxProps>({
-    placeholder: 'Select currency...',
-    searchPlaceholder: 'Search currency...',
-    notFoundPlaceholder: 'No currency found.',
-  });
-  const [countryCombo, setCountryCombo] = useState<ComboboxProps>({
-    placeholder: 'Select country...',
-    searchPlaceholder: 'Search country...',
-    notFoundPlaceholder: 'No country found.',
-  });
-
-  useEffect(() => {
-    const initializeCombos = async () => {
-      const config = await ConfigService.getInstance<ConfigService>();
-      const currencies = await config.getAllCurrencies();
-      setCurrencyCombo((cur) => ({
-        ...cur,
-        items:
-          currencies?.map((currency) => ({ label: currency.name, value: currency.code })) ?? [],
-      }));
-
-      const countries = await config.getAllCountries();
-      setCountryCombo((cur) => ({
-        ...cur,
-        items: countries?.map((country) => ({ label: country.name, value: country.code })) ?? [],
-      }));
-    };
-
-    initializeCombos();
-  }, []);
-
-  const form = useForm<z.infer<typeof ACCOUNT_FORM_SCHEMA>>({
-    resolver: zodResolver(ACCOUNT_FORM_SCHEMA),
+  const form = useForm<CreateAccountForm>({
+    resolver: zodResolver(createAccountForm),
     defaultValues: {
       accountName: '',
       accountType: 'debit',
@@ -90,12 +41,13 @@ export const ManageAccountCard = ({ accountList, setAccountList }: ManageAccount
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof ACCOUNT_FORM_SCHEMA>) => {
-    const service = await AccountsService.getInstance<AccountsService>();
-    const result = (await service.createAccount(values))?.at(0);
+  const onSubmit = async (form: CreateAccountForm) => {
+    if (!accountsService) throw new Error('AccountsService must be initialized first');
+
+    const result = await accountsService.createAccount(form);
     console.log(result);
     if (result) {
-      setAccountList([...accountList, result]);
+      setAccounts([...accounts, result]);
     }
   };
 
@@ -144,7 +96,7 @@ export const ManageAccountCard = ({ accountList, setAccountList }: ManageAccount
                 <FormItem>
                   <FormLabel>Currency</FormLabel>
                   <FormControl>
-                    <Combobox field={field} zForm={form} {...currencyCombo} />
+                    <CurrencyCombobox field={field} zForm={form} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -157,7 +109,7 @@ export const ManageAccountCard = ({ accountList, setAccountList }: ManageAccount
                 <FormItem>
                   <FormLabel>Country</FormLabel>
                   <FormControl>
-                    <Combobox field={field} zForm={form} {...countryCombo} />
+                    <CountryCombobox mode="all" field={field} zForm={form} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

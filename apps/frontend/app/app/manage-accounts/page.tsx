@@ -1,41 +1,37 @@
 'use client';
 
-import { AccountsService, type GroupAccountsByCountry } from '@/app/services/accounts-service';
-import { ConfigService } from '@/app/services/config-service';
+import { type GroupAccountsByCountry } from '@/app/services/accounts-service';
 import { AccountGroupTopLevel } from '@/components/compositions/manage-accounts/account-group-top-level';
-import schema from '@/db/drizzle/schema';
-import type { CountrySelect } from '@/db/drizzle/types';
+import { accounts } from '@/db/drizzle/schema';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
-
-const { accounts } = schema;
+import { useEffect, useState } from 'react';
+import { useGlobalContext } from '../global-context';
+import { useQueryContext } from '../query-context';
 
 export type AccountList = (typeof accounts.$inferSelect)[];
 
 export default function ManageAccounts() {
-  const [isMultiCountry, setMultiCountry] = useState<boolean>(false);
+  const { isMultiCountry, countriesInUse } = useGlobalContext();
   const [accountGroupsByCountry, setAccountGroupsByCountry] = useState<GroupAccountsByCountry>({});
-  const [countriesInUse, setCountriesInUse] = useState<CountrySelect[]>([]);
 
   const tCountry = useTranslations('countryCode');
 
-  const { isPending, isError, error } = useQuery({
-    queryKey: ['initManageAccounts'],
-    queryFn: async () => {
-      const accountsService = await AccountsService.getInstance<AccountsService>();
-      const accountGroupsByCountry = await accountsService.getAcountsByCountry('asset');
-      setAccountGroupsByCountry(accountGroupsByCountry);
-      setMultiCountry(Object.keys(accountGroupsByCountry).length > 0);
+  const { QUERIES } = useQueryContext();
 
-      const configService = await ConfigService.getInstance<ConfigService>();
-      setCountriesInUse(
-        await configService.getCountriesByCode(Object.keys(accountGroupsByCountry)),
-      );
-      return true;
-    },
-  });
+  const {
+    data: accounts,
+    isPending,
+    isError,
+    error,
+  } = useQuery(QUERIES.accounts.getAccountGroupsByCountry('asset'));
+
+  useEffect(() => {
+    if (!accounts) return;
+
+    setAccountGroupsByCountry(accounts);
+  }, [accounts]);
 
   if (isPending) {
     return <p>Loading...</p>;

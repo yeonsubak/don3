@@ -1,8 +1,8 @@
-import { useTransactionContext } from '@/components/compositions/manage-transactions/transaction-context';
+import { useQueryContext } from '@/app/app/query-context';
 import { invisibleCharMd } from '@/components/common-functions';
 import type { DateRange } from '@/components/common-types';
+import { useTransactionContext } from '@/components/compositions/manage-transactions/transaction-context';
 import { SkeletonSimple } from '@/components/primitives/skeleton-simple';
-import { QUERIES } from '@/components/tanstack-queries';
 import { Separator } from '@/components/ui/separator';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, type Dispatch, type SetStateAction } from 'react';
@@ -13,6 +13,8 @@ type TransactionSummaryProps = {
 };
 
 export const TransactionSummary = ({ dateRange: { from, to } }: TransactionSummaryProps) => {
+  const { QUERIES } = useQueryContext();
+
   const {
     incomeSummaryState: [income, setIncome],
     expenseSummaryState: [expense, setExpense],
@@ -35,7 +37,6 @@ export const TransactionSummary = ({ dateRange: { from, to } }: TransactionSumma
     setExpense(expense);
   }, [summary, setIncome, setExpense]);
 
-  // const [expense, setExpense] = useState<number>(0);
   const total = useMemo(() => income - expense, [income, expense]);
   const currencyPadding = useMemo(() => {
     const max = Math.max(income.toLocaleString().length, expense.toLocaleString().length);

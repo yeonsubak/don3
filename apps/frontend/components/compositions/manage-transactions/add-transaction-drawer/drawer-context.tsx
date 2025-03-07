@@ -2,10 +2,7 @@
 
 import { useGlobalContext } from '@/app/app/global-context';
 import type { ComboboxItem } from '@/components/primitives/combobox';
-import { QUERIES } from '@/components/tanstack-queries';
-import { Skeleton } from '@/components/ui/skeleton';
 import type { CurrencySelect } from '@/db/drizzle/types';
-import { useQuery } from '@tanstack/react-query';
 import {
   createContext,
   useContext,
@@ -26,16 +23,8 @@ export const TransactionDrawerContext = createContext<TransactionDrawerContext |
 
 export const TransactionDrawerContextProvider = ({ children }: { children: ReactNode }) => {
   const [open, setOpen] = useState(false);
-  const { currencies } = useGlobalContext();
+  const { currencies, defaultCurrency, currenciesInUse } = useGlobalContext();
   const [currencyComboItems, setCurrencyComboItems] = useState<ComboboxItem<CurrencySelect>[]>([]);
-  const { defaultCurrency } = useGlobalContext();
-
-  const {
-    data: currenciesInUseData,
-    isPending,
-    isError,
-    error,
-  } = useQuery(QUERIES.config.currenciesInUse);
 
   useEffect(() => {
     setCurrencyComboItems(() => {
@@ -50,20 +39,12 @@ export const TransactionDrawerContextProvider = ({ children }: { children: React
       const favorite = {
         label: 'Favorite',
         value: 'Favorite',
-        children: convert(currenciesInUseData ?? []),
+        children: convert(currenciesInUse ?? []),
       };
       return [favorite, ...convert(currencies ?? [])];
     });
     // setSelectedCurrency(defaultCurrency);
-  }, [currencies, currenciesInUseData, defaultCurrency]);
-
-  if (isPending) {
-    return <Skeleton className="h-full w-full" />;
-  }
-
-  if (isError) {
-    return <p>Error: {error.message}</p>;
-  }
+  }, [currencies, currenciesInUse, defaultCurrency]);
 
   return (
     <TransactionDrawerContext.Provider

@@ -1,6 +1,6 @@
 import { useGlobalContext } from '@/app/app/global-context';
-import { TransactionService } from '@/app/services/transaction-service';
-import { QUERIES } from '@/components/tanstack-queries';
+import { useQueryContext } from '@/app/app/query-context';
+import { useServiceContext } from '@/app/app/service-context';
 import { Form } from '@/components/ui/form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueries } from '@tanstack/react-query';
@@ -18,7 +18,8 @@ import { mapAccounts, type AccountComboItem, type TxFormProps } from './common';
 import { fundTransferTxForm, type FundTransferTxForm } from './form-schema';
 
 export const FundTransferForm = ({ footer, onSuccess }: TxFormProps) => {
-  const { countriesInUse, isMultiCountry } = useGlobalContext();
+  const { countriesInUse, isMultiCountry, defaultCurrency } = useGlobalContext();
+  const { QUERIES } = useQueryContext();
 
   const curDate = DateTime.now();
   const form = useForm<FundTransferTxForm>({
@@ -27,7 +28,7 @@ export const FundTransferForm = ({ footer, onSuccess }: TxFormProps) => {
       date: curDate.toJSDate(),
       time: { hour: curDate.get('hour'), minute: curDate.get('minute') },
       journalEntryType: 'transfer',
-      currencyCode: countriesInUse?.at(0)?.defaultCurrency?.code ?? 'USD',
+      currencyCode: defaultCurrency?.code ?? 'USD',
       amount: '',
       fxRate: '',
       fxAmount: '',
@@ -69,27 +70,31 @@ export const FundTransferForm = ({ footer, onSuccess }: TxFormProps) => {
       accounts[countryCode].push(...groups);
     });
 
-    let mapped = mapAccounts(accounts);
+    let mapped: AccountComboItem[] = mapAccounts(accounts);
     if (isMultiCountry) {
       mapped.forEach((e) => {
         const country = countriesInUse.find((c) => c.code === e.value);
         e.label = `${country?.emoji} ${tCountry(e.label)}`;
       });
     } else {
-      mapped = Object.values(mapped)
+      const flatten = Object.values(mapped)
         .flatMap((e) => e.children)
-        .filter((e) => !!e);
+        .filter((e) => e !== undefined && e !== null) as AccountComboItem[];
+      mapped = flatten;
     }
 
     setAccounts(mapped);
   }, [assetGroupsByCountry, liabilityGroupsByCountry, countriesInUse, isMultiCountry, tCountry]);
+
+  const { transactionService } = useServiceContext();
 
   if (isError) {
     return error.map((e) => <p key={e?.name}>Error: ${e?.message}</p>);
   }
 
   const onSubmit = async (form: FundTransferTxForm) => {
-    const transactionService = await TransactionService.getInstance<TransactionService>();
+    if (!transactionService) throw new Error('TransactionService must be initialized first');
+
     const insertedEntry = await transactionService.insertTransaction(form);
     if (!insertedEntry) throw new Error('Error ocurred while on inserting the transaction.');
 

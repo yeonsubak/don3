@@ -1,8 +1,6 @@
 import { parseNumber } from '@/components/common-functions';
-import schema from '@/db/drizzle/schema';
+import { journalEntryTypeEnum } from '@/db/drizzle/schema';
 import { z } from 'zod';
-
-const { journalEntryTypeEnum } = schema;
 
 const validateFxRate = (data: { isFx: boolean; fxRate: string }) => {
   if (!data.isFx) return true;

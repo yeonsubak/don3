@@ -6,7 +6,7 @@ import type {
 import { journalEntries, journalEntryFxRates } from '@/db/drizzle/schema';
 import type {
   JournalEntryFxRatesInsert,
-  JournalEntryTypeArray,
+  JournalEntryType,
   PgliteTransaction,
 } from '@/db/drizzle/types';
 import { and, between, inArray } from 'drizzle-orm';
@@ -44,8 +44,8 @@ export class TransactionRepository extends Repository {
   }
 
   public async getJournalEntries(
-    entryType: JournalEntryTypeArray,
-    { from, to }: { from?: Date; to?: Date },
+    entryType: JournalEntryType[],
+    { from, to }: { from: Date; to: Date },
     includeTx: boolean = false,
   ) {
     if (!from || !to) throw new Error('Invalid date range');

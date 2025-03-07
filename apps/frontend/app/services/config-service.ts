@@ -3,7 +3,7 @@
 import type { CurrencySelect, ForexInsert } from '@/db/drizzle/types';
 import { DateTime } from 'luxon';
 import type { FetchFxRate } from '../api/get-latest-fx-rate/route';
-import type { ConfigRepository } from '../repositories/config-repository';
+import { ConfigRepository } from '../repositories/config-repository';
 import { Service } from './abstract-service';
 
 export class ConfigService extends Service {
@@ -33,14 +33,6 @@ export class ConfigService extends Service {
 
   public async getCountriesByCode(countryCodes: string[]) {
     return await this.configRepository.getCountriesByCode(countryCodes);
-  }
-
-  public async getCountriesInUse() {
-    return this.configRepository.getCountriesInUse();
-  }
-
-  public async getCurrenciesInUse() {
-    return this.configRepository.getCurrenciesInUse();
   }
 
   public async getLatestFxRate(baseCurrency: CurrencySelect, targetCurrencies: CurrencySelect[]) {
@@ -85,3 +77,8 @@ export class ConfigService extends Service {
     return fxRates;
   }
 }
+
+export const getConfigService = async () => {
+  const configRepository = await ConfigRepository.getInstance<ConfigRepository>();
+  return new ConfigService(configRepository);
+};

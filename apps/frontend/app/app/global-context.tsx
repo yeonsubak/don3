@@ -1,55 +1,48 @@
-import { QUERIES } from '@/components/tanstack-queries';
 import { Skeleton } from '@/components/ui/skeleton';
-import type {
-  AccountSelectRelations,
-  CountrySelect,
-  CountrySelectRelations,
-  CurrencySelect,
-} from '@/db/drizzle/types';
+import type { AccountSelectAll, CountrySelect, CurrencySelect } from '@/db/drizzle/types';
 import { useQueries } from '@tanstack/react-query';
 import {
   createContext,
   useContext,
   useEffect,
+  useMemo,
   useState,
   type Dispatch,
   type ReactNode,
   type SetStateAction,
 } from 'react';
+import { useQueryContext } from './query-context';
 
 type GlobalContext = {
-  countriesInUse: CountrySelectRelations[];
-  setCountriesInUse: Dispatch<SetStateAction<CountrySelectRelations[]>>;
-  isMultiCountry: boolean;
-  setIsMultiCountry: Dispatch<SetStateAction<boolean>>;
-  defaultCurrency: CurrencySelect | undefined;
-  setDefaultCurrency: Dispatch<SetStateAction<CurrencySelect | undefined>>;
-  defaultLanguage: string;
-  setDefaultLanguage: Dispatch<SetStateAction<string>>;
   countries: CountrySelect[];
   currencies: CurrencySelect[];
-  accounts: AccountSelectRelations[];
-  setAccounts: Dispatch<SetStateAction<AccountSelectRelations[]>>;
+  isMultiCountry: boolean;
+  countriesInUse: CountrySelect[];
+  currenciesInUse: CurrencySelect[];
+
+  defaultCurrency: CurrencySelect | undefined;
+  setDefaultCurrency: Dispatch<SetStateAction<CurrencySelect | undefined>>;
+
+  defaultLanguage: string;
+  setDefaultLanguage: Dispatch<SetStateAction<string>>;
+
+  accounts: AccountSelectAll[];
+  setAccounts: Dispatch<SetStateAction<AccountSelectAll[]>>;
 };
 
 export const GlobalContext = createContext<GlobalContext | null>(null);
 
 export const GlobalContextProvider = ({ children }: { children: ReactNode }) => {
+  const { QUERIES } = useQueryContext();
+
   const {
-    data: {
-      fetchedCountriesInUse,
-      fetchedDefaultCurrency,
-      fetchedCountries,
-      fetchedCurrencies,
-      fetchedAccounts,
-    },
+    data: { fetchedDefaultCurrency, fetchedCountries, fetchedCurrencies, fetchedAccounts },
     isPending,
     isError,
     error,
   } = useQueries({
     queries: [
       QUERIES.config.defaultCurrency,
-      QUERIES.config.countriesInUse,
       QUERIES.config.countries,
       QUERIES.config.currencies,
       QUERIES.accounts.getAllAccounts,
@@ -57,10 +50,9 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
     combine: (results) => ({
       data: {
         fetchedDefaultCurrency: results[0].data,
-        fetchedCountriesInUse: results[1].data,
-        fetchedCountries: results[2].data,
-        fetchedCurrencies: results[3].data,
-        fetchedAccounts: results[4].data,
+        fetchedCountries: results[1].data,
+        fetchedCurrencies: results[2].data,
+        fetchedAccounts: results[3].data,
       },
       isPending: results.some((result) => result.isPending),
       isError: results.some((result) => result.isError),
@@ -68,28 +60,22 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
     }),
   });
 
-  const [countriesInUse, setCountriesInUse] = useState<CountrySelectRelations[]>([]);
-  const [isMultiCountry, setIsMultiCountry] = useState<boolean>(false);
   const [defaultCurrency, setDefaultCurrency] = useState<CurrencySelect | undefined>();
   const [defaultLanguage, setDefaultLanguage] = useState<string>('en');
-  const [countries, setCountries] = useState<CountrySelect[]>([]);
+  const [countries, setCountries] = useState<CountrySelect<{ defaultCurrency: true }>[]>([]);
   const [currencies, setCurrencies] = useState<CurrencySelect[]>([]);
-  const [accounts, setAccounts] = useState<AccountSelectRelations[]>([]);
+  const [accounts, setAccounts] = useState<AccountSelectAll[]>([]);
+
+  const countriesInUse = useMemo(() => accounts.map((account) => account.country), [accounts]);
+  const isMultiCountry = useMemo(() => countriesInUse.length > 1, [countriesInUse]);
+  const currenciesInUse = useMemo(() => accounts.map((account) => account.currency), [accounts]);
 
   useEffect(() => {
-    setCountriesInUse(fetchedCountriesInUse ?? []);
-    setIsMultiCountry((fetchedCountriesInUse?.length ?? 0) > 1);
     setDefaultCurrency(fetchedDefaultCurrency);
     setCountries(fetchedCountries ?? []);
     setCurrencies(fetchedCurrencies ?? []);
     setAccounts(fetchedAccounts ?? []);
-  }, [
-    fetchedCountries,
-    fetchedCountriesInUse,
-    fetchedDefaultCurrency,
-    fetchedCurrencies,
-    fetchedAccounts,
-  ]);
+  }, [fetchedCountries, fetchedDefaultCurrency, fetchedCurrencies, fetchedAccounts]);
 
   if (isPending) {
     return <Skeleton className="h-full w-full" />;
@@ -103,9 +89,8 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
     <GlobalContext.Provider
       value={{
         countriesInUse,
-        setCountriesInUse,
+        currenciesInUse,
         isMultiCountry,
-        setIsMultiCountry,
         defaultCurrency,
         setDefaultCurrency,
         defaultLanguage,
