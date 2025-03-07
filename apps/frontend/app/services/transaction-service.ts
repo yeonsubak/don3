@@ -6,43 +6,38 @@ import type {
   FundTransferTxForm,
   IncomeTxForm,
 } from '@/components/compositions/manage-transactions/add-transaction-drawer/forms/form-schema';
-import schema from '@/db/drizzle/schema';
-import type {
-  CurrencySelect,
-  JournalEntryTypeArray,
-  PgliteTransaction,
-  TransactionInsert,
-} from '@/db/drizzle/types';
-import { and, between, inArray } from 'drizzle-orm';
-import { DateTime } from 'luxon';
+import * as schema from '@/db/drizzle/schema';
+import type { CurrencySelect, TransactionInsert } from '@/db/drizzle/types';
+import type { AccountsRepository } from '../repositories/accounts-repository';
+import { TransactionRepository } from '../repositories/transaction-repository';
 import { Service } from './abstract-service';
-import { AccountsService } from './accounts-service';
-import { ConfigService } from './config-service';
+import type { ConfigService } from './config-service';
 
 const { transactions, journalEntries, journalEntryFxRates } = schema;
 
 export class TransactionService extends Service {
+  private transactionRepository: TransactionRepository;
+  private accountsRepository: AccountsRepository;
+  private configService: ConfigService;
+
   protected static instance: TransactionService;
 
-  private configService!: ConfigService;
-  private accountsService!: AccountsService;
-
-  private constructor() {
+  constructor(
+    transactionRepository: TransactionRepository,
+    accountsRepository: AccountsRepository,
+    configService: ConfigService,
+  ) {
     super();
-  }
-
-  protected static async createInstance(): Promise<TransactionService> {
-    if (!TransactionService.instance) {
-      TransactionService.instance = new TransactionService();
-      TransactionService.instance.configService = await ConfigService.getInstance();
-      TransactionService.instance.accountsService = await AccountsService.getInstance();
-    }
-
-    return TransactionService.instance;
+    this.transactionRepository = transactionRepository;
+    this.accountsRepository = accountsRepository;
+    this.configService = configService;
   }
 
   public async getSummary(from: Date, to: Date, baseCurrency: CurrencySelect) {
-    const entries = await this.getJournalEntries(['income', 'expense'], { from, to });
+    const entries = await this.transactionRepository.getJournalEntries(['income', 'expense'], {
+      from,
+      to,
+    });
     const diffCurrencies = entries
       .map((entry) => entry.currency)
       .filter((currency) => currency.id !== baseCurrency.id);
@@ -59,7 +54,9 @@ export class TransactionService extends Service {
         ? await this.configService.getLatestFxRate(baseCurrency, diffCurrencies)
         : null;
 
-    const calculateSummary = (entries: Awaited<ReturnType<typeof this.getJournalEntries>>) =>
+    const calculateSummary = (
+      entries: Awaited<ReturnType<typeof this.transactionRepository.getJournalEntries>>,
+    ) =>
       entries.reduce((acc, cur) => {
         const amount = parseNumber(cur.amount, cur.currency.isoDigits) ?? 0;
         if (cur.currencyId !== baseCurrency.id) {
@@ -80,70 +77,37 @@ export class TransactionService extends Service {
     };
   }
 
-  public async getJournalEntries(
-    entryType: JournalEntryTypeArray,
-    { from, to }: { from?: Date; to?: Date },
-    includeTx: boolean = false,
-  ) {
-    if (!from || !to) throw new Error('Invalid date range');
-
-    return await this.drizzle.query.journalEntries.findMany({
-      where: ({ date, type }) => and(inArray(type, entryType), between(date, from, to)),
-      with: {
-        fxRate: true,
-        currency: true,
-        transactions: includeTx
-          ? {
-              with: {
-                account: true,
-              },
-            }
-          : undefined,
-      },
-    });
-  }
-
-  public async getJournalEntryById(id: number) {
-    return await this.drizzle.query.journalEntries.findFirst({
-      where: (journalEntries, { eq }) => eq(journalEntries.id, id),
-      with: {
-        transactions: {
-          with: {
-            account: true,
-          },
-        },
-        currency: true,
-        fxRate: true,
-      },
-    });
-  }
-
   public async insertTransaction(form: IncomeTxForm | ExpenseTxForm | FundTransferTxForm) {
-    const debitAccount = await this.accountsService.getAccountById(form.debitAccountId);
+    const { debitAccountId, currencyCode, fxAmount, fxRate, amount } = form;
+
+    const debitAccount = await this.accountsRepository.getAccountById(debitAccountId);
     if (!debitAccount) throw new Error('Invalid debit account');
 
     const baseCurrency = debitAccount.currency;
-    const formCurrency = await this.configService.getCurrencyByCode(form.currencyCode);
+    const formCurrency = await this.configService.getCurrencyByCode(currencyCode);
     if (!formCurrency) throw new Error('Failed to fetch currency');
 
-    const entryId = await this.drizzle.transaction(async (tx) => {
+    const parsedAmount = parseNumber(fxRate ? fxAmount : amount, baseCurrency.isoDigits);
+    if (!parsedAmount) throw new Error('Invalid amount');
+
+    const entryId = await this.transactionRepository.withTx(async (tx) => {
       try {
-        let amount = parseNumber(form.fxRate ? form.fxAmount : form.amount, baseCurrency.isoDigits);
-        if (!amount) throw new Error('Invalid amount');
-
-        const journalEntry = await this.insertJournalEntry(tx, baseCurrency.id, amount, form);
-
+        const journalEntry = await this.transactionRepository.insertJournalEntry(
+          tx,
+          baseCurrency.id,
+          parsedAmount,
+          form,
+        );
         if (!journalEntry) throw new Error('Insert to journal Entry failed');
 
-        if (form.fxRate) {
-          const fxRate = parseNumber(form.fxRate, 10);
-          if (!fxRate) throw new Error('Invalid FxRate');
-
-          await tx.insert(journalEntryFxRates).values({
+        if (fxRate) {
+          const parsedFxRate = parseNumber(form.fxRate, 10);
+          if (!parsedFxRate) throw new Error('Invalid FxRate');
+          await this.transactionRepository.insertJournalEntryFxRate(tx, {
             journalEntryId: journalEntry.id,
             baseCurrencyId: debitAccount.currency.id,
             targetCurrencyId: formCurrency.id,
-            rate: fxRate.toFixed(10),
+            rate: parsedFxRate.toFixed(10),
           });
         }
 
@@ -152,14 +116,14 @@ export class TransactionService extends Service {
           type: 'debit',
           journalEntryId: journalEntry.id,
           accountId: form.debitAccountId,
-          amount: (amount * signIdentifier).toFixed(baseCurrency.isoDigits),
+          amount: (parsedAmount * signIdentifier).toFixed(baseCurrency.isoDigits),
         };
 
         const creditTransaction: TransactionInsert = {
           type: 'credit',
           journalEntryId: journalEntry.id,
           accountId: form.creditAccountId,
-          amount: (amount * signIdentifier * -1).toFixed(baseCurrency.isoDigits),
+          amount: (parsedAmount * signIdentifier * -1).toFixed(baseCurrency.isoDigits),
         };
 
         await Promise.all([
@@ -174,36 +138,6 @@ export class TransactionService extends Service {
       }
     });
 
-    return await this.getJournalEntryById(entryId ?? -1);
-  }
-
-  private async insertJournalEntry(
-    tx: PgliteTransaction,
-    currencyId: number,
-    amount: number,
-    {
-      journalEntryType,
-      date,
-      time,
-      title,
-      description,
-    }: IncomeTxForm | ExpenseTxForm | FundTransferTxForm,
-  ) {
-    const systemTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const datetime = DateTime.fromJSDate(date, { zone: systemTimezone });
-    datetime.set({ hour: time.hour, minute: time.minute, second: 0, millisecond: 0 });
-    return (
-      await tx
-        .insert(journalEntries)
-        .values({
-          type: journalEntryType,
-          date: datetime.toJSDate(),
-          title,
-          description,
-          currencyId,
-          amount: amount.toString(),
-        })
-        .returning()
-    ).at(0);
+    return await this.transactionRepository.getJournalEntryById(entryId ?? -1);
   }
 }

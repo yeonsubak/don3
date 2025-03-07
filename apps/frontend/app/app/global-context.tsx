@@ -1,9 +1,9 @@
 import { QUERIES } from '@/components/tanstack-queries';
 import { Skeleton } from '@/components/ui/skeleton';
 import type {
-  AccountSelectWithRelations,
+  AccountSelectRelations,
   CountrySelect,
-  CountrySelectWithRelations,
+  CountrySelectRelations,
   CurrencySelect,
 } from '@/db/drizzle/types';
 import { useQueries } from '@tanstack/react-query';
@@ -18,8 +18,8 @@ import {
 } from 'react';
 
 type GlobalContext = {
-  countriesInUse: CountrySelectWithRelations[];
-  setCountriesInUse: Dispatch<SetStateAction<CountrySelectWithRelations[]>>;
+  countriesInUse: CountrySelectRelations[];
+  setCountriesInUse: Dispatch<SetStateAction<CountrySelectRelations[]>>;
   isMultiCountry: boolean;
   setIsMultiCountry: Dispatch<SetStateAction<boolean>>;
   defaultCurrency: CurrencySelect | undefined;
@@ -28,8 +28,8 @@ type GlobalContext = {
   setDefaultLanguage: Dispatch<SetStateAction<string>>;
   countries: CountrySelect[];
   currencies: CurrencySelect[];
-  accounts: AccountSelectWithRelations[];
-  setAccounts: Dispatch<SetStateAction<AccountSelectWithRelations[]>>;
+  accounts: AccountSelectRelations[];
+  setAccounts: Dispatch<SetStateAction<AccountSelectRelations[]>>;
 };
 
 export const GlobalContext = createContext<GlobalContext | null>(null);
@@ -68,13 +68,13 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
     }),
   });
 
-  const [countriesInUse, setCountriesInUse] = useState<CountrySelectWithRelations[]>([]);
+  const [countriesInUse, setCountriesInUse] = useState<CountrySelectRelations[]>([]);
   const [isMultiCountry, setIsMultiCountry] = useState<boolean>(false);
   const [defaultCurrency, setDefaultCurrency] = useState<CurrencySelect | undefined>();
   const [defaultLanguage, setDefaultLanguage] = useState<string>('en');
   const [countries, setCountries] = useState<CountrySelect[]>([]);
   const [currencies, setCurrencies] = useState<CurrencySelect[]>([]);
-  const [accounts, setAccounts] = useState<AccountSelectWithRelations[]>([]);
+  const [accounts, setAccounts] = useState<AccountSelectRelations[]>([]);
 
   useEffect(() => {
     setCountriesInUse(fetchedCountriesInUse ?? []);
