@@ -3,7 +3,7 @@ import { live } from '@electric-sql/pglite/live';
 import { PGliteWorker } from '@electric-sql/pglite/worker';
 import { drizzle, type PgliteDatabase } from 'drizzle-orm/pglite';
 import { DBInitializer } from './db-initializer';
-import schema from './drizzle/schema';
+import * as schema from './drizzle/schema';
 
 export type PgliteDrizzle = PgliteDatabase<typeof schema> & {
   $client: PGlite;

@@ -1,4 +1,5 @@
 import type { Version } from '@/app/api/get-latest-version/route';
+import { USER_CONFIG_KEYS, type UserConfigKey } from '@/app/repositories/config-repository';
 import { count, type InferInsertModel, type TableConfig } from 'drizzle-orm';
 import type { PgTable } from 'drizzle-orm/pg-core';
 import { drizzle } from 'drizzle-orm/pglite';
@@ -6,13 +7,12 @@ import { DATASET_ACCOUNT_GROUPS } from './dataset/account-groups';
 import { DATASET_ACCOUNTS } from './dataset/accounts';
 import { DATASET_COUNTRY } from './dataset/country';
 import { DATASET_CURRENCY_FIAT } from './dataset/currency';
-import schema from './drizzle/schema';
+import * as schema from './drizzle/schema';
 import { PgliteClient } from './pglite-client';
 import { type PgliteDrizzle } from './pglite-web-worker';
 
 export class DBInitializer {
   private static instance: DBInitializer;
-  public static DEFAULT_CONFIG_KEYS = ['defaultCurrency', 'defaultLanguage'];
 
   private db!: PgliteDrizzle;
 
@@ -139,10 +139,10 @@ export class DBInitializer {
         .from(schema.information)
     )?.map((e) => e.key);
 
-    return DBInitializer.DEFAULT_CONFIG_KEYS.filter((key) => !storedKeys?.includes(key));
+    return USER_CONFIG_KEYS.filter((key) => !storedKeys?.includes(key));
   }
 
-  private async insertDefaultConfig(missingKeys: typeof DBInitializer.DEFAULT_CONFIG_KEYS) {
+  private async insertDefaultConfig(missingKeys: UserConfigKey[]) {
     const lang = navigator.languages.at(0);
 
     missingKeys.forEach(async (key) => {

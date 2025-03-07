@@ -1,114 +1,59 @@
 'use client';
 
-import schema from '@/db/drizzle/schema';
 import type { CurrencySelect, ForexInsert } from '@/db/drizzle/types';
-import { and, between, desc, eq, inArray } from 'drizzle-orm';
 import { DateTime } from 'luxon';
 import type { FetchFxRate } from '../api/get-latest-fx-rate/route';
+import type { ConfigRepository } from '../repositories/config-repository';
 import { Service } from './abstract-service';
 
-const { accounts, forex } = schema;
-
 export class ConfigService extends Service {
-  protected static instance: ConfigService;
+  private configRepository: ConfigRepository;
 
-  private constructor() {
+  constructor(configRepository: ConfigRepository) {
     super();
-  }
-
-  protected static async createInstance(): Promise<ConfigService> {
-    if (!ConfigService.instance) {
-      ConfigService.instance = new ConfigService();
-    }
-
-    return ConfigService.instance;
+    this.configRepository = configRepository;
   }
 
   public async getAllCurrencies() {
-    return await this.drizzle.query.currencies.findMany();
+    return await this.configRepository.getAllCurrencies();
   }
 
   public async getCurrencyByCode(code: string) {
-    return await this.drizzle.query.currencies.findFirst({
-      where: (currency, { eq }) => eq(currency.code, code),
-    });
+    return await this.configRepository.getCurrencyByCode(code);
   }
 
   public async getDefaultCurrency() {
-    const defaultCurrency = await this.drizzle.query.information.findFirst({
-      where: (information, { eq }) => eq(information.name, 'defaultCurrency'),
-    });
-
-    return await this.getCurrencyByCode(defaultCurrency?.value ?? 'USD');
+    const defaultCurrency = await this.configRepository.getUserConfig('defaultCurrency');
+    return await this.configRepository.getCurrencyByCode(defaultCurrency?.value ?? 'USD');
   }
 
   public async getAllCountries() {
-    return await this.drizzle.query.countries.findMany();
+    return await this.configRepository.getAllCountries();
   }
 
-  public async getCountriesByCode(countryCode: string[]) {
-    return await this.drizzle.query.countries.findMany({
-      where: ({ code }, { inArray }) => inArray(code, countryCode),
-    });
+  public async getCountriesByCode(countryCodes: string[]) {
+    return await this.configRepository.getCountriesByCode(countryCodes);
   }
 
   public async getCountriesInUse() {
-    const inUseCountryId = await this.drizzle
-      .select({
-        countryId: accounts.countryId,
-      })
-      .from(accounts)
-      .groupBy(accounts.countryId);
-
-    return await this.drizzle.query.countries.findMany({
-      where: ({ id }, { inArray }) =>
-        inArray(
-          id,
-          inUseCountryId.map((e) => e.countryId),
-        ),
-      with: {
-        defaultCurrency: true,
-      },
-    });
+    return this.configRepository.getCountriesInUse();
   }
 
   public async getCurrenciesInUse() {
-    const inUseCurrencyId = await this.drizzle
-      .select({
-        currencyId: accounts.currencyId,
-      })
-      .from(accounts)
-      .groupBy(accounts.currencyId);
-
-    return await this.drizzle.query.currencies.findMany({
-      where: ({ id, code }, { inArray, or, eq }) =>
-        or(
-          inArray(
-            id,
-            inUseCurrencyId.map((e) => e.currencyId),
-          ),
-          eq(code, 'USD'), // Widely used
-        ),
-    });
+    return this.configRepository.getCurrenciesInUse();
   }
 
   public async getLatestFxRate(baseCurrency: CurrencySelect, targetCurrencies: CurrencySelect[]) {
     const targetCurrencyCodes = targetCurrencies.map((currency) => currency.code);
-
     const now = DateTime.now();
-    const fourHourBefore = now.minus({ hours: 4 });
-
-    let fxRates = await this.drizzle
-      .selectDistinctOn([forex.baseCurrency, forex.targetCurrency])
-      .from(forex)
-      .where(
-        and(
-          eq(forex.baseCurrency, baseCurrency.code),
-          inArray(forex.targetCurrency, targetCurrencyCodes),
-          between(forex.createAt, fourHourBefore.toJSDate(), now.toJSDate()),
-        ),
-      )
-      .orderBy(forex.baseCurrency, forex.targetCurrency, desc(forex.createAt));
+    let fxRates = await this.configRepository.getLatestFxRate({
+      baseCurrency,
+      targetCurrencies,
+      timeRange: {
+        start: now.minus({ hours: 4 }),
+        end: now,
+      },
+    });
 
     if (
       fxRates.length > 0 &&
@@ -126,13 +71,16 @@ export class ConfigService extends Service {
       await fetch(`/api/get-latest-fx-rate?${params.toString()}`, { method: 'GET' })
     ).json();
 
-    const insertObj: ForexInsert[] = Object.entries(fetchedFxRates.rates).map(([key, value]) => ({
-      date: fetchedFxRates.date,
-      baseCurrency: baseCurrency.code,
-      targetCurrency: key,
-      rate: value.toFixed(5),
-    }));
-    fxRates = await this.drizzle.insert(forex).values(insertObj).returning();
+    const fxRateInserts: ForexInsert[] = Object.entries(fetchedFxRates.rates).map(
+      ([key, value]) => ({
+        date: fetchedFxRates.date,
+        baseCurrency: baseCurrency.code,
+        targetCurrency: key,
+        rate: value.toFixed(5),
+      }),
+    );
+
+    fxRates = await this.configRepository.insertFxRate(fxRateInserts);
 
     return fxRates;
   }
