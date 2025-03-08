@@ -10,43 +10,59 @@ import {
   SidebarMenuItem,
 } from '../ui/sidebar';
 
-const menuItems = [
-  {
-    title: 'Home',
-    url: '#',
-    icon: Home,
-  },
-  {
-    title: 'Inbox',
-    url: '#',
-    icon: Inbox,
-  },
-  {
-    title: 'Calendar',
-    url: '#',
-    icon: Calendar,
-  },
-  {
-    title: 'Search',
-    url: '#',
-    icon: Search,
-  },
-  {
-    title: 'Settings',
-    url: '#',
-    icon: Settings,
-  },
-];
+const menuItems = {
+  navMain: [
+    {
+      title: 'Dashbord',
+      url: '/app',
+      icon: Home,
+    },
+    {
+      title: 'Accounts',
+      url: '/app/accounts',
+      icon: Inbox,
+    },
+    {
+      title: 'Transactions',
+      url: '/app/transactions',
+      icon: Calendar,
+    },
+  ],
+  navBottom: [
+    {
+      title: 'Settings',
+      url: '#',
+      icon: Settings,
+    },
+  ],
+};
 
 export const AppSidebar = () => {
   return (
     <Sidebar variant="inset">
       <SidebarContent>
+        {/* Main */}
         <SidebarGroup>
-          <SidebarGroupLabel>Application</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => (
+              {menuItems.navMain.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <a href={item.url}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        {/* Bottom */}
+        <SidebarGroup className="mt-auto">
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {menuItems.navBottom.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <a href={item.url}>

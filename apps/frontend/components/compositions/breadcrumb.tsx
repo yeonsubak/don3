@@ -35,6 +35,16 @@ export const Breadcrumb = ({ pathname, className }: { pathname: string; classNam
     });
     return path;
   });
+  breadcrumbs.shift();
+
+  if (breadcrumbs.length === 0) {
+    breadcrumbs.push({
+      href: '/',
+      name: 'Dashboard',
+      idx: 0,
+      length: 1,
+    });
+  }
 
   return (
     <Primitive.Breadcrumb className={className}>
