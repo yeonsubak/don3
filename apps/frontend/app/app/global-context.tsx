@@ -1,5 +1,6 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import type { AccountSelectAll, CountrySelect, CurrencySelect } from '@/db/drizzle/types';
+import { QUERIES } from '@/lib/tanstack-queries';
 import { useQueries } from '@tanstack/react-query';
 import {
   createContext,
@@ -11,7 +12,6 @@ import {
   type ReactNode,
   type SetStateAction,
 } from 'react';
-import { useQueryContext } from './query-context';
 
 type GlobalContext = {
   countries: CountrySelect[];
@@ -33,8 +33,6 @@ type GlobalContext = {
 export const GlobalContext = createContext<GlobalContext | null>(null);
 
 export const GlobalContextProvider = ({ children }: { children: ReactNode }) => {
-  const { QUERIES } = useQueryContext();
-
   const {
     data: { fetchedDefaultCurrency, fetchedCountries, fetchedCurrencies, fetchedAccounts },
     isPending,
@@ -42,10 +40,10 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
     error,
   } = useQueries({
     queries: [
-      QUERIES.config.defaultCurrency,
-      QUERIES.config.countries,
-      QUERIES.config.currencies,
-      QUERIES.accounts.getAllAccounts,
+      QUERIES.config.defaultCurrency(),
+      QUERIES.config.countries(),
+      QUERIES.config.currencies(),
+      QUERIES.accounts.allAccounts(),
     ],
     combine: (results) => ({
       data: {

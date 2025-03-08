@@ -1,9 +1,8 @@
-import { forex } from '@/db/drizzle/schema';
+import { forex, type UserConfigKey } from '@/db/drizzle/schema';
 import type { CurrencySelect, ForexInsert } from '@/db/drizzle/types';
 import { and, between, desc, eq, inArray } from 'drizzle-orm';
 import { DateTime } from 'luxon';
 import { Repository } from './abstract-repository';
-import type { UserConfigKey } from './helper';
 
 export class ConfigRepository extends Repository {
   protected static instance: ConfigRepository;

@@ -7,21 +7,15 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/s
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { usePathname } from 'next/navigation';
 import { GlobalContextProvider } from './global-context';
-import { QueryContextProvider } from './query-context';
-import { ServiceContextProvider } from './service-context';
 
 const queryClient = new QueryClient();
 
 export default function AppLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <QueryClientProvider client={queryClient}>
-      <ServiceContextProvider>
-        <QueryContextProvider>
-          <GlobalContextProvider>
-            <AppContent>{children}</AppContent>
-          </GlobalContextProvider>
-        </QueryContextProvider>
-      </ServiceContextProvider>
+      <GlobalContextProvider>
+        <AppContent>{children}</AppContent>
+      </GlobalContextProvider>
     </QueryClientProvider>
   );
 }

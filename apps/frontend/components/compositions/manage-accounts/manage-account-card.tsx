@@ -1,7 +1,6 @@
 'use client';
 
 import { useGlobalContext } from '@/app/app/global-context';
-import { useServiceContext } from '@/app/app/service-context';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -20,6 +19,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { getAccountsService } from '@/services/helper';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { CountryCombobox } from '../country-combobox';
@@ -29,7 +29,6 @@ import { createAccountForm, type CreateAccountForm } from './form-schema';
 
 export const ManageAccountCard = () => {
   const { accounts, setAccounts } = useGlobalContext();
-  const { accountsService } = useServiceContext();
 
   const form = useForm<CreateAccountForm>({
     resolver: zodResolver(createAccountForm),
@@ -42,6 +41,7 @@ export const ManageAccountCard = () => {
   });
 
   const onSubmit = async (form: CreateAccountForm) => {
+    const accountsService = await getAccountsService();
     if (!accountsService) throw new Error('AccountsService must be initialized first');
 
     const result = await accountsService.createAccount(form);

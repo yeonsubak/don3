@@ -1,10 +1,5 @@
 import { accounts } from '@/db/drizzle/schema';
-import type {
-  AccountGroupType,
-  AccountInsert,
-  AccountSelect,
-  AccountSelectAll,
-} from '@/db/drizzle/types';
+import type { AccountGroupType, AccountInsert, AccountSelectAll } from '@/db/drizzle/types';
 import { Repository } from './abstract-repository';
 
 export class AccountsRepository extends Repository {
