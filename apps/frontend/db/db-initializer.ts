@@ -6,10 +6,10 @@ import { DATASET_ACCOUNT_GROUPS } from './dataset/account-groups';
 import { DATASET_ACCOUNTS } from './dataset/accounts';
 import { DATASET_COUNTRY } from './dataset/country';
 import { DATASET_CURRENCY_FIAT } from './dataset/currency';
+import type { UserConfigKey } from './drizzle/schema';
 import * as schema from './drizzle/schema';
 import { PgliteClient } from './pglite-client';
 import { type PgliteDrizzle } from './pglite-web-worker';
-import type { UserConfigKey } from './drizzle/schema';
 
 export class DBInitializer {
   private static instance: DBInitializer;
@@ -91,7 +91,7 @@ export class DBInitializer {
 
   private async updateSchema() {
     // Create schemas and tables to the IndexedDb
-    const fetched = await (await fetch('/api/get-schema-data', { method: 'GET' })).json();
+    const fetched = await (await fetch('/api/get-schema-definition', { method: 'GET' })).json();
     await this.db.$client.exec(fetched.sql);
     await this.db
       .insert(schema.information)

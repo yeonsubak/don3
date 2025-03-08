@@ -10,7 +10,8 @@
     "test": "vitest",
     "coverage": "vitest run --coverage",
     "shadcn": "pnpm dlx shadcn@canary add",
-    "drk": "pnpm drizzle-kit --config=db/drizzle/drizzle.config.ts"
+    "drk": "pnpm drizzle-kit --config=db/drizzle/drizzle.config.ts",
+    "ext-drk": "pnpm drizzle-kit --config=db/external-db/drizzle.config.ts"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.2.17",
