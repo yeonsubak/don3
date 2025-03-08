@@ -2,7 +2,7 @@ import { useGlobalContext } from '@/app/app/global-context';
 import { parseMoney, parseNumber } from '@/components/common-functions';
 import { CurrencyCombobox } from '@/components/compositions/currency-combobox';
 import { MoneyInput } from '@/components/primitives/money-input';
-import { SkeletonSimple } from '@/components/primitives/skeleton-simple';
+import { Skeleton } from '@/components/primitives/skeleton';
 import {
   FormControl,
   FormDescription,
@@ -202,7 +202,7 @@ const FxField = ({
     [inversedFxRate],
   );
 
-  if (isPending) return <SkeletonSimple heightInPx={20} />;
+  if (isPending) return <LoadingSkeleton />;
 
   if (isError) return <p>Error: ${error.message}</p>;
 
@@ -350,3 +350,34 @@ export const TransferAmountCurrencyField = ({
     </>
   );
 };
+
+const LoadingSkeleton = () => (
+  <div className="flex flex-row gap-3">
+    <div className="basis-1/2">
+      <label className="leading-none">
+        <Skeleton className="w-[104px] max-w-full" />
+      </label>
+      <div className="space-y-2">
+        <div className="focus-visible:border-ring aria-invalid:border-destructive flex h-9 w-full min-w-0 border-b border-black px-3 py-1 text-right transition-[color,box-shadow] file:inline-flex file:h-7 file:border-0"></div>
+        <p>
+          <span>
+            <Skeleton className="w-[192px] max-w-full" />
+          </span>
+        </p>
+      </div>
+    </div>
+    <div className="basis-1/2">
+      <label className="leading-none">
+        <Skeleton className="w-[128px] max-w-full" />
+      </label>
+      <div className="space-y-2">
+        <div className="flex flex-row items-center gap-1">
+          <span>
+            <Skeleton className="w-[14px] max-w-full" />
+          </span>
+          <div className="focus-visible:border-ring aria-invalid:border-destructive flex h-9 w-full min-w-0 border-b border-black px-3 py-1 text-right transition-[color,box-shadow] file:inline-flex file:h-7 file:border-0"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
