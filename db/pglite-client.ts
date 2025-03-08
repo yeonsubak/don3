@@ -14,7 +14,7 @@ export class PgliteClient extends PGlite {
 
     if (!PgliteClient.instance) {
       PgliteClient.instance = new PGlite({
-        dataDir: 'idb://localhost:3000', // TODO: change it to .env
+        dataDir: 'idb://don3',
         relaxedDurability: true,
       });
     }

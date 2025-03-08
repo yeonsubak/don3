@@ -5,7 +5,7 @@ import { live } from '@electric-sql/pglite/live';
 worker({
   async init() {
     return await PGlite.create({
-      dataDir: 'idb://localhost:3000', // TODO: change it to .env
+      dataDir: 'idb://don3',
       relaxedDurability: true,
       extensions: { live },
     });
