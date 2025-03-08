@@ -1,6 +1,6 @@
 import { useGlobalContext } from '@/app/app/global-context';
 import { parseMoney, parseNumber } from '@/components/common-functions';
-import { Combobox } from '@/components/primitives/combobox';
+import { CurrencyCombobox } from '@/components/compositions/currency-combobox';
 import { MoneyInput } from '@/components/primitives/money-input';
 import { SkeletonSimple } from '@/components/primitives/skeleton-simple';
 import {
@@ -17,7 +17,6 @@ import { QUERIES } from '@/lib/tanstack-queries';
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, type Dispatch, type SetStateAction } from 'react';
 import { useWatch } from 'react-hook-form';
-import { useTransactionDrawerContext } from '../drawer-context';
 import type { Form } from '../forms/common';
 
 type AmountCurrencyFieldProps = {
@@ -38,8 +37,7 @@ export const AmountCurrencyField = ({
   isFxFieldName,
   zForm,
 }: AmountCurrencyFieldProps) => {
-  const { countries } = useGlobalContext();
-  const { currencyComboItems, currencies } = useTransactionDrawerContext();
+  const { countries, currencies } = useGlobalContext();
 
   const currencyCodeWatch = useWatch({ control: zForm?.control, name: 'currencyCode' });
   const countryCodeWatch = useWatch({ control: zForm?.control, name: 'countryCode' });
@@ -96,20 +94,7 @@ export const AmountCurrencyField = ({
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <Combobox
-                  items={currencyComboItems}
-                  field={field}
-                  zForm={zForm}
-                  buttonLabelRenderFn={() => {
-                    const currency = currencyComboItems.find(
-                      (currency) => currency.value === field.value,
-                    );
-                    return currency?.label.split('-').map((e) => e.trim())[0] ?? '';
-                  }}
-                  isChevron={false}
-                  popoverButtonClass="min-w-[3.25rem] w-fit justify-center"
-                  popoverContentClass="w-80"
-                />
+                <CurrencyCombobox field={field} zForm={zForm} buttonRenderMode="symbol" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -289,7 +274,6 @@ export const TransferAmountCurrencyField = ({
   zForm,
 }: AmountCurrencyFieldProps) => {
   const { accounts } = useGlobalContext();
-  const { currencyComboItems } = useTransactionDrawerContext();
 
   const debitAccountWatch = useWatch({ control: zForm?.control, name: 'debitAccountId' });
   const creditAccountWatch = useWatch({ control: zForm?.control, name: 'creditAccountId' });
@@ -327,20 +311,7 @@ export const TransferAmountCurrencyField = ({
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <Combobox
-                  items={currencyComboItems}
-                  field={field}
-                  zForm={zForm}
-                  buttonLabelRenderFn={() => {
-                    const currency = currencyComboItems.find(
-                      (currency) => currency.value === field.value,
-                    );
-                    return currency?.label.split('-').map((e) => e.trim())[0] ?? '';
-                  }}
-                  isChevron={false}
-                  popoverButtonClass="min-w-[3.25rem] w-fit justify-center"
-                  popoverContentClass="w-80"
-                />
+                <CurrencyCombobox field={field} zForm={zForm} buttonRenderMode="symbol" />
               </FormControl>
               <FormMessage />
             </FormItem>
