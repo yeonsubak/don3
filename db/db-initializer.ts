@@ -1,5 +1,4 @@
 import type { Version } from '@/app/api/get-latest-version/route';
-import { USER_CONFIG_KEYS, type UserConfigKey } from '@/app/repositories/helper';
 import { count, type InferInsertModel, type TableConfig } from 'drizzle-orm';
 import type { PgTable } from 'drizzle-orm/pg-core';
 import { drizzle } from 'drizzle-orm/pglite';
@@ -10,6 +9,7 @@ import { DATASET_CURRENCY_FIAT } from './dataset/currency';
 import * as schema from './drizzle/schema';
 import { PgliteClient } from './pglite-client';
 import { type PgliteDrizzle } from './pglite-web-worker';
+import type { UserConfigKey } from './drizzle/schema';
 
 export class DBInitializer {
   private static instance: DBInitializer;
@@ -139,7 +139,7 @@ export class DBInitializer {
         .from(schema.information)
     )?.map((e) => e.key);
 
-    return USER_CONFIG_KEYS.filter((key) => !storedKeys?.includes(key));
+    return schema.USER_CONFIG_KEYS.filter((key) => !storedKeys?.includes(key));
   }
 
   private async insertDefaultConfig(missingKeys: UserConfigKey[]) {

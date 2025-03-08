@@ -1,4 +1,4 @@
-import type { GroupAccountsByCountry } from '@/app/services/accounts-service';
+import type { GroupAccountsByCountry } from '@/services/accounts-service';
 import type { ComboboxItem } from '@/components/primitives/combobox';
 import type { AccountSelect, JournalEntrySelect } from '@/db/drizzle/types';
 import type { ReactNode } from 'react';

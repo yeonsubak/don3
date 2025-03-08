@@ -1,9 +1,9 @@
 'use client';
 
 import { useGlobalContext } from '@/app/app/global-context';
-import { useServiceContext } from '@/app/app/service-context';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { JournalEntrySelect } from '@/db/drizzle/types';
+import { getTransactionService } from '@/services/helper';
 import { type ReactNode } from 'react';
 import { useTransactionContext } from '../transaction-context';
 import { mapToTransactionItems } from '../transaction-record';
@@ -22,9 +22,8 @@ export const TransactionFormTab = ({ footer }: { footer: ReactNode }) => {
     transactionRecordState: [txRecord, setTxRecord],
   } = useTransactionContext();
 
-  const { transactionService } = useServiceContext();
-
   const onSuccess = async (entry: JournalEntrySelect<{ currency: true; transactions: true }>[]) => {
+    const transactionService = await getTransactionService();
     if (!transactionService) throw new Error('TransactionService must be initialized first');
 
     const dateError = new Error('Date must be selected');

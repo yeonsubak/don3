@@ -1,14 +1,14 @@
 'use client';
 
-import { type GroupAccountsByCountry } from '@/app/services/accounts-service';
 import { AccountGroupTopLevel } from '@/components/compositions/manage-accounts/account-group-top-level';
 import { accounts } from '@/db/drizzle/schema';
+import { QUERIES } from '@/lib/tanstack-queries';
 import { cn } from '@/lib/utils';
+import { type GroupAccountsByCountry } from '@/services/accounts-service';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { useGlobalContext } from '../global-context';
-import { useQueryContext } from '../query-context';
 
 export type AccountList = (typeof accounts.$inferSelect)[];
 
@@ -18,14 +18,12 @@ export default function ManageAccounts() {
 
   const tCountry = useTranslations('countryCode');
 
-  const { QUERIES } = useQueryContext();
-
   const {
     data: accounts,
     isPending,
     isError,
     error,
-  } = useQuery(QUERIES.accounts.getAccountGroupsByCountry('asset'));
+  } = useQuery(QUERIES.accounts.accountGroupsByCountry('asset'));
 
   useEffect(() => {
     if (!accounts) return;

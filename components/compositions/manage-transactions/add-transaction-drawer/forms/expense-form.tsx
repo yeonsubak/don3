@@ -1,7 +1,7 @@
 import { useGlobalContext } from '@/app/app/global-context';
-import { useQueryContext } from '@/app/app/query-context';
-import { useServiceContext } from '@/app/app/service-context';
 import { Form } from '@/components/ui/form';
+import { QUERIES } from '@/lib/tanstack-queries';
+import { getTransactionService } from '@/services/helper';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueries } from '@tanstack/react-query';
 import { DateTime } from 'luxon';
@@ -19,8 +19,6 @@ import { expenseTxForm, type ExpenseTxForm } from './form-schema';
 
 export const ExpenseForm = ({ footer, onSuccess }: TxFormProps) => {
   const { countriesInUse, defaultCurrency } = useGlobalContext();
-  const { QUERIES } = useQueryContext();
-
   const curDate = DateTime.now();
   const form = useForm<ExpenseTxForm>({
     resolver: zodResolver(expenseTxForm),
@@ -48,9 +46,9 @@ export const ExpenseForm = ({ footer, onSuccess }: TxFormProps) => {
     error,
   } = useQueries({
     queries: [
-      QUERIES.accounts.getAccountGroupsByCountry('asset'),
-      QUERIES.accounts.getAccountGroupsByCountry('liability'),
-      QUERIES.accounts.getAccountGroupsByCountry('expense'),
+      QUERIES.accounts.accountGroupsByCountry('asset'),
+      QUERIES.accounts.accountGroupsByCountry('liability'),
+      QUERIES.accounts.accountGroupsByCountry('expense'),
     ],
     combine: (results) => ({
       data: {
@@ -82,9 +80,8 @@ export const ExpenseForm = ({ footer, onSuccess }: TxFormProps) => {
     }
   }, [countryCodeWatch, expenseGroupsByCountry]);
 
-  const { transactionService } = useServiceContext();
-
   const onSubmit = async (form: ExpenseTxForm) => {
+    const transactionService = await getTransactionService();
     if (!transactionService) throw new Error('TransactionService must be initialized first');
 
     const insertedEntry = await transactionService.insertTransaction(form);

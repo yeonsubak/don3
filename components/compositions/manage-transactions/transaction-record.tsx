@@ -3,11 +3,11 @@ import { AccountIcon } from '@/components/primitives/account-icon';
 import { SkeletonSimple } from '@/components/primitives/skeleton-simple';
 import { Badge } from '@/components/ui/badge';
 import type { AccountSelect, JournalEntrySelect, JournalEntryType } from '@/db/drizzle/types';
+import { QUERIES } from '@/lib/tanstack-queries';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { useTransactionContext } from './transaction-context';
-import { useQueryContext } from '@/app/app/query-context';
 
 export type TransactionItem = {
   id: number;
@@ -46,8 +46,6 @@ type TransactionRecordProps = {
 };
 
 export const TransactionRecord = () => {
-  const { QUERIES } = useQueryContext();
-
   const {
     transactionRecordState: [transactionRecord, setTransactionRecord],
     calendarDateState: [date, _],
@@ -60,7 +58,7 @@ export const TransactionRecord = () => {
     isError,
     error,
   } = useQuery(
-    QUERIES.transaction.getJournalEntries(['income', 'expense', 'transfer'], { from, to }, true),
+    QUERIES.transaction.journalEntries(['income', 'expense', 'transfer'], { from, to }, true),
   );
 
   useEffect(() => {

@@ -1,5 +1,4 @@
 import { useGlobalContext } from '@/app/app/global-context';
-import { useQueryContext } from '@/app/app/query-context';
 import { parseMoney, parseNumber } from '@/components/common-functions';
 import { Combobox } from '@/components/primitives/combobox';
 import { MoneyInput } from '@/components/primitives/money-input';
@@ -14,6 +13,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import type { CurrencySelect } from '@/db/drizzle/types';
+import { QUERIES } from '@/lib/tanstack-queries';
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, type Dispatch, type SetStateAction } from 'react';
 import { useWatch } from 'react-hook-form';
@@ -164,14 +164,12 @@ const FxField = ({
   amountFieldName,
   mode = 'normal',
 }: FxFieldProps) => {
-  const { QUERIES } = useQueryContext();
-
   const {
     data: fetchedFxRate,
     isPending,
     isError,
     error,
-  } = useQuery(QUERIES.config.getLatestFxRate(targetCurrency, [baseCurrency]));
+  } = useQuery(QUERIES.config.latestFxRate(targetCurrency, [baseCurrency]));
 
   const setValueRef = useRef(zForm?.setValue);
   const getValuesRef = useRef(zForm?.getValues);

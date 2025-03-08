@@ -2,7 +2,7 @@
 
 import type { CurrencySelect, ForexInsert } from '@/db/drizzle/types';
 import { DateTime } from 'luxon';
-import type { FetchFxRate } from '../api/get-latest-fx-rate/route';
+import type { FetchFxRate } from '../app/api/get-latest-fx-rate/route';
 import { ConfigRepository } from '../repositories/config-repository';
 import { Service } from './abstract-service';
 

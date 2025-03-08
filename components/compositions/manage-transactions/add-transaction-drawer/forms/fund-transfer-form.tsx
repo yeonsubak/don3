@@ -1,7 +1,7 @@
 import { useGlobalContext } from '@/app/app/global-context';
-import { useQueryContext } from '@/app/app/query-context';
-import { useServiceContext } from '@/app/app/service-context';
 import { Form } from '@/components/ui/form';
+import { QUERIES } from '@/lib/tanstack-queries';
+import { getTransactionService } from '@/services/helper';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueries } from '@tanstack/react-query';
 import { DateTime } from 'luxon';
@@ -19,7 +19,6 @@ import { fundTransferTxForm, type FundTransferTxForm } from './form-schema';
 
 export const FundTransferForm = ({ footer, onSuccess }: TxFormProps) => {
   const { countriesInUse, isMultiCountry, defaultCurrency } = useGlobalContext();
-  const { QUERIES } = useQueryContext();
 
   const curDate = DateTime.now();
   const form = useForm<FundTransferTxForm>({
@@ -46,8 +45,8 @@ export const FundTransferForm = ({ footer, onSuccess }: TxFormProps) => {
     error,
   } = useQueries({
     queries: [
-      QUERIES.accounts.getAccountGroupsByCountry('asset'),
-      QUERIES.accounts.getAccountGroupsByCountry('liability'),
+      QUERIES.accounts.accountGroupsByCountry('asset'),
+      QUERIES.accounts.accountGroupsByCountry('liability'),
     ],
     combine: (results) => ({
       data: {
@@ -86,13 +85,12 @@ export const FundTransferForm = ({ footer, onSuccess }: TxFormProps) => {
     setAccounts(mapped);
   }, [assetGroupsByCountry, liabilityGroupsByCountry, countriesInUse, isMultiCountry, tCountry]);
 
-  const { transactionService } = useServiceContext();
-
   if (isError) {
     return error.map((e) => <p key={e?.name}>Error: ${e?.message}</p>);
   }
 
   const onSubmit = async (form: FundTransferTxForm) => {
+    const transactionService = await getTransactionService();
     if (!transactionService) throw new Error('TransactionService must be initialized first');
 
     const insertedEntry = await transactionService.insertTransaction(form);
