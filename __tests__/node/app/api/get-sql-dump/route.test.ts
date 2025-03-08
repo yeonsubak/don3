@@ -1,4 +1,4 @@
-import { extractOrderFromFileName } from '@/app/api/get-schema-data/functions';
+import { extractOrderFromFileName } from '@/app/api/get-schema-definition/functions';
 import { describe, expect, test } from 'vitest';
 
 describe('File handling functions', () => {

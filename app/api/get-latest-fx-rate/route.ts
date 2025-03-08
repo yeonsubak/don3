@@ -1,9 +1,8 @@
-import * as schema from '@/db/external-db/schema';
+import { externalDB } from '@/db/external-db/drizzle-client';
+import * as schema from '@/db/external-db/migration/schema';
 import { and, between, desc, eq } from 'drizzle-orm';
-import { drizzle } from 'drizzle-orm/postgres-js';
 import { DateTime } from 'luxon';
 import { NextResponse, type NextRequest } from 'next/server';
-import postgres from 'postgres';
 
 export type FetchFxRate = {
   amount: number;
@@ -25,20 +24,12 @@ export async function GET(
     return NextResponse.json({ error: 'Insufficient search params' }, { status: 500 });
   }
 
-  let db: ReturnType<typeof drizzle> | undefined;
-  const externalDatabaseUrl = process.env.EXTERNAL_DATABASE_URL;
-  if (externalDatabaseUrl) {
-    const supabaseClient = postgres(externalDatabaseUrl, { prepare: false });
-    db = drizzle(supabaseClient, {
-      schema,
-      casing: 'snake_case',
-    });
-
+  if (externalDB) {
     const targetCurrencies = to.split(',');
     const now = DateTime.now();
     const fourHourBefore = now.minus({ hours: 4 });
 
-    const latestForex = await db
+    const latestForex = await externalDB
       .selectDistinctOn([schema.forex.baseCurrency, schema.forex.targetCurrency])
       .from(schema.forex)
       .where(
@@ -80,7 +71,7 @@ export async function GET(
 
   const fetched: FetchFxRate = await res.json();
 
-  if (externalDatabaseUrl && db) {
+  if (externalDB) {
     const insertObj: ForexInsert[] = Object.entries(fetched.rates).map(([key, value]) => ({
       date: fetched.date,
       baseCurrency: from,
@@ -88,7 +79,7 @@ export async function GET(
       rate: value.toFixed(5),
     }));
 
-    await db.insert(schema.forex).values(insertObj);
+    await externalDB.insert(schema.forex).values(insertObj);
   }
 
   return NextResponse.json(fetched);
