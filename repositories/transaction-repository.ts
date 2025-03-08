@@ -2,7 +2,7 @@ import type {
   ExpenseTxForm,
   FundTransferTxForm,
   IncomeTxForm,
-} from '@/components/compositions/manage-transactions/add-transaction-drawer/forms/form-schema';
+} from '@/components/page/transactions/add-drawer/forms/form-schema';
 import { journalEntries, journalEntryFxRates } from '@/db/drizzle/schema';
 import type {
   JournalEntryFxRatesInsert,

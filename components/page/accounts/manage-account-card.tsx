@@ -22,8 +22,8 @@ import { Input } from '@/components/ui/input';
 import { getAccountsService } from '@/services/helper';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { CountryCombobox } from '../country-combobox';
-import { CurrencyCombobox } from '../currency-combobox';
+import { CountryCombobox } from '../../compositions/country-combobox';
+import { CurrencyCombobox } from '../../compositions/currency-combobox';
 import { AccountTypeToggle } from './account-type-toggle';
 import { createAccountForm, type CreateAccountForm } from './form-schema';
 

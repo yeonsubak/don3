@@ -1,6 +1,6 @@
 'use client';
 
-import { AccountGroupTopLevel } from '@/components/compositions/manage-accounts/account-group-top-level';
+import { AccountGroupTopLevel } from '@/components/page/accounts/account-group-top-level';
 import { accounts } from '@/db/drizzle/schema';
 import { QUERIES } from '@/lib/tanstack-queries';
 import { cn } from '@/lib/utils';
