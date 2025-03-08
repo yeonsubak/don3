@@ -49,11 +49,11 @@ export type ComboboxProps = {
   keyRenderFn?: (item: ComboboxItem) => string;
 };
 
-export const flattenComboboxItems = (items: ComboboxItem[]): ComboboxItem[] => {
-  return items.flatMap((item) => {
-    return item.children ? [item, ...flattenComboboxItems(item.children)] : [item];
-  });
-};
+export function flattenComboboxItems<T>(items: ComboboxItem<T>[]): ComboboxItem<T>[] {
+  return items.flatMap((item) =>
+    item.children ? [item, ...flattenComboboxItems<T>(item.children)] : [item],
+  );
+}
 
 export const Combobox = ({
   items,

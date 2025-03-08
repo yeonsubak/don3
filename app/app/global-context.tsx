@@ -64,9 +64,18 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
   const [currencies, setCurrencies] = useState<CurrencySelect[]>([]);
   const [accounts, setAccounts] = useState<AccountSelectAll[]>([]);
 
-  const countriesInUse = useMemo(() => accounts.map((account) => account.country), [accounts]);
+  const countriesInUse = useMemo(() => {
+    const countries = accounts.map((account) => account.country);
+    const removeDups = new Map(countries.map((e) => [e.id, e]));
+    return Array.from(removeDups.values());
+  }, [accounts]);
   const isMultiCountry = useMemo(() => countriesInUse.length > 1, [countriesInUse]);
-  const currenciesInUse = useMemo(() => accounts.map((account) => account.currency), [accounts]);
+
+  const currenciesInUse = useMemo(() => {
+    const currencies = accounts.map((account) => account.currency);
+    const removeDups = new Map(currencies.map((e) => [e.id, e]));
+    return Array.from(removeDups.values());
+  }, [accounts]);
 
   useEffect(() => {
     setDefaultCurrency(fetchedDefaultCurrency);
