@@ -1,7 +1,7 @@
 import { invisibleCharMd } from '@/components/common-functions';
 import type { DateRange } from '@/components/common-types';
 import { useTransactionContext } from '@/components/page/transactions/transaction-context';
-import { SkeletonSimple } from '@/components/primitives/skeleton-simple';
+import { Skeleton } from '@/components/primitives/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { QUERIES } from '@/lib/tanstack-queries';
 import { useQuery } from '@tanstack/react-query';
@@ -42,7 +42,7 @@ export const TransactionSummary = ({ dateRange: { from, to } }: TransactionSumma
     return max - min + 1;
   }, [income, expense]);
 
-  if (isPending) return <SkeletonSimple heightInPx={97} />;
+  if (isPending) return <LoadingSkeleton />;
 
   if (isError) return <p>Error: ${error.message}</p>;
 
@@ -67,3 +67,33 @@ export const TransactionSummary = ({ dateRange: { from, to } }: TransactionSumma
     </div>
   );
 };
+
+const LoadingSkeleton = () => (
+  <div className="flex w-full flex-col gap-2 md:w-96 md:p-4">
+    <div className="flex flex-row gap-8">
+      <div className="grow text-left">
+        <Skeleton className="w-[48px] max-w-full" />
+      </div>
+      <div className="grow text-right">
+        <Skeleton className="w-[56px] max-w-full" />
+      </div>
+    </div>
+    <div className="flex flex-row gap-8">
+      <div className="grow text-left">
+        <Skeleton className="w-[56px] max-w-full" />
+      </div>
+      <div className="grow text-right">
+        <Skeleton className="w-[56px] max-w-full" />
+      </div>
+    </div>
+    <div className="bg-border h-[1px] w-full shrink-0"></div>
+    <div className="flex flex-row gap-8">
+      <div className="grow">
+        <Skeleton className="w-[40px] max-w-full" />
+      </div>
+      <div className="grow text-right">
+        <Skeleton className="w-[56px] max-w-full" />
+      </div>
+    </div>
+  </div>
+);

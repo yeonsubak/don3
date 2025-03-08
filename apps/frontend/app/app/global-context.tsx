@@ -1,4 +1,3 @@
-import { Skeleton } from '@/components/ui/skeleton';
 import type { AccountSelectAll, CountrySelect, CurrencySelect } from '@/db/drizzle/types';
 import { QUERIES } from '@/lib/tanstack-queries';
 import { useQueries } from '@tanstack/react-query';
@@ -85,7 +84,7 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
   }, [fetchedCountries, fetchedDefaultCurrency, fetchedCurrencies, fetchedAccounts]);
 
   if (isPending) {
-    return <Skeleton className="h-full w-full" />;
+    return <></>;
   }
 
   if (isError) {
