@@ -11,7 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useIsMobile } from '@/components/compositions/hooks/use-mobile';
+import { useIsMobile } from '@/components/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 
 import * as VisuallyHidden from '@radix-ui/react-visually-hidden';

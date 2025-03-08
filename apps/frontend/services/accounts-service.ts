@@ -1,6 +1,6 @@
 'use client';
 
-import type { CreateAccountForm } from '@/components/compositions/manage-accounts/form-schema';
+import type { CreateAccountForm } from '@/components/page/accounts/form-schema';
 import type { AccountGroupSelect, AccountGroupType, AccountInsert } from '@/db/drizzle/types';
 import { AccountsRepository } from '../repositories/accounts-repository';
 import type { ConfigRepository } from '../repositories/config-repository';

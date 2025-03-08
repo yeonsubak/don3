@@ -1,6 +1,6 @@
 import { invisibleCharMd } from '@/components/common-functions';
 import type { DateRange } from '@/components/common-types';
-import { useTransactionContext } from '@/components/compositions/manage-transactions/transaction-context';
+import { useTransactionContext } from '@/components/page/transactions/transaction-context';
 import { SkeletonSimple } from '@/components/primitives/skeleton-simple';
 import { Separator } from '@/components/ui/separator';
 import { QUERIES } from '@/lib/tanstack-queries';

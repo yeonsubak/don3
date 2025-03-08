@@ -5,7 +5,7 @@ import type {
   ExpenseTxForm,
   FundTransferTxForm,
   IncomeTxForm,
-} from '@/components/compositions/manage-transactions/add-transaction-drawer/forms/form-schema';
+} from '@/components/page/transactions/add-drawer/forms/form-schema';
 import { transactions } from '@/db/drizzle/schema';
 import type { CurrencySelect, JournalEntryType, TransactionInsert } from '@/db/drizzle/types';
 import type { AccountsRepository } from '../repositories/accounts-repository';

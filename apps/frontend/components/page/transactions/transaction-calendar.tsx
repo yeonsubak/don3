@@ -1,5 +1,5 @@
 import { useGlobalContext } from '@/app/app/global-context';
-import { useTransactionContext } from '@/components/compositions/manage-transactions/transaction-context';
+import { useTransactionContext } from '@/components/page/transactions/transaction-context';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover } from '@/components/ui/popover';
