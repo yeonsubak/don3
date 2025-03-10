@@ -46,7 +46,7 @@ export const TransactionFormTab = ({ footer }: { footer: ReactNode }) => {
 
   return (
     <Tabs defaultValue="expense">
-      <div className="px-2">
+      <div className="px-4">
         <TabsList className="w-full">
           <div className="grid w-full grid-flow-col">
             <TabsTrigger value="income" className="grow">
