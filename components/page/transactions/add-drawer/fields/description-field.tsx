@@ -14,7 +14,7 @@ export const DescriptionField = ({ zForm }: DescriptionFieldProps) => (
       <FormItem>
         <FormLabel>Description</FormLabel>
         <FormControl>
-          <Textarea rows={6} {...field} />
+          <Textarea rows={2} {...field} />
         </FormControl>
         <FormMessage />
       </FormItem>

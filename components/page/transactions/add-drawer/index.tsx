@@ -12,15 +12,14 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from '@/components/ui/drawer';
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 import { useMediaQuery } from 'usehooks-ts';
 import { useTransactionDrawerContext } from './drawer-context';
 import { TransactionFormTab } from './transaction-form-tab';
@@ -58,29 +57,28 @@ export const AddTransactionDrawer = () => {
   }
 
   return (
-    <Drawer open={open} onOpenChange={setOpen} autoFocus={open}>
-      <DrawerTrigger asChild>
-        <Button variant="default" className="w-full text-lg" inert={open}>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <Button variant="default" className="w-full text-lg">
           Add
         </Button>
-      </DrawerTrigger>
-      <DrawerContent className="">
-        <DrawerHeader className="text-left">
-          <DrawerTitle>Add transaction</DrawerTitle>
-          <DrawerDescription></DrawerDescription>
-        </DrawerHeader>
+      </SheetTrigger>
+      <SheetContent side="bottom" closeBtnOnHeader={false} className="gap-1">
+        <SheetHeader>
+          <SheetTitle className="text-xl">Add record</SheetTitle>
+        </SheetHeader>
         <TransactionFormTab
           footer={
-            <DrawerFooter className="px-0">
+            <SheetFooter className="px-0">
               <LocalButton />
-              <DrawerClose asChild>
+              <SheetClose asChild>
                 <Button variant="outline">Cancel</Button>
-              </DrawerClose>
-            </DrawerFooter>
+              </SheetClose>
+            </SheetFooter>
           }
-        ></TransactionFormTab>
-      </DrawerContent>
-    </Drawer>
+        />
+      </SheetContent>
+    </Sheet>
   );
 };
 
