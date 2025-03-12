@@ -1,4 +1,5 @@
-import type { Version } from '@/app/api/get-latest-version/route';
+import type { SchemaDefinition } from '@/app/api/database/common';
+import type { Version } from '@/app/api/database/get-latest-version/route';
 import { count, type InferInsertModel, type TableConfig } from 'drizzle-orm';
 import type { PgTable } from 'drizzle-orm/pg-core';
 import { drizzle } from 'drizzle-orm/pglite';
@@ -74,7 +75,7 @@ export class DBInitializer {
   }
 
   private async getLatestVersion(): Promise<Version> {
-    return await (await fetch('/api/get-latest-version', { method: 'GET' })).json();
+    return await (await fetch('/api/database/get-latest-version', { method: 'GET' })).json();
   }
 
   private async validateSchemaVersion(schemaVersion: string) {
@@ -91,15 +92,21 @@ export class DBInitializer {
 
   private async updateSchema() {
     // Create schemas and tables to the IndexedDb
-    const fetched = await (await fetch('/api/get-schema-definition', { method: 'GET' })).json();
-    await this.db.$client.exec(fetched.sql);
-    await this.db
-      .insert(schema.information)
-      .values({ name: 'schemaVersion', value: fetched.version })
-      .onConflictDoUpdate({
-        target: schema.information.name,
-        set: { value: fetched.version },
-      });
+    const fetched: SchemaDefinition[] = await (
+      await fetch('/api/database/get-schema-definition', { method: 'GET' })
+    ).json();
+
+    for (const { sql, version } of fetched) {
+      await this.db.$client.exec(sql);
+      await this.db
+        .insert(schema.information)
+        .values({ name: 'schemaVersion', value: version })
+        .onConflictDoUpdate({
+          target: schema.information.name,
+          set: { value: version },
+        });
+    }
+
     console.log('updateSchema() completed.');
   }
 
