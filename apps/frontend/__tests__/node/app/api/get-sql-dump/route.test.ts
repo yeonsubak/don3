@@ -1,21 +1,72 @@
-import { extractOrderFromFileName } from '@/app/api/get-schema-definition/functions';
+import { printTestResult } from '@/__tests__/common';
+import {
+  compareSemanticVersions,
+  extractSemanticVersion,
+  isValidVersionedSQL,
+} from '@/app/api/database/common';
+import { promises as fs } from 'fs';
 import { describe, expect, test } from 'vitest';
 
-describe('File handling functions', () => {
+describe('Extract semantic version from the file name', () => {
   test.each([
-    ['0000_glamorous_mongu.sql', 0],
-    ['0001_glamorous_mongu.sql', 1],
-    ['0002_glamorous_mongu.sql', 2],
-    ['0052_glamorous_mongu.sql', 52],
-    ['0199_glamorous_mongu.sql', 199],
-    ['9999_glamorous_mongu.sql', 9999],
-    ['glamorous_mongu.sql', -1],
+    ['ver-0.0.1.sql', '0.0.1'],
+    ['ver-1.0.0.sql', '1.0.0'],
+    ['ver-2.10.3.sql', '2.10.3'],
+    ['ver-0.1.0.sql', '0.1.0'],
+    ['ver-3.0.0.sql', '3.0.0'],
+    ['version-1.0.0.sql', null],
+    ['ver-1.sql', null],
+    ['ver-1.0.sql', null],
+    ['ver-1.0.0-beta', null],
   ])(
-    'should return a number value from the prefix of a file delimited by underscore. If the number value is null, it should return -1',
+    'should return the semantic version. If the version is invalid, it should return null.',
     (fileName, expected) => {
-      const result = extractOrderFromFileName(fileName);
-      console.log(`Input: ${fileName} | Expected: ${expected} | Got: ${result}`);
+      const result = extractSemanticVersion(fileName);
+      printTestResult(fileName, expected, result);
       expect(result).toBe(expected);
     },
   );
+});
+
+describe('Are drizzle migration files are in the right convention?', async () => {
+  const sqlFileNames = (await fs.readdir('db/drizzle/migration')).filter((fileName) =>
+    fileName.endsWith('.sql'),
+  );
+  const testArgs = sqlFileNames.map((fileName) => [fileName, true]);
+
+  test.each(testArgs)('should return true', (fileName, expected) => {
+    const result = isValidVersionedSQL(fileName as string);
+    printTestResult(fileName, expected, result);
+    expect(result).toBe(expected);
+  });
+});
+
+describe('isValidVersionedSQL', () => {
+  test.each([
+    ['ver-1.0.0.sql', true],
+    ['ver-2.10.3.sql', true],
+    ['ver-0.1.0.sql', true],
+    ['ver-3.0.0.sql', true],
+    ['version-1.0.0.sql', false],
+    ['ver-1.sql', false],
+    ['ver-1.0.sql', false],
+    ['ver-1.0.0-beta', false],
+  ])('should follow semantic versioning convention', (input: string, expected: boolean) => {
+    const result = isValidVersionedSQL(input);
+    printTestResult(input, expected, result);
+    expect(result).toBe(expected);
+  });
+});
+
+describe('compareSemanticVersion', () => {
+  test.each([
+    [
+      ['1.5.0', '0.1.0', '0.0.1', '2.8.0', '0.0.38', '1.0.2'],
+      ['0.0.1', '0.0.38', '0.1.0', '1.0.2', '1.5.0', '2.8.0'],
+    ],
+  ])('should be sorted in ascending order', (input: string[], expected: string[]) => {
+    const result = input.toSorted(compareSemanticVersions);
+    printTestResult(input, expected, result);
+    expect(result).toStrictEqual(expected);
+  });
 });
