@@ -12,7 +12,7 @@ import {
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    let userSchemaVersion = searchParams.get('schemaVersion');
+    const userSchemaVersion = searchParams.get('schemaVersion');
 
     const env = process.env.ENVIRONMENT ?? 'DEV';
     const data =
