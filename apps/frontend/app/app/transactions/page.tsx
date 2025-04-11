@@ -8,26 +8,23 @@ import { TransactionCalendar } from '@/components/page/transactions/transaction-
 import { TransactionRecord } from '@/components/page/transactions/transaction-record';
 import { TransactionSummary } from '@/components/page/transactions/transaction-summary';
 import { useState } from 'react';
-import { TransactionContextProvider } from '../../../components/page/transactions/transaction-context';
 
 export default function ManageTransactions() {
   const { firstDate, lastDate } = getFirstLastDayInMonth(new Date());
   const [dateRange, setDateRange] = useState<DateRange>({ from: firstDate, to: lastDate });
 
   return (
-    <TransactionContextProvider>
-      <div className="flex flex-col gap-6">
-        <TransactionCalendar />
-        <TransactionSummary dateRange={dateRange} setDateRange={setDateRange} />
-        <div className="mb-2">
-          <TransactionDrawerContextProvider>
-            <AddTransactionDrawer />
-          </TransactionDrawerContextProvider>
-        </div>
-
-        {/* Transaction records */}
-        <TransactionRecord />
+    <div className="flex flex-col gap-6">
+      <TransactionCalendar />
+      <TransactionSummary dateRange={dateRange} setDateRange={setDateRange} />
+      <div className="mb-2">
+        <TransactionDrawerContextProvider>
+          <AddTransactionDrawer />
+        </TransactionDrawerContextProvider>
       </div>
-    </TransactionContextProvider>
+
+      {/* Transaction records */}
+      <TransactionRecord />
+    </div>
   );
 }
