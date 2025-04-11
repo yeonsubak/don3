@@ -28,25 +28,29 @@ export const AddTransactionDrawer = () => {
   const { open, setOpen } = useTransactionDrawerContext();
   const isDesktop = useMediaQuery('(min-width: 768px)');
 
+  const TRIGGER_BUTTON_LABEL = 'Add';
+  const MODAL_TITLE = 'Add a record';
+  const MODAL_CANCEL_BUTTON_LABEL = 'Cancel';
+
   if (isDesktop) {
     return (
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
           <Button variant="default" className="px-6 text-lg">
-            Add
+            {TRIGGER_BUTTON_LABEL}
           </Button>
         </DialogTrigger>
         <DialogContent className="max-w-[540px]">
           <DialogHeader>
-            <DialogTitle>Add transaction</DialogTitle>
+            <DialogTitle>{MODAL_TITLE}</DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>
           <TransactionFormTab
             footer={
               <DialogFooter>
-                <LocalButton />
+                <SaveButton />
                 <DialogClose asChild>
-                  <Button variant="outline">Cancel</Button>
+                  <Button variant="outline">{MODAL_CANCEL_BUTTON_LABEL}</Button>
                 </DialogClose>
               </DialogFooter>
             }
@@ -60,19 +64,19 @@ export const AddTransactionDrawer = () => {
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button variant="default" className="w-full text-lg">
-          Add
+          {TRIGGER_BUTTON_LABEL}
         </Button>
       </SheetTrigger>
       <SheetContent side="bottom" closeBtnOnHeader={false} className="gap-1">
         <SheetHeader>
-          <SheetTitle className="text-xl">Add record</SheetTitle>
+          <SheetTitle className="text-xl">{MODAL_TITLE}</SheetTitle>
         </SheetHeader>
         <TransactionFormTab
           footer={
             <SheetFooter className="px-0">
-              <LocalButton />
+              <SaveButton />
               <SheetClose asChild>
-                <Button variant="outline">Cancel</Button>
+                <Button variant="outline">{MODAL_CANCEL_BUTTON_LABEL}</Button>
               </SheetClose>
             </SheetFooter>
           }
@@ -82,7 +86,7 @@ export const AddTransactionDrawer = () => {
   );
 };
 
-const LocalButton = () => (
+const SaveButton = () => (
   <Button type="submit" variant="default" disableOnProcess>
     Save
   </Button>
