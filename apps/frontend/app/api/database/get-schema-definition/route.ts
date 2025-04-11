@@ -16,9 +16,7 @@ export async function GET(request: NextRequest) {
 
     const env = process.env.ENVIRONMENT ?? 'DEV';
     const data =
-      env === 'PROD'
-        ? await importExternal(userSchemaVersion)
-        : await importLocal(userSchemaVersion);
+      env === 'PROD' ? await fetchRemote(userSchemaVersion) : await fetchLocal(userSchemaVersion);
 
     return NextResponse.json(data);
   } catch (err) {
@@ -27,7 +25,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-async function importLocal(userSchemaVersion: string | null): Promise<SchemaDefinition[]> {
+async function fetchLocal(userSchemaVersion: string | null): Promise<SchemaDefinition[]> {
   const SQLFiles = await listSqlFiles();
   const userVersionIdx = SQLFiles.findIndex(
     (value) => userSchemaVersion === extractSemanticVersion(value),
@@ -47,7 +45,7 @@ async function importLocal(userSchemaVersion: string | null): Promise<SchemaDefi
   return parsedSQLs.toSorted((a, b) => compareSemanticVersions(a.version, b.version));
 }
 
-async function importExternal(userSchemaVersion: string | null): Promise<SchemaDefinition[]> {
+async function fetchRemote(userSchemaVersion: string | null): Promise<SchemaDefinition[]> {
   if (!userSchemaVersion) {
     const fetched: SchemaDefinition[] | undefined = (
       await externalDB?.query.schemaDefinitions.findMany()
