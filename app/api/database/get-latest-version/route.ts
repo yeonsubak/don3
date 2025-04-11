@@ -10,7 +10,7 @@ export type Version = {
 export async function GET() {
   try {
     const env = process.env.ENVIRONMENT ?? 'DEV';
-    const data = env === 'PROD' ? await importExternal() : await importLocal();
+    const data = env === 'PROD' ? await fetchRemote() : await fetchLocal();
 
     return NextResponse.json(data);
   } catch (err) {
@@ -19,7 +19,7 @@ export async function GET() {
   }
 }
 
-const importLocal: () => Promise<Version> = async () => {
+const fetchLocal: () => Promise<Version> = async () => {
   const sqlFiles = await listSqlFiles();
   const lastSql = sqlFiles.pop();
   const schemaVersion = extractSemanticVersion(lastSql ?? '');
@@ -35,7 +35,7 @@ const importLocal: () => Promise<Version> = async () => {
   };
 };
 
-const importExternal: () => Promise<Version> = async () => {
+const fetchRemote: () => Promise<Version> = async () => {
   const schemaDefinition = await externalDB?.query.schemaDefinitions.findFirst({
     columns: {
       version: true,
