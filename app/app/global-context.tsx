@@ -1,3 +1,4 @@
+import { DATASET_CURRENCY_FIAT } from '@/db/dataset/currency';
 import type { AccountSelectAll, CountrySelect, CurrencySelect } from '@/db/drizzle/types';
 import { QUERIES } from '@/lib/tanstack-queries';
 import { useQueries } from '@tanstack/react-query';
@@ -19,8 +20,8 @@ type GlobalContext = {
   countriesInUse: CountrySelect[];
   currenciesInUse: CurrencySelect[];
 
-  defaultCurrency: CurrencySelect | undefined;
-  setDefaultCurrency: Dispatch<SetStateAction<CurrencySelect | undefined>>;
+  defaultCurrency: CurrencySelect;
+  setDefaultCurrency: Dispatch<SetStateAction<CurrencySelect>>;
 
   defaultLanguage: string;
   setDefaultLanguage: Dispatch<SetStateAction<string>>;
@@ -32,6 +33,8 @@ type GlobalContext = {
 export const GlobalContext = createContext<GlobalContext | null>(null);
 
 export const GlobalContextProvider = ({ children }: { children: ReactNode }) => {
+  const USD = DATASET_CURRENCY_FIAT.find((e) => e.code === 'USD') as CurrencySelect;
+
   const {
     data: { fetchedDefaultCurrency, fetchedCountries, fetchedCurrencies, fetchedAccounts },
     isPending,
@@ -46,7 +49,7 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
     ],
     combine: (results) => ({
       data: {
-        fetchedDefaultCurrency: results[0].data,
+        fetchedDefaultCurrency: results[0].data ?? USD,
         fetchedCountries: results[1].data,
         fetchedCurrencies: results[2].data,
         fetchedAccounts: results[3].data,
@@ -57,7 +60,7 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
     }),
   });
 
-  const [defaultCurrency, setDefaultCurrency] = useState<CurrencySelect | undefined>();
+  const [defaultCurrency, setDefaultCurrency] = useState<CurrencySelect>(USD);
   const [defaultLanguage, setDefaultLanguage] = useState<string>('en');
   const [countries, setCountries] = useState<CountrySelect<{ defaultCurrency: true }>[]>([]);
   const [currencies, setCurrencies] = useState<CurrencySelect[]>([]);

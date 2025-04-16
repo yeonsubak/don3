@@ -5,12 +5,15 @@ import type { AccountGroupSelect } from '@/db/drizzle/types';
 import { ChevronsUpDown } from 'lucide-react';
 import { useState } from 'react';
 import { Account } from './account';
+import { useAccountDrawerContext } from './add-drawer/drawer-context';
 
-type AccountGroupTopLevelProps = {
-  accountGroup: AccountGroupSelect<{ accounts: { with: { country: true } } }>;
+type AccountGroupProps = {
+  accountGroup: AccountGroupSelect<{
+    accounts: { with: { country: true; balance: true; currency: true } };
+  }>;
 };
 
-export const AccountGroupTopLevel = ({ accountGroup }: AccountGroupTopLevelProps) => {
+export const AccountGroup = ({ accountGroup }: AccountGroupProps) => {
   const [isAccountOpen, setAccountOpen] = useState<boolean>(true);
 
   return (

@@ -1,6 +1,6 @@
 'use client';
 
-import type { CurrencySelect, ForexInsert } from '@/db/drizzle/types';
+import type { CurrencySelect, ForexInsert, ForexSelect } from '@/db/drizzle/types';
 import { DateTime } from 'luxon';
 import type { FetchFxRate } from '../app/api/get-latest-fx-rate/route';
 import { ConfigRepository } from '../repositories/config-repository';
@@ -35,7 +35,10 @@ export class ConfigService extends Service {
     return await this.configRepository.getCountriesByCode(countryCodes);
   }
 
-  public async getLatestFxRate(baseCurrency: CurrencySelect, targetCurrencies: CurrencySelect[]) {
+  public async getLatestFxRate(
+    baseCurrency: CurrencySelect,
+    targetCurrencies: CurrencySelect[],
+  ): Promise<ForexSelect[]> {
     const targetCurrencyCodes = targetCurrencies.map((currency) => currency.code);
     const now = DateTime.now();
     let fxRates = await this.configRepository.getLatestFxRate({
