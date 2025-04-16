@@ -73,6 +73,7 @@ export type GroupAccountsByCountry = Record<
       with: {
         country: true;
         currency: true;
+        balance: true;
       };
     };
   }>[]

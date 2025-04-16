@@ -1,22 +1,22 @@
 'use client';
 
-import { AccountGroupTopLevel } from '@/components/page/accounts/account-group-top-level';
+import { AccountGroup } from '@/components/page/accounts/account-group';
+import { AddAccountDrawer } from '@/components/page/accounts/add-drawer';
+import { CountryLabel } from '@/components/page/accounts/country-label';
 import { accounts } from '@/db/drizzle/schema';
 import { QUERIES } from '@/lib/tanstack-queries';
 import { cn } from '@/lib/utils';
 import { type GroupAccountsByCountry } from '@/services/accounts-service';
 import { useQuery } from '@tanstack/react-query';
-import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { useGlobalContext } from '../global-context';
+import { Separator } from '@/components/ui/separator';
 
 export type AccountList = (typeof accounts.$inferSelect)[];
 
 export default function ManageAccounts() {
-  const { isMultiCountry, countriesInUse } = useGlobalContext();
+  const { isMultiCountry } = useGlobalContext();
   const [accountGroupsByCountry, setAccountGroupsByCountry] = useState<GroupAccountsByCountry>({});
-
-  const tCountry = useTranslations('countryCode');
 
   const {
     data: accounts,
@@ -39,50 +39,41 @@ export default function ManageAccounts() {
     return <p>Error: {error.message}</p>;
   }
 
+  // When accounts are empty
+  if (Object.keys(accountGroupsByCountry).length === 0) {
+    return <div className=""></div>;
+  }
+
   return (
-    <div className={cn('flex h-full w-full flex-col', isMultiCountry ? '' : 'gap-4')}>
-      {Object.entries(accountGroupsByCountry).map(([countryCode, accountGroup], idx) => {
-        if (isMultiCountry) {
-          return (
-            <div key={countryCode}>
-              <h2 className={`p-4 text-2xl font-semibold ${idx === 0 ? 'pt-2' : ''}`}>
-                {tCountry(countryCode)}
-                <span className="emoji ml-2">
-                  {countriesInUse.find((country) => country.code === countryCode)?.emoji}
-                </span>
-              </h2>
-              <div className="flex flex-col gap-2">
-                {accountGroup.map((e, idx) => (
-                  <AccountGroupTopLevel key={`${countryCode}-${idx}`} accountGroup={e} />
+    <>
+      <div className="flex flex-row gap-4">
+        <div className={cn('flex h-full w-full flex-col xl:w-md', isMultiCountry ? '' : 'gap-4')}>
+          {Object.entries(accountGroupsByCountry).map(([countryCode, accountGroup], idx) => {
+            if (isMultiCountry) {
+              return (
+                <CountryLabel key={countryCode} idx={idx} countryCode={countryCode}>
+                  {accountGroup.map((accountGroup, idx) => (
+                    <AccountGroup key={`${countryCode}-${idx}`} accountGroup={accountGroup} />
+                  ))}
+                </CountryLabel>
+              );
+            }
+
+            return (
+              <div key={countryCode}>
+                {accountGroup.map((accountGroup, idx) => (
+                  <AccountGroup key={`${countryCode}-${idx}`} accountGroup={accountGroup} />
                 ))}
               </div>
-            </div>
-          );
-        }
-
-        return (
-          <div key={countryCode}>
-            {accountGroup.map((e, idx) => (
-              <AccountGroupTopLevel key={`${countryCode}-${idx}`} accountGroup={e} />
-            ))}
-          </div>
-        );
-      })}
-
-      {/* <WalletBackup /> */}
-
-      {/* <ManageAccountCard accountList={accountList} setAccountList={setAccountList} />
-      <div>
-        {accountList.map((e) => (
-          <p key={e.id}>{`id: ${e.id} | name: ${e.name} | type: ${e.type}`}</p>
-        ))}
-      </div> */}
-      {/* <Card className="w-full h-full">
-        <CardHeader>
-          <CardTitle>South Korea</CardTitle>
-        </CardHeader>
-        <CardContent></CardContent>
-      </Card> */}
-    </div>
+            );
+          })}
+        </div>
+        <div className="hidden flex-row gap-4 xl:flex">
+          <Separator orientation="vertical" className="" />
+          <div>Display records here</div>
+        </div>
+      </div>
+      <AddAccountDrawer />
+    </>
   );
 }

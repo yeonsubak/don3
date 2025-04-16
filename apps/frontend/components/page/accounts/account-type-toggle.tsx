@@ -21,7 +21,7 @@ export const AccountTypeToggle = (field: ControllerRenderProps) => {
             value={accountType}
             aria-label={accountType}
             className={cn(
-              'capitalize',
+              'px-4 capitalize data-[state=on]:text-white',
               accountType === 'debit'
                 ? 'data-[state=on]:bg-blue-400'
                 : 'data-[state=on]:bg-rose-400',

@@ -37,7 +37,12 @@ export type AccountSelect<R extends Relation<'accounts'> = undefined> = TableWit
   'accounts',
   R
 >;
-export type AccountSelectAll = AccountSelect<{ country: true; currency: true; group: true }>;
+export type AccountSelectAll = AccountSelect<{
+  country: true;
+  currency: true;
+  group: true;
+  balance: true;
+}>;
 
 export type AccountGroupType = (typeof schema.accountGroupTypeEnum.enumValues)[number];
 export type AccountGroupInsert = typeof schema.accountGroups.$inferInsert;

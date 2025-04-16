@@ -23,6 +23,7 @@ export class AccountsRepository extends Repository {
         currency: true,
         country: true,
         group: true,
+        balance: true,
       },
     });
   }
@@ -34,6 +35,7 @@ export class AccountsRepository extends Repository {
         currency: true,
         country: true,
         group: true,
+        balance: true,
       },
     });
   }
@@ -59,6 +61,7 @@ export class AccountsRepository extends Repository {
           with: {
             country: true,
             currency: true,
+            balance: true,
           },
         },
       },

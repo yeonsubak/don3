@@ -36,9 +36,16 @@ export const parseMoney = (
   value: string,
   { isoDigits }: CurrencySelect,
   forceMinimumDigits?: boolean,
+  returnZero?: boolean,
 ): { value: number; formatted: string } => {
   const parsedValue = parseNumber(value, isoDigits);
-  if (!parsedValue) return { value: 0, formatted: '' };
+  if (!parsedValue) {
+    if (returnZero) {
+      return { value: 0, formatted: (0).toFixed(isoDigits) };
+    }
+
+    return { value: 0, formatted: '' };
+  }
 
   const decimalSeparator = getDecimalSeparator();
   const endWithPoint = value[value.length - 1] === decimalSeparator;
@@ -47,6 +54,7 @@ export const parseMoney = (
     maximumFractionDigits: isoDigits,
     minimumFractionDigits: forceMinimumDigits ? isoDigits : undefined,
   }).format(parsedValue);
+
   return {
     value: parsedValue,
     formatted: endWithPoint ? `${result}${decimalSeparator}` : result,

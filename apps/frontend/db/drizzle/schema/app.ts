@@ -57,7 +57,29 @@ export const accountsRelations = relations(accounts, ({ one }) => ({
     fields: [accounts.currencyId],
     references: [currencies.id],
   }),
+  balance: one(accountBalances, {
+    fields: [accounts.id],
+    references: [accountBalances.accountId],
+  }),
 }));
+
+export const accountBalances = appSchema.table(
+  'account_balances',
+  {
+    id: integer().primaryKey().generatedByDefaultAsIdentity().notNull(),
+    accountId: integer().references(() => accounts.id, {
+      onDelete: 'cascade',
+      onUpdate: 'cascade',
+    }),
+    balance: numeric({ precision: 15, scale: 2 }).notNull().default('0'),
+    createAt: timestamp({ withTimezone: true }).defaultNow(),
+    updateAt: timestamp({ withTimezone: true }),
+  },
+  (t) => [
+    index('account_balances_idx_account_id').on(t.accountId, t.id),
+    unique('account_balances_unq_account_id').on(t.accountId),
+  ],
+);
 
 export const accountGroupTypeEnum = pgEnum('account_group_type', [
   'asset',
