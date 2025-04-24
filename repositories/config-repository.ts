@@ -5,20 +5,6 @@ import { DateTime } from 'luxon';
 import { Repository } from './abstract-repository';
 
 export class ConfigRepository extends Repository {
-  protected static instance: ConfigRepository;
-
-  private constructor() {
-    super();
-  }
-
-  protected static async createInstance(): Promise<ConfigRepository> {
-    if (!ConfigRepository.instance) {
-      ConfigRepository.instance = new ConfigRepository();
-    }
-
-    return ConfigRepository.instance;
-  }
-
   public async getAllCurrencies() {
     return await this.db.query.currencies.findMany();
   }

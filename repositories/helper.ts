@@ -1,15 +1,23 @@
+import { drizzle } from '@/db';
+import { PGliteWorker } from '@/db/pglite-web-worker';
 import { AccountsRepository } from './accounts-repository';
 import { ConfigRepository } from './config-repository';
 import { TransactionRepository } from './transaction-repository';
 
 export const getAccountsRepository = async () => {
-  return AccountsRepository.getInstance<AccountsRepository>();
+  const worker = await PGliteWorker.getInstance();
+  const pg = drizzle(worker);
+  return new AccountsRepository(pg);
 };
 
 export const getConfigRepository = async () => {
-  return ConfigRepository.getInstance<ConfigRepository>();
+  const worker = await PGliteWorker.getInstance();
+  const pg = drizzle(worker);
+  return new ConfigRepository(pg);
 };
 
 export const getTransactionRepository = async () => {
-  return TransactionRepository.getInstance<TransactionRepository>();
+  const worker = await PGliteWorker.getInstance();
+  const pg = drizzle(worker);
+  return new TransactionRepository(pg);
 };

@@ -11,7 +11,7 @@ import { DATASET_CURRENCY_FIAT } from './dataset/currency';
 import type { UserConfigKey } from './drizzle/schema';
 import * as schema from './drizzle/schema';
 import { PgliteClient } from './pglite-client';
-import { type PgliteDrizzle } from './pglite-web-worker';
+import type { PgliteDrizzle } from '.';
 
 export class DBInitializer {
   private static instance: DBInitializer;
