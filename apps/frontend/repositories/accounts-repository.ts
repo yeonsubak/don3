@@ -1,22 +1,16 @@
-import { accounts } from '@/db/drizzle/schema';
-import type { AccountGroupType, AccountInsert, AccountSelectAll } from '@/db/drizzle/types';
+import { accountBalances, accounts } from '@/db/drizzle/schema';
+import type {
+  AccountBalanceInsert,
+  AccountBalanceSelect,
+  AccountGroupType,
+  AccountInsert,
+  AccountSelectAll,
+  PgliteTransaction,
+} from '@/db/drizzle/types';
 import { Repository } from './abstract-repository';
+import type { PgliteDrizzle } from '@/db';
 
 export class AccountsRepository extends Repository {
-  protected static instance: AccountsRepository;
-
-  private constructor() {
-    super();
-  }
-
-  protected static async createInstance(): Promise<AccountsRepository> {
-    if (!AccountsRepository.instance) {
-      AccountsRepository.instance = new AccountsRepository();
-    }
-
-    return AccountsRepository.instance;
-  }
-
   public async getAllAccounts(): Promise<AccountSelectAll[]> {
     return await this.db.query.accounts.findMany({
       with: {
@@ -67,4 +61,64 @@ export class AccountsRepository extends Repository {
       },
     });
   }
+
+  public async getAccountBalance(targetAccountId: number, tx?: PgliteTransaction) {
+    const db = tx ? tx : this.db;
+    return await db.query.accountBalances.findFirst({
+      where: ({ accountId }, { eq }) => eq(accountId, targetAccountId),
+    });
+  }
+
+  public async insertAccountBalance(
+    accountBalanceInsert: AccountBalanceInsert,
+    tx?: PgliteTransaction,
+  ): Promise<AccountBalanceSelect> {
+    const db = tx ? tx : this.db;
+
+    const insertResult = await db.insert(accountBalances).values(accountBalanceInsert).returning();
+    const insertedBalance = insertResult.at(0);
+
+    if (!insertedBalance)
+      throw new Error(
+        `Inserting account balance for accountId: ${accountBalanceInsert.accountId} failed.`,
+      );
+
+    return insertedBalance;
+  }
+
+  public async updateAccountBalance(
+    accountId: number,
+    amount: number,
+    tx?: PgliteTransaction,
+  ): Promise<AccountBalanceSelect> {
+    let currentBalance = await this.getAccountBalance(accountId, tx);
+
+    if (!currentBalance) {
+      currentBalance = await this.insertAccountBalance(
+        {
+          accountId,
+          balance: '0',
+        },
+        tx,
+      );
+    }
+
+    const updateObj = { accountId, balance: currentBalance.balance + amount, updateAt: new Date() };
+
+    let updateAccountBalances: AccountBalanceSelect[];
+    if (tx) {
+      updateAccountBalances = await tx.update(accountBalances).set(updateObj).returning();
+    } else {
+      updateAccountBalances = await this.db.update(accountBalances).set(updateObj).returning();
+    }
+
+    return updateAccountBalances.at(0)!;
+  }
 }
+
+// export class TestAccountsRepository extends AccountsRepository {
+//   constructor(testDB: PgliteDrizzle) {
+//     super();
+//     this.db = testDB;
+//   }
+// }

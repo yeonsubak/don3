@@ -3,31 +3,18 @@ import type {
   FundTransferTxForm,
   IncomeTxForm,
 } from '@/components/page/transactions/add-drawer/forms/form-schema';
-import { journalEntries, journalEntryFxRates } from '@/db/drizzle/schema';
+import { journalEntries, journalEntryFxRates, transactions } from '@/db/drizzle/schema';
 import type {
   JournalEntryFxRatesInsert,
   JournalEntryType,
   PgliteTransaction,
+  TransactionInsert,
 } from '@/db/drizzle/types';
 import { and, between, inArray } from 'drizzle-orm';
 import { DateTime } from 'luxon';
 import { Repository } from './abstract-repository';
 
 export class TransactionRepository extends Repository {
-  protected static instance: TransactionRepository;
-
-  private constructor() {
-    super();
-  }
-
-  protected static async createInstance(): Promise<TransactionRepository> {
-    if (!TransactionRepository.instance) {
-      TransactionRepository.instance = new TransactionRepository();
-    }
-
-    return TransactionRepository.instance;
-  }
-
   public async getJournalEntryById(id: number) {
     return await this.db.query.journalEntries.findFirst({
       where: (journalEntries, { eq }) => eq(journalEntries.id, id),
@@ -67,7 +54,6 @@ export class TransactionRepository extends Repository {
   }
 
   public async insertJournalEntry(
-    tx: PgliteTransaction,
     currencyId: number,
     amount: number,
     form: IncomeTxForm | ExpenseTxForm | FundTransferTxForm,
@@ -77,7 +63,7 @@ export class TransactionRepository extends Repository {
     const datetime = DateTime.fromJSDate(date, { zone: systemTimezone });
     datetime.set({ hour: time.hour, minute: time.minute, second: 0, millisecond: 0 });
     return (
-      await tx
+      await this.db
         .insert(journalEntries)
         .values({
           type: journalEntryType,
@@ -91,7 +77,11 @@ export class TransactionRepository extends Repository {
     ).at(0);
   }
 
-  public async insertJournalEntryFxRate(tx: PgliteTransaction, insert: JournalEntryFxRatesInsert) {
-    return await tx.insert(journalEntryFxRates).values(insert);
+  public async insertJournalEntryFxRate(insert: JournalEntryFxRatesInsert) {
+    return await this.db.insert(journalEntryFxRates).values(insert);
+  }
+
+  public async insertTransaction(insertObj: TransactionInsert) {
+    this.db.insert(transactions).values(insertObj);
   }
 }

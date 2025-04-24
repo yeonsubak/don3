@@ -6,7 +6,6 @@ import type {
   FundTransferTxForm,
   IncomeTxForm,
 } from '@/components/page/transactions/add-drawer/forms/form-schema';
-import { transactions } from '@/db/drizzle/schema';
 import type { CurrencySelect, JournalEntryType, TransactionInsert } from '@/db/drizzle/types';
 import type { AccountsRepository } from '../repositories/accounts-repository';
 import { TransactionRepository } from '../repositories/transaction-repository';
@@ -89,6 +88,7 @@ export class TransactionService extends Service {
   public async insertTransaction(form: IncomeTxForm | ExpenseTxForm | FundTransferTxForm) {
     const { debitAccountId, currencyCode, fxAmount, fxRate, amount } = form;
 
+    // Validate the data from the form
     const debitAccount = await this.accountsRepository.getAccountById(debitAccountId);
     if (!debitAccount) throw new Error('Invalid debit account');
 
@@ -99,10 +99,13 @@ export class TransactionService extends Service {
     const parsedAmount = parseNumber(fxRate ? fxAmount : amount, baseCurrency.isoDigits);
     if (!parsedAmount) throw new Error('Invalid amount');
 
+    // Insert records on tables: journal_entry, journal_entry_fx_rates, transactions and update the balance of the account.
+    // If any of the operation fails, all DB transactions are nullified by rollback.
     const entryId = await this.transactionRepository.withTx(async (tx) => {
       try {
-        const journalEntry = await this.transactionRepository.insertJournalEntry(
-          tx,
+        const transactionRepoWithTx = new TransactionRepository(tx);
+
+        const journalEntry = await transactionRepoWithTx.insertJournalEntry(
           baseCurrency.id,
           parsedAmount,
           form,
@@ -112,7 +115,7 @@ export class TransactionService extends Service {
         if (fxRate) {
           const parsedFxRate = parseNumber(form.fxRate, 10);
           if (!parsedFxRate) throw new Error('Invalid FxRate');
-          await this.transactionRepository.insertJournalEntryFxRate(tx, {
+          await this.transactionRepository.insertJournalEntryFxRate({
             journalEntryId: journalEntry.id,
             baseCurrencyId: debitAccount.currency.id,
             targetCurrencyId: formCurrency.id,
@@ -136,9 +139,16 @@ export class TransactionService extends Service {
         };
 
         await Promise.all([
-          tx.insert(transactions).values(debitTransaction),
-          tx.insert(transactions).values(creditTransaction),
+          transactionRepoWithTx.insertTransaction(debitTransaction),
+          transactionRepoWithTx.insertTransaction(creditTransaction),
         ]);
+
+        // Update balance
+        // const updateDebitAccountBalance =
+        // const debitAccountBalance = await this.accountsRepository.getAccountBalance(form.debitAccountId);
+        // const creditAccountBalance = await this.accountsRepository.getAccountBalance(
+        //   form.creditAccountId,
+        // );
 
         return journalEntry.id;
       } catch (err) {
@@ -149,4 +159,6 @@ export class TransactionService extends Service {
 
     return await this.transactionRepository.getJournalEntryById(entryId ?? -1);
   }
+
+  public async updateBalance() {}
 }

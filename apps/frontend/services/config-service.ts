@@ -1,6 +1,7 @@
 'use client';
 
 import type { CurrencySelect, ForexInsert, ForexSelect } from '@/db/drizzle/types';
+import { getConfigRepository } from '@/repositories/helper';
 import { DateTime } from 'luxon';
 import type { FetchFxRate } from '../app/api/get-latest-fx-rate/route';
 import { ConfigRepository } from '../repositories/config-repository';
@@ -82,6 +83,6 @@ export class ConfigService extends Service {
 }
 
 export const getConfigService = async () => {
-  const configRepository = await ConfigRepository.getInstance<ConfigRepository>();
+  const configRepository = await getConfigRepository();
   return new ConfigService(configRepository);
 };
