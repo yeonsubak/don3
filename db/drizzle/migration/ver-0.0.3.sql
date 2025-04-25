@@ -1,0 +1,1 @@
+ALTER TABLE "app"."account_balances" ALTER COLUMN "account_id" SET NOT NULL;
