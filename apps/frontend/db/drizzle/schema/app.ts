@@ -67,10 +67,12 @@ export const accountBalances = appSchema.table(
   'account_balances',
   {
     id: integer().primaryKey().generatedByDefaultAsIdentity().notNull(),
-    accountId: integer().references(() => accounts.id, {
-      onDelete: 'cascade',
-      onUpdate: 'cascade',
-    }),
+    accountId: integer()
+      .references(() => accounts.id, {
+        onDelete: 'cascade',
+        onUpdate: 'cascade',
+      })
+      .notNull(),
     balance: numeric({ precision: 15, scale: 2 }).notNull().default('0'),
     createAt: timestamp({ withTimezone: true }).defaultNow(),
     updateAt: timestamp({ withTimezone: true }),

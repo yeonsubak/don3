@@ -44,6 +44,9 @@ export type AccountSelectAll = AccountSelect<{
   balance: true;
 }>;
 
+export type AccountBalanceSelect = typeof schema.accountBalances.$inferSelect;
+export type AccountBalanceInsert = typeof schema.accountBalances.$inferInsert;
+
 export type AccountGroupType = (typeof schema.accountGroupTypeEnum.enumValues)[number];
 export type AccountGroupInsert = typeof schema.accountGroups.$inferInsert;
 export type AccountGroupSelect<R extends Relation<'accountGroups'> = undefined> = TableWithRelation<
