@@ -1,4 +1,5 @@
-import { PGlite } from '@electric-sql/pglite';
+import { PGlite, IdbFs } from '@electric-sql/pglite';
+import { live } from '@electric-sql/pglite/live';
 
 export class PgliteClient extends PGlite {
   private static instance: PgliteClient | null = null;
@@ -14,8 +15,9 @@ export class PgliteClient extends PGlite {
 
     if (!PgliteClient.instance) {
       PgliteClient.instance = new PGlite({
-        dataDir: 'idb://don3',
+        fs: new IdbFs('don3'),
         relaxedDurability: true,
+        extensions: { live },
       });
     }
 

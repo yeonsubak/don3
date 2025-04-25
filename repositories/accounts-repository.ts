@@ -5,10 +5,8 @@ import type {
   AccountGroupType,
   AccountInsert,
   AccountSelectAll,
-  PgliteTransaction,
 } from '@/db/drizzle/types';
 import { Repository } from './abstract-repository';
-import type { PgliteDrizzle } from '@/db';
 
 export class AccountsRepository extends Repository {
   public async getAllAccounts(): Promise<AccountSelectAll[]> {
@@ -62,25 +60,24 @@ export class AccountsRepository extends Repository {
     });
   }
 
-  public async getAccountBalance(targetAccountId: number, tx?: PgliteTransaction) {
-    const db = tx ? tx : this.db;
-    return await db.query.accountBalances.findFirst({
+  public async getAccountBalance(targetAccountId: number) {
+    return await this.db.query.accountBalances.findFirst({
       where: ({ accountId }, { eq }) => eq(accountId, targetAccountId),
     });
   }
 
   public async insertAccountBalance(
     accountBalanceInsert: AccountBalanceInsert,
-    tx?: PgliteTransaction,
   ): Promise<AccountBalanceSelect> {
-    const db = tx ? tx : this.db;
-
-    const insertResult = await db.insert(accountBalances).values(accountBalanceInsert).returning();
+    const insertResult = await this.db
+      .insert(accountBalances)
+      .values(accountBalanceInsert)
+      .returning();
     const insertedBalance = insertResult.at(0);
 
     if (!insertedBalance)
       throw new Error(
-        `Inserting account balance for accountId: ${accountBalanceInsert.accountId} failed.`,
+        `Inserting account balance for accountId=${accountBalanceInsert.accountId} failed.`,
       );
 
     return insertedBalance;
@@ -89,36 +86,16 @@ export class AccountsRepository extends Repository {
   public async updateAccountBalance(
     accountId: number,
     amount: number,
-    tx?: PgliteTransaction,
   ): Promise<AccountBalanceSelect> {
-    let currentBalance = await this.getAccountBalance(accountId, tx);
+    const updatedAccountBalance: AccountBalanceSelect[] = await this.db
+      .update(accountBalances)
+      .set({
+        accountId,
+        balance: amount.toFixed(2),
+        updateAt: new Date(),
+      })
+      .returning();
 
-    if (!currentBalance) {
-      currentBalance = await this.insertAccountBalance(
-        {
-          accountId,
-          balance: '0',
-        },
-        tx,
-      );
-    }
-
-    const updateObj = { accountId, balance: currentBalance.balance + amount, updateAt: new Date() };
-
-    let updateAccountBalances: AccountBalanceSelect[];
-    if (tx) {
-      updateAccountBalances = await tx.update(accountBalances).set(updateObj).returning();
-    } else {
-      updateAccountBalances = await this.db.update(accountBalances).set(updateObj).returning();
-    }
-
-    return updateAccountBalances.at(0)!;
+    return updatedAccountBalance.at(0)!;
   }
 }
-
-// export class TestAccountsRepository extends AccountsRepository {
-//   constructor(testDB: PgliteDrizzle) {
-//     super();
-//     this.db = testDB;
-//   }
-// }
