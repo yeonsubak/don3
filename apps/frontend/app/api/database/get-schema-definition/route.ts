@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-async function fetchLocal(userSchemaVersion: string | null): Promise<SchemaDefinition[]> {
+export async function fetchLocal(userSchemaVersion: string | null): Promise<SchemaDefinition[]> {
   const SQLFiles = await listSqlFiles();
   const userVersionIdx = SQLFiles.findIndex(
     (value) => userSchemaVersion === extractSemanticVersion(value),
