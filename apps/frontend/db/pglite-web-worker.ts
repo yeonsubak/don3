@@ -1,3 +1,5 @@
+"use client"
+
 import { live } from '@electric-sql/pglite/live';
 import { PGliteWorker as _PGliteWorker } from '@electric-sql/pglite/worker';
 import { DBInitializer } from './db-initializer';
@@ -13,7 +15,7 @@ export class PGliteWorker {
       await dbInitializer.ensureDbReady();
 
       const worker = await _PGliteWorker.create(
-        new Worker(new URL('../public/pglite-worker.js', import.meta.url), {
+        new Worker(new URL('@/public/pglite-worker.js', import.meta.url), {
           type: 'module',
         }),
         {
