@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack NEXT_TURBOPACK_TRACING=1",
+    "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "next lint && tsc --noEmit",
     "test": "vitest",
     "coverage": "vitest run --coverage",
     "shadcn": "pnpm dlx shadcn@canary add",
@@ -38,7 +38,7 @@
     "clsx": "^2.1.1",
     "cmdk": "1.0.0",
     "drizzle-kit": "^0.31.0",
-    "drizzle-orm": "^0.42.0",
+    "drizzle-orm": "^0.43.1",
     "lucide-react": "^0.473.0",
     "luxon": "^3.5.0",
     "next": "15.3.0",
@@ -75,7 +75,7 @@
     "prettier": "^3.4.2",
     "prettier-plugin-tailwindcss": "^0.6.10",
     "tailwindcss": "^4.0.0",
-    "typescript": "^5",
+    "typescript": "^5.8.3",
     "vitest": "^3.0.7"
   },
   "pnpm": {
