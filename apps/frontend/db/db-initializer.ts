@@ -53,9 +53,10 @@ export class DBInitializer {
 
   private async initialize() {
     const latestVersion = await this.getLatestVersion();
+    const userSchemaVersion = window.localStorage.getItem('pglite.schemaVersion');
 
-    if (!(await this.validateSchemaVersion(latestVersion.schema))) {
-      await this.syncSchema();
+    if (!(await this.validateSchemaVersion(userSchemaVersion, latestVersion.schema))) {
+      await this.syncSchema(userSchemaVersion);
     }
 
     if (!(await this.validateDataset(latestVersion.dataset))) {
@@ -79,16 +80,16 @@ export class DBInitializer {
     return await (await fetch('/api/database/get-latest-version', { method: 'GET' })).json();
   }
 
-  private async validateSchemaVersion(schemaVersion: string) {
-    const localSchemaVersion = window.localStorage.getItem('pglite.schemaVersion');
-    return localSchemaVersion === schemaVersion;
+  private async validateSchemaVersion(userSchemaVersion: string | null, schemaVersion: string) {
+    return userSchemaVersion === schemaVersion;
   }
 
-  private async syncSchema() {
+  private async syncSchema(userSchemaVersion: string | null) {
     // Create schemas and tables to the IndexedDb
-    const fetched: SchemaDefinition[] = await (
-      await fetch('/api/database/get-schema-definition', { method: 'GET' })
-    ).json();
+    const url = new URL('/api/database/get-schema-definition', window.location.origin);
+    if (userSchemaVersion) url.searchParams.append('schemaVersion', userSchemaVersion);
+
+    const fetched: SchemaDefinition[] = await (await fetch(url, { method: 'GET' })).json();
 
     for (const { sql, version } of fetched) {
       await this.db.$client.exec(sql);

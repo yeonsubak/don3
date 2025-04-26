@@ -31,7 +31,7 @@ export async function fetchLocal(userSchemaVersion: string | null): Promise<Sche
     (value) => userSchemaVersion === extractSemanticVersion(value),
   );
 
-  const sliced = SQLFiles.slice(userVersionIdx !== -1 ? userVersionIdx : 0);
+  const sliced = SQLFiles.slice(userVersionIdx !== -1 ? userVersionIdx + 1 : 0);
 
   async function parseSQLFiles(fileName: string): Promise<SchemaDefinition> {
     const content = await fs.readFile(`${process.cwd()}/db/drizzle/migration/${fileName}`, 'utf-8');
