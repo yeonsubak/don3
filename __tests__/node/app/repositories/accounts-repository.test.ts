@@ -34,7 +34,7 @@ describe('AccountsRepository', () => {
 
   const INSERTING_ACCOUNT_BALANCE: AccountBalanceInsert = {
     accountId: 1,
-    balance: '0',
+    balance: 0,
   };
 
   test('inserts a new account and returns the expected fields', async () => {
@@ -102,7 +102,7 @@ describe('AccountsRepository', () => {
     expect(insertedBalance).not.toBeUndefined();
     expect(insertedBalance).toMatchObject({
       accountId: 1,
-      balance: '0.00',
+      balance: 0,
     });
   });
 
@@ -115,7 +115,33 @@ describe('AccountsRepository', () => {
     expect(addedBalance).not.toBeUndefined();
     expect(addedBalance).toMatchObject({
       accountId: 1,
-      balance: '16521.00',
+      balance: 16521,
+    });
+  });
+
+  test('Update the balance of an account balance with scale - 1', async () => {
+    const insertedAccount = await repo.insertAccount(INSERTING_ACCOUNTS[0]);
+    const insertedBalance = await repo.insertAccountBalance(INSERTING_ACCOUNT_BALANCE);
+    const addedBalance = await repo.updateAccountBalance(insertedAccount!.id, 985.68);
+
+    expect(addedBalance).not.toBeNull();
+    expect(addedBalance).not.toBeUndefined();
+    expect(addedBalance).toMatchObject({
+      accountId: 1,
+      balance: 985.68,
+    });
+  });
+
+  test('Update the balance of an account balance with scale - 2', async () => {
+    const insertedAccount = await repo.insertAccount(INSERTING_ACCOUNTS[0]);
+    const insertedBalance = await repo.insertAccountBalance(INSERTING_ACCOUNT_BALANCE);
+    const addedBalance = await repo.updateAccountBalance(insertedAccount!.id, 16825.455555);
+
+    expect(addedBalance).not.toBeNull();
+    expect(addedBalance).not.toBeUndefined();
+    expect(addedBalance).toMatchObject({
+      accountId: 1,
+      balance: 16825.46,
     });
   });
 });
