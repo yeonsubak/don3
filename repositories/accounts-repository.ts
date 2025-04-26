@@ -91,7 +91,7 @@ export class AccountsRepository extends Repository {
       .update(accountBalances)
       .set({
         accountId,
-        balance: amount.toFixed(2),
+        balance: amount,
         updateAt: new Date(),
       })
       .returning();

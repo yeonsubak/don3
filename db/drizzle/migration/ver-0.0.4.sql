@@ -1,0 +1,1 @@
+ALTER TABLE "app"."account_balances" ALTER COLUMN "balance" SET DEFAULT 0;

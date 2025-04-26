@@ -7,7 +7,6 @@ import { journalEntries, journalEntryFxRates, transactions } from '@/db/drizzle/
 import type {
   JournalEntryFxRatesInsert,
   JournalEntryType,
-  PgliteTransaction,
   TransactionInsert,
 } from '@/db/drizzle/types';
 import { and, between, inArray } from 'drizzle-orm';
@@ -71,7 +70,7 @@ export class TransactionRepository extends Repository {
           title,
           description,
           currencyId,
-          amount: amount.toString(),
+          amount: amount,
         })
         .returning()
     ).at(0);

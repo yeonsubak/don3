@@ -7,7 +7,7 @@ import type {
   IncomeTxForm,
 } from '@/components/page/transactions/add-drawer/forms/form-schema';
 import type { CurrencySelect, JournalEntryType, TransactionInsert } from '@/db/drizzle/types';
-import type { AccountsRepository } from '../repositories/accounts-repository';
+import { AccountsRepository } from '../repositories/accounts-repository';
 import { TransactionRepository } from '../repositories/transaction-repository';
 import { Service } from './abstract-service';
 import type { ConfigService } from './config-service';
@@ -55,14 +55,13 @@ export class TransactionService extends Service {
       entries: Awaited<ReturnType<typeof this.transactionRepository.getJournalEntries>>,
     ) =>
       entries.reduce((acc, cur) => {
-        const amount = parseNumber(cur.amount, cur.currency.isoDigits) ?? 0;
         if (cur.currencyId !== baseCurrency.id) {
           const fxRate = fxRates?.find((fx) => fx.targetCurrency === cur.currency.code);
           const parsedRate = parseNumber(fxRate?.rate ?? '', 10) ?? 1;
-          return acc + amount / parsedRate;
+          return acc + cur.amount / parsedRate;
         }
 
-        return acc + amount;
+        return acc + cur.amount;
       }, 0);
 
     const incomeSummary = calculateSummary(entries.filter((entry) => entry.type === 'income'));
@@ -86,7 +85,15 @@ export class TransactionService extends Service {
   }
 
   public async insertTransaction(form: IncomeTxForm | ExpenseTxForm | FundTransferTxForm) {
-    const { debitAccountId, currencyCode, fxAmount, fxRate, amount } = form;
+    const {
+      debitAccountId,
+      creditAccountId,
+      currencyCode,
+      journalEntryType,
+      fxAmount,
+      fxRate,
+      amount,
+    } = form;
 
     // Validate the data from the form
     const debitAccount = await this.accountsRepository.getAccountById(debitAccountId);
@@ -113,29 +120,29 @@ export class TransactionService extends Service {
         if (!journalEntry) throw new Error('Insert to journal Entry failed');
 
         if (fxRate) {
-          const parsedFxRate = parseNumber(form.fxRate, 10);
+          const parsedFxRate = parseNumber(fxRate, 10);
           if (!parsedFxRate) throw new Error('Invalid FxRate');
           await this.transactionRepository.insertJournalEntryFxRate({
             journalEntryId: journalEntry.id,
             baseCurrencyId: debitAccount.currency.id,
             targetCurrencyId: formCurrency.id,
-            rate: parsedFxRate.toFixed(10),
+            rate: parsedFxRate,
           });
         }
 
-        const signIdentifier = form.journalEntryType === 'income' ? 1 : -1;
+        const signIdentifier = journalEntryType === 'income' ? 1 : -1;
         const debitTransaction: TransactionInsert = {
           type: 'debit',
           journalEntryId: journalEntry.id,
-          accountId: form.debitAccountId,
-          amount: (parsedAmount * signIdentifier).toFixed(baseCurrency.isoDigits),
+          accountId: debitAccountId,
+          amount: parsedAmount * signIdentifier,
         };
 
         const creditTransaction: TransactionInsert = {
           type: 'credit',
           journalEntryId: journalEntry.id,
-          accountId: form.creditAccountId,
-          amount: (parsedAmount * signIdentifier * -1).toFixed(baseCurrency.isoDigits),
+          accountId: creditAccountId,
+          amount: parsedAmount * signIdentifier * -1,
         };
 
         await Promise.all([
@@ -143,12 +150,28 @@ export class TransactionService extends Service {
           transactionRepoWithTx.insertTransaction(creditTransaction),
         ]);
 
+        async function updateAccountBalance(
+          accountId: number,
+          amount: number,
+          accountsRepo: AccountsRepository,
+        ) {
+          const accountBalance = await accountsRepo.getAccountBalance(accountId);
+          if (!accountBalance) {
+            return await accountsRepo.insertAccountBalance({ accountId, balance: amount });
+          }
+
+          return await accountsRepo.updateAccountBalance(
+            accountId,
+            accountBalance.balance + amount,
+          );
+        }
+
         // Update balance
-        // const updateDebitAccountBalance =
-        // const debitAccountBalance = await this.accountsRepository.getAccountBalance(form.debitAccountId);
-        // const creditAccountBalance = await this.accountsRepository.getAccountBalance(
-        //   form.creditAccountId,
-        // );
+        const accountsRepoWithTx = new AccountsRepository(tx);
+        await Promise.all([
+          updateAccountBalance(debitAccountId, debitTransaction.amount, accountsRepoWithTx),
+          updateAccountBalance(creditAccountId, creditTransaction.amount, accountsRepoWithTx),
+        ]);
 
         return journalEntry.id;
       } catch (err) {

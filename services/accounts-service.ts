@@ -20,26 +20,46 @@ export class AccountsService extends Service {
     return await this.accountsRepository.getAllAccounts();
   }
 
-  public async createAccount(form: CreateAccountForm) {
-    const { currencyCode, countryCode, accountType, accountName } = form;
-
+  public async insertAccount({
+    currencyCode,
+    countryCode,
+    accountType,
+    accountName,
+  }: CreateAccountForm) {
     const currency = await this.configRepository.getCurrencyByCode(currencyCode);
     const country = await this.configRepository.getCountryByCode(countryCode);
 
     if (!currency) throw new Error('Currency not found');
     if (!country) throw new Error('Country not found');
 
-    const accountInsert: AccountInsert = {
-      type: accountType,
-      name: accountName,
-      currencyId: currency.id,
-      countryId: country.id,
-    };
+    const insertedAccount = await this.accountsRepository.withTx(async (tx) => {
+      try {
+        const accountsRepoWithTx = new AccountsRepository(tx);
 
-    const result = await this.accountsRepository.insertAccount(accountInsert);
-    if (!result) throw new Error('createAccount failed');
+        const insertedAccount = await accountsRepoWithTx.insertAccount({
+          type: accountType,
+          name: accountName,
+          currencyId: currency.id,
+          countryId: country.id,
+        });
 
-    return await this.accountsRepository.getAccountById(result.id);
+        if (!insertedAccount) throw new Error('Insert account failed');
+
+        const insertedAccountBalance = await accountsRepoWithTx.insertAccountBalance({
+          accountId: insertedAccount.id,
+          balance: 0,
+        });
+
+        if (!insertedAccountBalance) throw new Error('Insert account_balance failed');
+
+        return await accountsRepoWithTx.getAccountById(insertedAccount.id);
+      } catch (err) {
+        console.error(err);
+        tx.rollback();
+      }
+    });
+
+    return insertedAccount;
   }
 
   public async getAcountsByCountry(groupType: AccountGroupType): Promise<GroupAccountsByCountry> {

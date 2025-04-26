@@ -40,7 +40,7 @@ export const ManageAccountCard = ({ footer }: ManageAccountCardProps) => {
     const accountsService = await getAccountsService();
     if (!accountsService) throw new Error('AccountsService must be initialized first');
 
-    const result = await accountsService.createAccount(form);
+    const result = await accountsService.insertAccount(form);
     console.log(result);
     if (result) {
       setAccounts([...accounts, result]);

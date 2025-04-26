@@ -73,7 +73,7 @@ export const accountBalances = appSchema.table(
         onUpdate: 'cascade',
       })
       .notNull(),
-    balance: numeric({ precision: 15, scale: 2 }).notNull().default('0'),
+    balance: numeric({ precision: 15, scale: 2, mode: 'number' }).notNull().default(0),
     createAt: timestamp({ withTimezone: true }).defaultNow(),
     updateAt: timestamp({ withTimezone: true }),
   },
@@ -130,7 +130,7 @@ export const journalEntries = appSchema.table(
     currencyId: integer()
       .notNull()
       .references(() => currencies.id),
-    amount: numeric({ precision: 15, scale: 2 }).notNull(),
+    amount: numeric({ precision: 15, scale: 2, mode: 'number' }).notNull(),
     title: varchar({ length: 255 }),
     description: text(),
     createAt: timestamp({ withTimezone: true }).defaultNow(),
@@ -166,7 +166,7 @@ export const journalEntryFxRates = appSchema.table(
     targetCurrencyId: integer()
       .notNull()
       .references(() => currencies.id),
-    rate: numeric({ scale: 8 }).notNull(),
+    rate: numeric({ scale: 8, mode: 'number' }).notNull(),
     createAt: timestamp({ withTimezone: true }).defaultNow(),
     updateAt: timestamp({ withTimezone: true }),
   },
@@ -209,7 +209,7 @@ export const transactions = appSchema.table(
     accountId: integer()
       .notNull()
       .references(() => accounts.id), // TODO: Add onDelete, onUpdate policy
-    amount: numeric({ precision: 15, scale: 2 }).notNull(),
+    amount: numeric({ precision: 15, scale: 2, mode: 'number' }).notNull(),
     description: text(),
     createAt: timestamp({ withTimezone: true }).defaultNow(),
     updateAt: timestamp({ withTimezone: true }),

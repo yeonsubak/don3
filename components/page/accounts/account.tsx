@@ -13,7 +13,7 @@ export const Account = ({ account }: AccountProps) => {
   const { fxRates } = useAccountsContext();
 
   const currency = currencies.find((c) => c.id === account.currencyId);
-  const accountBalance = parseMoney(`${account.balance ?? 0}`, account.currency, false, true);
+  const accountBalance = parseMoney(account.balance?.balance ?? 0, account.currency, false, true);
 
   const fxRate =
     currency?.id !== defaultCurrency?.id
