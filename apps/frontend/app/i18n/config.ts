@@ -13,5 +13,5 @@ export async function getUserLocale() {
   return locales.find((e) => e === locale) ?? defaultLocale; 
   */
 
-  return defaultLocale;
+  return defaultLocale!;
 }
