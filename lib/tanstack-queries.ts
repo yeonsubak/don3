@@ -38,6 +38,11 @@ export const QUERIES = {
         queryKey: ['getAllAccounts'],
         queryFn: async () => (await getAccountsService()).getAllAccounts(),
       }),
+    allAccountGroups: () =>
+      queryOptions({
+        queryKey: ['getAllAccountGroups'],
+        queryFn: async () => (await getAccountsService()).getAllAccountGroups(),
+      }),
   },
   transaction: {
     summary: (from: Date, to: Date, baseCurrency: CurrencySelect) =>

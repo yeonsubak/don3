@@ -3,9 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import type { AccountGroupSelect } from '@/db/drizzle/types';
 import { ChevronsUpDown } from 'lucide-react';
-import { useState } from 'react';
 import { Account } from './account';
-import { useAccountDrawerContext } from './add-drawer/drawer-context';
 
 type AccountGroupProps = {
   accountGroup: AccountGroupSelect<{
@@ -14,10 +12,8 @@ type AccountGroupProps = {
 };
 
 export const AccountGroup = ({ accountGroup }: AccountGroupProps) => {
-  const [isAccountOpen, setAccountOpen] = useState<boolean>(true);
-
   return (
-    <Collapsible open={isAccountOpen} onOpenChange={setAccountOpen}>
+    <Collapsible defaultOpen>
       <Card>
         <CardHeader>
           <CardTitle className="flex flex-col">

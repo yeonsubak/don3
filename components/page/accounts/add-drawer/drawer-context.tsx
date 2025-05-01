@@ -1,5 +1,6 @@
 'use client';
 
+import type { AccountGroupType } from '@/db/drizzle/types';
 import {
   createContext,
   useContext,
@@ -12,17 +13,27 @@ import {
 export type AccountDrawerContextProps = {
   open: boolean;
   setOpen: Dispatch<SetStateAction<boolean>>;
+  groupType: AccountGroupType;
+  setGroupType: Dispatch<SetStateAction<AccountGroupType>>;
+  countryCode: string;
+  setCountryCode: Dispatch<SetStateAction<string>>;
 };
 export const AccountDrawerContext = createContext<AccountDrawerContextProps | null>(null);
 
 export const AccountDrawerContextProvider = ({ children }: { children: ReactNode }) => {
   const [open, setOpen] = useState(false);
+  const [groupType, setGroupType] = useState<AccountGroupType>('asset');
+  const [countryCode, setCountryCode] = useState<string>('');
 
   return (
     <AccountDrawerContext.Provider
       value={{
         open,
         setOpen,
+        groupType,
+        setGroupType,
+        countryCode,
+        setCountryCode,
       }}
     >
       {children}

@@ -1,7 +1,8 @@
 'use client';
 
 import type { CreateAccountForm } from '@/components/page/accounts/form-schema';
-import type { AccountGroupSelect, AccountGroupType, AccountInsert } from '@/db/drizzle/types';
+import type { CreateAccountGroupForm } from '@/components/page/groups/form-schema';
+import type { AccountGroupSelect, AccountGroupType } from '@/db/drizzle/types';
 import { AccountsRepository } from '../repositories/accounts-repository';
 import type { ConfigRepository } from '../repositories/config-repository';
 import { Service } from './abstract-service';
@@ -82,6 +83,31 @@ export class AccountsService extends Service {
     });
 
     return groupedByCountry;
+  }
+
+  public async getAllAccountGroups(): Promise<AccountGroupSelect<{ childGroups: true }>[]> {
+    return this.accountsRepository.getAllAccountGroups();
+  }
+
+  public async insertAccountGroup({
+    name,
+    type,
+    description,
+  }: CreateAccountGroupForm): Promise<AccountGroupSelect> {
+    const result = (
+      await this.accountsRepository.insertAccountGroup({
+        parentGroupId: null,
+        name,
+        type,
+        description,
+      })
+    ).at(0);
+
+    if (!result) {
+      throw new Error('Insert account_group failed');
+    }
+
+    return result;
   }
 }
 
