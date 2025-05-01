@@ -1,9 +1,9 @@
 import type { SchemaDefinition } from '@/app/api/database/common';
 import type { Version } from '@/app/api/database/get-latest-version/route';
 import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
-import { count, type InferInsertModel, type TableConfig } from 'drizzle-orm';
-import type { PgTable } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/pglite';
+import type { PgliteDrizzle } from '.';
 import { DATASET_ACCOUNT_GROUPS } from './dataset/account-groups';
 import { DATASET_ACCOUNTS } from './dataset/accounts';
 import { DATASET_COUNTRY } from './dataset/country';
@@ -11,7 +11,6 @@ import { DATASET_CURRENCY_FIAT } from './dataset/currency';
 import type { UserConfigKey } from './drizzle/schema';
 import * as schema from './drizzle/schema';
 import { PgliteClient } from './pglite-client';
-import type { PgliteDrizzle } from '.';
 
 export class DBInitializer {
   private static instance: DBInitializer;
@@ -53,7 +52,7 @@ export class DBInitializer {
 
   private async initialize() {
     const latestVersion = await this.getLatestVersion();
-    const userSchemaVersion = window.localStorage.getItem('pglite.schemaVersion');
+    const userSchemaVersion = window.localStorage.getItem(LOCAL_STORAGE_KEYS.PGLITE.SCHEMA_VERSION);
 
     if (!(await this.validateSchemaVersion(userSchemaVersion, latestVersion.schema))) {
       await this.syncSchema(userSchemaVersion);
@@ -68,7 +67,7 @@ export class DBInitializer {
       await this.insertDefaultConfig(missingDefaultConfigKeys);
     }
 
-    if (!(await this.hasAccountGroups())) {
+    if (!(await this.hasAccounts())) {
       await this.insertPresetData();
     }
 
@@ -110,7 +109,9 @@ export class DBInitializer {
   }
 
   private async validateDataset(datasetVersion: string) {
-    let localDatasetVersion = window.localStorage.getItem('pglite.schemaVersion');
+    let localDatasetVersion = window.localStorage.getItem(
+      LOCAL_STORAGE_KEYS.PGLITE.DATASET_VERSION,
+    );
     return localDatasetVersion === datasetVersion;
   }
 
@@ -119,6 +120,7 @@ export class DBInitializer {
     await Promise.all([
       this.db.insert(schema.currencies).values(DATASET_CURRENCY_FIAT).onConflictDoNothing(),
       this.db.insert(schema.countries).values(DATASET_COUNTRY).onConflictDoNothing(),
+      this.db.insert(schema.accountGroups).values(DATASET_ACCOUNT_GROUPS).onConflictDoNothing(),
     ]);
 
     const version: string = '0.0.1'; // TODO: Configure dataset versioning
@@ -131,8 +133,13 @@ export class DBInitializer {
         set: { value: '0.0.1' },
       });
 
-    window.localStorage.setItem(LOCAL_STORAGE_KEYS.PGLITE.DATASET_VERSION, version);
+    await Promise.all([
+      this.updateSequence('config.currencies'),
+      this.updateSequence('config.countries'),
+      this.updateSequence('app.account_groups'),
+    ]);
 
+    window.localStorage.setItem(LOCAL_STORAGE_KEYS.PGLITE.DATASET_VERSION, version);
     console.log(
       `Synchronized the local dataset to ${window.localStorage.getItem(LOCAL_STORAGE_KEYS.PGLITE.DATASET_VERSION)}`,
     );
@@ -181,20 +188,22 @@ export class DBInitializer {
 
   // TODO: Change dataset to more generic data
   private async insertPresetData() {
-    type DatasetInsert = InferInsertModel<typeof schema.accountGroups | typeof schema.accounts>;
-
-    const insertDataset = async (dataset: DatasetInsert[], table: PgTable<TableConfig>) => {
-      await this.db.insert(table).values(dataset).onConflictDoNothing();
-    };
-
-    await Promise.all([
-      insertDataset(DATASET_ACCOUNT_GROUPS, schema.accountGroups),
-      insertDataset(DATASET_ACCOUNTS, schema.accounts),
-    ]);
+    await this.db.insert(schema.accounts).values(DATASET_ACCOUNTS);
+    await this.updateSequence('app.accounts');
   }
 
-  private async hasAccountGroups() {
-    const cnt = (await this.db.select({ count: count() }).from(schema.accountGroups)).at(0)?.count;
-    return (cnt ?? 0) > 0;
+  private async hasAccounts() {
+    const cnt = await this.db.$count(schema.accounts);
+    return cnt > 0;
+  }
+
+  private async updateSequence(tableName: string) {
+    const seqNameQueryResult = await this.db.execute(
+      sql.raw(`SELECT pg_get_serial_sequence('${tableName}', 'id') as seq_name`),
+    );
+    const seqName = seqNameQueryResult.rows.at(0)?.seq_name as string;
+    const maxIdQueryResult = await this.db.execute(sql.raw(`SELECT MAX(id) FROM ${tableName}`));
+    const maxId = maxIdQueryResult.rows.at(0)?.max as number;
+    await this.db.execute(sql.raw(`ALTER SEQUENCE ${seqName} RESTART WITH ${maxId + 1}`));
   }
 }
