@@ -1,16 +1,31 @@
-import { Calendar, Home, Inbox, Search, Settings } from 'lucide-react';
+import { Home, NotebookTabs, PencilLine, Settings, type LucideIcon } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
 } from '../ui/sidebar';
 
-const menuItems = {
+type MenuItem = {
+  title: string;
+  url: string;
+  icon?: LucideIcon;
+  items?: MenuItem[];
+  isActive?: boolean;
+};
+
+type MenuItems = {
+  navMain: MenuItem[];
+  navBottom: MenuItem[];
+};
+
+const menuItems: MenuItems = {
   navMain: [
     {
       title: 'Dashbord',
@@ -20,12 +35,12 @@ const menuItems = {
     {
       title: 'Accounts',
       url: '/app/accounts',
-      icon: Inbox,
+      icon: NotebookTabs,
     },
     {
       title: 'Transactions',
       url: '/app/transactions',
-      icon: Calendar,
+      icon: PencilLine,
     },
   ],
   navBottom: [
@@ -49,10 +64,21 @@ export const AppSidebar = () => {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <a href={item.url}>
-                      <item.icon />
+                      {item.icon ? <item.icon /> : <></>}
                       <span>{item.title}</span>
                     </a>
                   </SidebarMenuButton>
+                  {item.items?.length ? (
+                    <SidebarMenuSub>
+                      {item.items.map((item) => (
+                        <SidebarMenuSubItem key={item.title}>
+                          <SidebarMenuSubButton asChild isActive={item.isActive}>
+                            <a href={item.url}>{item.title}</a>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  ) : null}
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
@@ -66,10 +92,21 @@ export const AppSidebar = () => {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <a href={item.url}>
-                      <item.icon />
+                      {item.icon ? <item.icon /> : <></>}
                       <span>{item.title}</span>
                     </a>
                   </SidebarMenuButton>
+                  {item.items?.length ? (
+                    <SidebarMenuSub>
+                      {item.items.map((item) => (
+                        <SidebarMenuSubItem key={item.title}>
+                          <SidebarMenuSubButton asChild isActive={item.isActive}>
+                            <a href={item.url}>{item.title}</a>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  ) : null}
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
