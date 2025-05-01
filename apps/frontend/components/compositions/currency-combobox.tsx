@@ -58,7 +58,6 @@ export const CurrencyCombobox = ({
         }}
         isChevron={false}
         popoverButtonClass="min-w-[3.25rem] w-fit justify-center"
-        popoverContentClass="w-80"
         field={field}
         {...props}
       />
@@ -73,6 +72,8 @@ export const CurrencyCombobox = ({
       placeholder="Select currency..."
       searchPlaceholder="Search currency..."
       notFoundPlaceholder="No currency found."
+      field={field}
+      {...props}
     />
   );
 };

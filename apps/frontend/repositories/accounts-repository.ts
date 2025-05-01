@@ -1,11 +1,14 @@
-import { accountBalances, accounts } from '@/db/drizzle/schema';
+import { accountBalances, accountGroups, accounts } from '@/db/drizzle/schema';
 import type {
   AccountBalanceInsert,
   AccountBalanceSelect,
+  AccountGroupInsert,
+  AccountGroupSelect,
   AccountGroupType,
   AccountInsert,
   AccountSelectAll,
 } from '@/db/drizzle/types';
+import { eq } from 'drizzle-orm';
 import { Repository } from './abstract-repository';
 
 export class AccountsRepository extends Repository {
@@ -60,6 +63,19 @@ export class AccountsRepository extends Repository {
     });
   }
 
+  public async getAllAccountGroups() {
+    return this.db.query.accountGroups.findMany({
+      where: ({ parentGroupId }, { isNull }) => isNull(parentGroupId),
+      with: {
+        childGroups: true,
+      },
+    }) satisfies Promise<AccountGroupSelect<{ childGroups: true }>[]>;
+  }
+
+  public async insertAccountGroup(form: AccountGroupInsert) {
+    return await this.db.insert(accountGroups).values(form).returning();
+  }
+
   public async getAccountBalance(targetAccountId: number) {
     return await this.db.query.accountBalances.findFirst({
       where: ({ accountId }, { eq }) => eq(accountId, targetAccountId),
@@ -90,10 +106,10 @@ export class AccountsRepository extends Repository {
     const updatedAccountBalance: AccountBalanceSelect[] = await this.db
       .update(accountBalances)
       .set({
-        accountId,
         balance: amount,
         updateAt: new Date(),
       })
+      .where(eq(accountBalances.id, accountId))
       .returning();
 
     return updatedAccountBalance.at(0)!;

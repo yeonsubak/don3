@@ -1,75 +1,44 @@
 'use client';
 
-import { AccountGroup } from '@/components/page/accounts/account-group';
+import { AccountGroupTab } from '@/components/page/accounts/account-group-tab';
 import { AddAccountDrawer } from '@/components/page/accounts/add-drawer';
-import { CountryLabel } from '@/components/page/accounts/country-label';
-import { accounts } from '@/db/drizzle/schema';
-import { QUERIES } from '@/lib/tanstack-queries';
-import { cn } from '@/lib/utils';
-import { type GroupAccountsByCountry } from '@/services/accounts-service';
-import { useQuery } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
-import { useGlobalContext } from '../global-context';
-import { Separator } from '@/components/ui/separator';
+import { useAccountDrawerContext } from '@/components/page/accounts/add-drawer/drawer-context';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { accountGroupTypeEnum, accounts } from '@/db/drizzle/schema';
+import type { AccountGroupType } from '@/db/drizzle/types';
+import { useTranslations } from 'next-intl';
 
 export type AccountList = (typeof accounts.$inferSelect)[];
 
 export default function ManageAccounts() {
-  const { isMultiCountry } = useGlobalContext();
-  const [accountGroupsByCountry, setAccountGroupsByCountry] = useState<GroupAccountsByCountry>({});
+  const accountGroupTypes = accountGroupTypeEnum.enumValues;
+  const { setGroupType } = useAccountDrawerContext();
+  const t = useTranslations('AccountGroupType');
 
-  const {
-    data: accounts,
-    isPending,
-    isError,
-    error,
-  } = useQuery(QUERIES.accounts.accountGroupsByCountry('asset'));
-
-  useEffect(() => {
-    if (!accounts) return;
-
-    setAccountGroupsByCountry(accounts);
-  }, [accounts]);
-
-  if (isPending) {
-    return <p>Loading...</p>;
-  }
-
-  if (isError) {
-    return <p>Error: {error.message}</p>;
-  }
-
-  // When accounts are empty
-  if (Object.keys(accountGroupsByCountry).length === 0) {
-    return <div className=""></div>;
-  }
+  const handleTabChange = (value: string) => {
+    setGroupType(value as AccountGroupType);
+  };
 
   return (
     <>
       <div className="flex flex-row gap-4">
-        <div className={cn('flex h-full w-full flex-col xl:w-md', isMultiCountry ? '' : 'gap-4')}>
-          {Object.entries(accountGroupsByCountry).map(([countryCode, accountGroup], idx) => {
-            if (isMultiCountry) {
-              return (
-                <CountryLabel key={countryCode} idx={idx} countryCode={countryCode}>
-                  {accountGroup.map((accountGroup, idx) => (
-                    <AccountGroup key={`${countryCode}-${idx}`} accountGroup={accountGroup} />
-                  ))}
-                </CountryLabel>
-              );
-            }
+        <Tabs defaultValue="asset" className="w-full xl:w-md" onValueChange={handleTabChange}>
+          <TabsList className="w-full">
+            {accountGroupTypes.map((value) => (
+              <TabsTrigger key={value} value={value}>
+                {t(value)}
+              </TabsTrigger>
+            ))}
+          </TabsList>
 
-            return (
-              <div key={countryCode}>
-                {accountGroup.map((accountGroup, idx) => (
-                  <AccountGroup key={`${countryCode}-${idx}`} accountGroup={accountGroup} />
-                ))}
-              </div>
-            );
-          })}
-        </div>
+          {accountGroupTypes.map((value) => (
+            <TabsContent key={value} value={value}>
+              <AccountGroupTab key={value} tabValue={value} />
+            </TabsContent>
+          ))}
+        </Tabs>
+
         <div className="hidden flex-row gap-4 xl:flex">
-          <Separator orientation="vertical" className="" />
           <div>Display records here</div>
         </div>
       </div>

@@ -20,8 +20,29 @@ import {
 } from '@/components/ui/sheet';
 import { Plus } from '@phosphor-icons/react';
 import { useMediaQuery } from 'usehooks-ts';
-import { ManageAccountCard } from '../manage-account-card';
 import { useAccountDrawerContext } from './drawer-context';
+import { ManageAccountCard } from './manage-account-card';
+
+const SaveButton = () => (
+  <Button type="submit" variant="default" disableOnProcess>
+    Save
+  </Button>
+);
+
+export const AddAccountButton = ({ countryCode }: { countryCode: string }) => {
+  const { setOpen, setCountryCode } = useAccountDrawerContext();
+
+  const handleClick = () => {
+    setCountryCode(countryCode);
+    setOpen(true);
+  };
+
+  return (
+    <Button variant="outline" size="icon" onClick={handleClick}>
+      <Plus size={24} />
+    </Button>
+  );
+};
 
 export const AddAccountDrawer = () => {
   const { open, setOpen } = useAccountDrawerContext();
@@ -71,21 +92,5 @@ export const AddAccountDrawer = () => {
         />
       </SheetContent>
     </Sheet>
-  );
-};
-
-const SaveButton = () => (
-  <Button type="submit" variant="default" disableOnProcess>
-    Save
-  </Button>
-);
-
-export const AddAccountButton = () => {
-  const { setOpen } = useAccountDrawerContext();
-
-  return (
-    <Button variant="outline" size="icon" onClick={() => setOpen(true)}>
-      <Plus size={24} />
-    </Button>
   );
 };

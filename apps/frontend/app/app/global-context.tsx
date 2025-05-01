@@ -1,5 +1,10 @@
 import { DATASET_CURRENCY_FIAT } from '@/db/dataset/currency';
-import type { AccountSelectAll, CountrySelect, CurrencySelect } from '@/db/drizzle/types';
+import type {
+  AccountGroupSelect,
+  AccountSelectAll,
+  CountrySelect,
+  CurrencySelect,
+} from '@/db/drizzle/types';
 import { QUERIES } from '@/lib/tanstack-queries';
 import { useQueries } from '@tanstack/react-query';
 import {
@@ -28,6 +33,11 @@ type GlobalContext = {
 
   accounts: AccountSelectAll[];
   setAccounts: Dispatch<SetStateAction<AccountSelectAll[]>>;
+
+  accountGroups: AccountGroupSelect<{ childGroups: true } | undefined>[];
+  setAccountGroups: Dispatch<
+    SetStateAction<AccountGroupSelect<{ childGroups: true } | undefined>[]>
+  >;
 };
 
 export const GlobalContext = createContext<GlobalContext | null>(null);
@@ -36,7 +46,13 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
   const USD = DATASET_CURRENCY_FIAT.find((e) => e.code === 'USD') as CurrencySelect;
 
   const {
-    data: { fetchedDefaultCurrency, fetchedCountries, fetchedCurrencies, fetchedAccounts },
+    data: {
+      fetchedDefaultCurrency,
+      fetchedCountries,
+      fetchedCurrencies,
+      fetchedAccounts,
+      fetchedAccountGroups,
+    },
     isPending,
     isError,
     error,
@@ -46,6 +62,7 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
       QUERIES.config.countries(),
       QUERIES.config.currencies(),
       QUERIES.accounts.allAccounts(),
+      QUERIES.accounts.allAccountGroups(),
     ],
     combine: (results) => ({
       data: {
@@ -53,6 +70,7 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
         fetchedCountries: results[1].data,
         fetchedCurrencies: results[2].data,
         fetchedAccounts: results[3].data,
+        fetchedAccountGroups: results[4].data,
       },
       isPending: results.some((result) => result.isPending),
       isError: results.some((result) => result.isError),
@@ -65,6 +83,9 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
   const [countries, setCountries] = useState<CountrySelect<{ defaultCurrency: true }>[]>([]);
   const [currencies, setCurrencies] = useState<CurrencySelect[]>([]);
   const [accounts, setAccounts] = useState<AccountSelectAll[]>([]);
+  const [accountGroups, setAccountGroups] = useState<
+    AccountGroupSelect<{ childGroups: true } | undefined>[]
+  >([]);
 
   const countriesInUse = useMemo(() => {
     const countries = accounts.map((account) => account.country);
@@ -84,6 +105,7 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
     setCountries(fetchedCountries ?? []);
     setCurrencies(fetchedCurrencies ?? []);
     setAccounts(fetchedAccounts ?? []);
+    setAccountGroups(fetchedAccountGroups ?? []);
   }, [fetchedCountries, fetchedDefaultCurrency, fetchedCurrencies, fetchedAccounts]);
 
   if (isPending) {
@@ -108,6 +130,8 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
         currencies,
         accounts,
         setAccounts,
+        accountGroups,
+        setAccountGroups,
       }}
     >
       {children}
