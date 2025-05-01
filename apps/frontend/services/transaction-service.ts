@@ -130,19 +130,18 @@ export class TransactionService extends Service {
           });
         }
 
-        const signIdentifier = journalEntryType === 'income' ? 1 : -1;
         const debitTransaction: TransactionInsert = {
           type: 'debit',
           journalEntryId: journalEntry.id,
           accountId: debitAccountId,
-          amount: parsedAmount * signIdentifier,
+          amount: parsedAmount,
         };
 
         const creditTransaction: TransactionInsert = {
           type: 'credit',
           journalEntryId: journalEntry.id,
           accountId: creditAccountId,
-          amount: parsedAmount * signIdentifier * -1,
+          amount: parsedAmount,
         };
 
         await Promise.all([
@@ -168,10 +167,11 @@ export class TransactionService extends Service {
 
         // Update balance
         const accountsRepoWithTx = new AccountsRepository(tx);
-        await Promise.all([
-          updateAccountBalance(debitAccountId, debitTransaction.amount, accountsRepoWithTx),
-          updateAccountBalance(creditAccountId, creditTransaction.amount, accountsRepoWithTx),
-        ]);
+        let debitAmount = debitTransaction.amount * (journalEntryType === 'expense' ? -1 : 1);
+        let creditAmount = creditTransaction.amount * (journalEntryType === 'transfer' ? -1 : 1);
+
+        await updateAccountBalance(debitAccountId, debitAmount, accountsRepoWithTx);
+        await updateAccountBalance(creditAccountId, creditAmount, accountsRepoWithTx);
 
         return journalEntry.id;
       } catch (err) {
