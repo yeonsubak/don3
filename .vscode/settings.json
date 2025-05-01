@@ -2,5 +2,10 @@
   "workbench.colorCustomizations": {
     "minimap.background": "#00000000",
     "scrollbar.shadow": "#00000000"
+  },
+  "workbench.editor.customLabels.patterns": {
+    "**/app/**/page.tsx": "${dirname} <page>",
+    "**/app/**/layout.tsx": "${dirname} <layout>",
+    "**/app/**/route.ts": "${dirname} <route>"
   }
 }
