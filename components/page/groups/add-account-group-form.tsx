@@ -36,17 +36,15 @@ export const AddAccountGroupForm = ({ groupType, submitPostHook }: AddAccountGro
   async function handleSubmit() {
     const isValid = await form.trigger(undefined, { shouldFocus: true });
     if (!isValid) return;
-
     const formValues = form.getValues();
-
     const accountsService = await getAccountsService();
     const result = await accountsService.insertAccountGroup(formValues);
-    console.log(result);
+    if (result) {
+      setAccountGroups((prev) => [...prev, result]);
 
-    setAccountGroups((prev) => [...prev, result]);
-
-    if (submitPostHook) {
-      submitPostHook(result);
+      if (submitPostHook) {
+        submitPostHook(result);
+      }
     }
   }
 
