@@ -15,6 +15,8 @@ import { PgliteClient } from './pglite-client';
 export class DBInitializer {
   private static instance: DBInitializer;
   private db!: PgliteDrizzle;
+  private defaultCountry!: string;
+  private defaultCurrency!: string;
 
   public static isInitialized = false;
   private initializationPromise: Promise<void> | null = null;
@@ -30,6 +32,10 @@ export class DBInitializer {
         casing: 'snake_case',
       });
       DBInitializer.instance.db = pgDrizzle;
+      DBInitializer.instance.defaultCountry =
+        localStorage.getItem(LOCAL_STORAGE_KEYS.APP.DEFAULT_COUNTRY) ?? 'USA';
+      DBInitializer.instance.defaultCurrency =
+        localStorage.getItem(LOCAL_STORAGE_KEYS.APP.DEFAULT_CURRENCY) ?? 'USD';
     }
 
     return DBInitializer.instance;
@@ -158,27 +164,28 @@ export class DBInitializer {
   }
 
   private async insertDefaultConfig(missingKeys: UserConfigKey[]) {
-    const lang = navigator.languages.at(0);
-
     missingKeys.forEach(async (key) => {
       switch (key) {
-        case 'defaultCurrency': {
-          const countryCodeAlpha2 = lang?.substring(3, 5) ?? 'US';
-          const country = await this.db.query.countries.findFirst({
-            where: ({ codeAlpha2 }, { eq }) => eq(codeAlpha2, countryCodeAlpha2),
-            with: { defaultCurrency: true },
-          });
+        case 'defaultCountry': {
           await this.db
             .insert(schema.information)
-            .values({ name: 'defaultCurrency', value: country?.defaultCurrency?.code ?? 'USD' })
+            .values({ name: 'defaultCurrency', value: this.defaultCountry })
+            .onConflictDoNothing();
+          break;
+        }
+        case 'defaultCurrency': {
+          await this.db
+            .insert(schema.information)
+            .values({ name: 'defaultCurrency', value: this.defaultCurrency })
             .onConflictDoNothing();
           break;
         }
         case 'defaultLanguage': {
-          const langCodeAlpha2 = lang?.substring(0, 2) ?? 'en';
+          // TODO: Revive this when multi-language is supported
+          // const langCodeAlpha2 = lang?.substring(0, 2) ?? 'en';
           await this.db
             .insert(schema.information)
-            .values({ name: 'defaultLanguage', value: langCodeAlpha2 })
+            .values({ name: 'defaultLanguage', value: 'en' })
             .onConflictDoNothing();
           break;
         }
@@ -186,9 +193,18 @@ export class DBInitializer {
     });
   }
 
-  // TODO: Change dataset to more generic data
   private async insertPresetData() {
-    await this.db.insert(schema.accounts).values(DATASET_ACCOUNTS);
+    const country = await this.db.query.countries.findFirst({
+      where: ({ code }, { eq }) => eq(code, this.defaultCountry),
+    });
+    const currency = await this.db.query.currencies.findFirst({
+      where: ({ code }, { eq }) => eq(code, this.defaultCurrency),
+    });
+    if (!country || !currency) {
+      throw new Error('Country data or currency data is missing');
+    }
+
+    await this.db.insert(schema.accounts).values(DATASET_ACCOUNTS(country.id, currency.id));
     await this.updateSequence('app.accounts');
   }
 
