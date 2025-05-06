@@ -40,6 +40,22 @@ export class AccountsRepository extends Repository {
     return result.at(0);
   }
 
+  public async getAccountGroup(_id: number) {
+    return this.db.query.accountGroups.findFirst({
+      where: ({ id }, { eq }) => eq(id, _id),
+      with: {
+        childGroups: true,
+        accounts: {
+          with: {
+            country: true,
+            currency: true,
+            balance: true,
+          },
+        },
+      },
+    });
+  }
+
   public async getAccountGroupsByType(
     groupType: AccountGroupType,
     includeHidden: boolean = false,
@@ -68,8 +84,15 @@ export class AccountsRepository extends Repository {
       where: ({ parentGroupId }, { isNull }) => isNull(parentGroupId),
       with: {
         childGroups: true,
+        accounts: {
+          with: {
+            country: true,
+            currency: true,
+            balance: true,
+          },
+        },
       },
-    }) satisfies Promise<AccountGroupSelect<{ childGroups: true }>[]>;
+    });
   }
 
   public async insertAccountGroup(form: AccountGroupInsert) {

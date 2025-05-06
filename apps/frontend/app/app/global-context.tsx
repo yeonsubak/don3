@@ -1,6 +1,7 @@
 import { DATASET_CURRENCY_FIAT } from '@/db/dataset/currency';
 import type {
   AccountGroupSelect,
+  AccountGroupSelectAll,
   AccountSelectAll,
   CountrySelect,
   CurrencySelect,
@@ -34,10 +35,8 @@ type GlobalContext = {
   accounts: AccountSelectAll[];
   setAccounts: Dispatch<SetStateAction<AccountSelectAll[]>>;
 
-  accountGroups: AccountGroupSelect<{ childGroups: true } | undefined>[];
-  setAccountGroups: Dispatch<
-    SetStateAction<AccountGroupSelect<{ childGroups: true } | undefined>[]>
-  >;
+  accountGroups: AccountGroupSelectAll[];
+  setAccountGroups: Dispatch<SetStateAction<AccountGroupSelectAll[]>>;
 };
 
 export const GlobalContext = createContext<GlobalContext | null>(null);
@@ -83,9 +82,7 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
   const [countries, setCountries] = useState<CountrySelect<{ defaultCurrency: true }>[]>([]);
   const [currencies, setCurrencies] = useState<CurrencySelect[]>([]);
   const [accounts, setAccounts] = useState<AccountSelectAll[]>([]);
-  const [accountGroups, setAccountGroups] = useState<
-    AccountGroupSelect<{ childGroups: true } | undefined>[]
-  >([]);
+  const [accountGroups, setAccountGroups] = useState<AccountGroupSelectAll[]>([]);
 
   const countriesInUse = useMemo(() => {
     const countries = accounts.map((account) => account.country);
@@ -106,7 +103,13 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
     setCurrencies(fetchedCurrencies ?? []);
     setAccounts(fetchedAccounts ?? []);
     setAccountGroups(fetchedAccountGroups ?? []);
-  }, [fetchedCountries, fetchedDefaultCurrency, fetchedCurrencies, fetchedAccounts]);
+  }, [
+    fetchedCountries,
+    fetchedDefaultCurrency,
+    fetchedCurrencies,
+    fetchedAccounts,
+    fetchedAccountGroups,
+  ]);
 
   if (isPending) {
     return <></>;

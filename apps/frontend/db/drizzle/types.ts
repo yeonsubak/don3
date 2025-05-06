@@ -53,6 +53,10 @@ export type AccountGroupSelect<R extends Relation<'accountGroups'> = undefined> 
   'accountGroups',
   R
 >;
+export type AccountGroupSelectAll = AccountGroupSelect<{
+  accounts: AccountSelectAll;
+  childGroups: true;
+}>;
 
 export type JournalEntryType = (typeof schema.journalEntryTypeEnum.enumValues)[number];
 export type JournalEntryInsert = typeof schema.journalEntries.$inferInsert;

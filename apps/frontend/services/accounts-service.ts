@@ -2,7 +2,12 @@
 
 import type { CreateAccountForm } from '@/components/page/accounts/form-schema';
 import type { CreateAccountGroupForm } from '@/components/page/groups/form-schema';
-import type { AccountGroupSelect, AccountGroupType } from '@/db/drizzle/types';
+import type {
+  AccountGroupSelect,
+  AccountGroupSelectAll,
+  AccountGroupType,
+  AccountSelectAll,
+} from '@/db/drizzle/types';
 import { AccountsRepository } from '../repositories/accounts-repository';
 import type { ConfigRepository } from '../repositories/config-repository';
 import { Service } from './abstract-service';
@@ -22,11 +27,12 @@ export class AccountsService extends Service {
   }
 
   public async insertAccount({
+    accountGroupId,
     currencyCode,
     countryCode,
     accountType,
     accountName,
-  }: CreateAccountForm) {
+  }: CreateAccountForm): Promise<AccountSelectAll | undefined> {
     const currency = await this.configRepository.getCurrencyByCode(currencyCode);
     const country = await this.configRepository.getCountryByCode(countryCode);
 
@@ -38,6 +44,7 @@ export class AccountsService extends Service {
         const accountsRepoWithTx = new AccountsRepository(tx);
 
         const insertedAccount = await accountsRepoWithTx.insertAccount({
+          accountGroupId: parseInt(accountGroupId),
           type: accountType,
           name: accountName,
           currencyId: currency.id,
@@ -85,15 +92,15 @@ export class AccountsService extends Service {
     return groupedByCountry;
   }
 
-  public async getAllAccountGroups(): Promise<AccountGroupSelect<{ childGroups: true }>[]> {
+  public async getAccountGroup(id: number) {
+    return this.accountsRepository.getAccountGroup(id);
+  }
+
+  public async getAllAccountGroups(): Promise<AccountGroupSelectAll[]> {
     return this.accountsRepository.getAllAccountGroups();
   }
 
-  public async insertAccountGroup({
-    name,
-    type,
-    description,
-  }: CreateAccountGroupForm): Promise<AccountGroupSelect> {
+  public async insertAccountGroup({ name, type, description }: CreateAccountGroupForm) {
     const result = (
       await this.accountsRepository.insertAccountGroup({
         parentGroupId: null,
@@ -107,7 +114,7 @@ export class AccountsService extends Service {
       throw new Error('Insert account_group failed');
     }
 
-    return result;
+    return this.getAccountGroup(result.id);
   }
 }
 
