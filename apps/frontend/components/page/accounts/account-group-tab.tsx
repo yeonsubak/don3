@@ -2,10 +2,13 @@ import { useGlobalContext } from '@/app/app/global-context';
 import type { AccountGroupType } from '@/db/drizzle/types';
 import { QUERIES } from '@/lib/tanstack-queries';
 import { cn } from '@/lib/utils';
+import { Plus } from '@phosphor-icons/react';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { AccountGroup } from './account-group';
 import { CountrySection } from './country-section';
+import { useAccountDrawerContext } from './add-drawer/drawer-context';
+import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
 
 type AccountGroupTabProps = {
   tabValue: AccountGroupType;
@@ -13,6 +16,7 @@ type AccountGroupTabProps = {
 
 export const AccountGroupTab = ({ tabValue }: AccountGroupTabProps) => {
   const { isMultiCountry } = useGlobalContext();
+  const { setOpen, setCountryCode } = useAccountDrawerContext();
   const {
     data: fetchedAccountGroupsByCountry,
     isPending,
@@ -35,12 +39,33 @@ export const AccountGroupTab = ({ tabValue }: AccountGroupTabProps) => {
 
   // When accounts are empty
   if (Object.keys(accountGroupsByCountry).length === 0) {
-    return <div className=""></div>;
+    if (tabValue === 'uncategorized') {
+      return <></>;
+    }
+
+    function handleAddButton() {
+      const defaultCountryCode =
+        localStorage.getItem(LOCAL_STORAGE_KEYS.APP.DEFAULT_COUNTRY) ?? 'USA';
+      setCountryCode(defaultCountryCode);
+      setOpen(true);
+    }
+
+    return (
+      <div className="mt-2">
+        <div
+          role="button"
+          className="flex h-fit w-full cursor-pointer justify-center rounded-xl border p-8 shadow-sm hover:bg-gray-100"
+          onClick={handleAddButton}
+        >
+          <Plus size={24} />
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className={cn('flex h-full w-full flex-col xl:w-md', isMultiCountry ? '' : 'gap-4')}>
-      {Object.entries(accountGroupsByCountry).map(([countryCode, accountGroup], idx) => (
+      {Object.entries(accountGroupsByCountry).map(([countryCode, accountGroup]) => (
         <CountrySection key={countryCode} countryCode={countryCode}>
           {accountGroup.map((accountGroup, idx) => (
             <AccountGroup key={`${countryCode}-${idx}`} accountGroup={accountGroup} />

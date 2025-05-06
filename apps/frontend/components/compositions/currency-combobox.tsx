@@ -1,51 +1,55 @@
 import { useGlobalContext } from '@/app/app/global-context';
-import type { CurrencySelect } from '@/db/drizzle/types';
+import type { CurrencyInsert, CurrencySelect } from '@/db/drizzle/types';
 import { useMemo } from 'react';
 import { Combobox, flattenComboboxItems, type ComboboxProps } from '../primitives/combobox';
 
-const mapToCurrencyItems = (currencies: CurrencySelect[], currenciesInUse: CurrencySelect[]) => {
-  const convert = (currencies: CurrencySelect[]) => {
-    return currencies.map((currency) => ({
-      label: `${currency.symbol} - ${currency.name}`,
-      value: currency.code,
-      data: currency,
-    }));
-  };
-
-  const favorite = {
-    label: 'Favorite',
-    value: 'Favorite',
-    children: convert(currenciesInUse ?? []),
-  };
-
-  const otherCurrencies = {
-    label: 'Other currencies',
-    value: 'Other currencies',
-    children: convert(
-      currencies.filter((currency) => {
-        const inUseIds = currenciesInUse.map((e) => e.id);
-        return !inUseIds.includes(currency.id);
-      }),
-    ),
-  };
-
-  return [favorite, otherCurrencies];
-};
-
 interface CurrencyComboboxProps extends ComboboxProps {
   buttonRenderMode?: 'normal' | 'symbol';
+  currencies?: CurrencySelect[] | CurrencyInsert[];
 }
 
 export const CurrencyCombobox = ({
   field,
   buttonRenderMode = 'normal',
+  currencies: _currencies,
   ...props
 }: CurrencyComboboxProps) => {
-  const { currencies, currenciesInUse } = useGlobalContext();
-  const currencyItems = useMemo(
-    () => mapToCurrencyItems(currencies, currenciesInUse),
-    [currencies, currenciesInUse],
-  );
+  const { currencies: globalCurrencies, currenciesInUse: globalCurrenciesInUse } =
+    useGlobalContext();
+
+  function mapToCurrencyItems(currencies: CurrencySelect[]) {
+    return currencies.map((currency) => ({
+      label: `${currency.symbol} - ${currency.name}`,
+      value: currency.code,
+      data: currency,
+    }));
+  }
+
+  const currencies = _currencies ? _currencies : globalCurrencies;
+  const currenciesInUse = _currencies ? null : globalCurrenciesInUse;
+
+  const currencyItems = useMemo(() => {
+    const favorite = currenciesInUse
+      ? {
+          label: 'Favorite',
+          value: 'Favorite',
+          children: mapToCurrencyItems(currenciesInUse ?? []),
+        }
+      : null;
+
+    const others = currencies.filter((currency) => {
+      const inUseIds = currenciesInUse?.map((e) => e.id) ?? [];
+      return !inUseIds.includes(currency.id!);
+    });
+
+    const otherCurrencies = {
+      label: 'Other currencies',
+      value: 'Other currencies',
+      children: mapToCurrencyItems(others as CurrencySelect[]),
+    };
+
+    return favorite ? [favorite, otherCurrencies] : otherCurrencies.children;
+  }, [currencies, currenciesInUse]);
 
   if (buttonRenderMode === 'symbol') {
     return (
