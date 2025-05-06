@@ -4,4 +4,9 @@ export const LOCAL_STORAGE_KEYS = {
     DATASET_VERSION: 'pglite.datasetVersion',
     SYNC_TIMESTAMP: 'pglite.syncTimestamp',
   },
+  APP: {
+    DEFAULT_CURRENCY: 'app.defaultCurrency',
+    DEFAULT_COUNTRY: 'app.defaultCountry',
+    DEFAULT_LANGUAGE: 'app.defaultLanguage',
+  },
 } as const;
