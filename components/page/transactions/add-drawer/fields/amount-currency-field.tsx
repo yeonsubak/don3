@@ -37,7 +37,7 @@ export const AmountCurrencyField = ({
   isFxFieldName,
   zForm,
 }: AmountCurrencyFieldProps) => {
-  const { countries, currencies } = useGlobalContext();
+  const { countries, currencies, currenciesInUse } = useGlobalContext();
 
   const currencyCodeWatch = useWatch({ control: zForm?.control, name: 'currencyCode' });
   const countryCodeWatch = useWatch({ control: zForm?.control, name: 'countryCode' });
@@ -94,7 +94,13 @@ export const AmountCurrencyField = ({
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <CurrencyCombobox field={field} zForm={zForm} buttonRenderMode="symbol" />
+                <CurrencyCombobox
+                  currencies={currencies}
+                  currenciesInUse={currenciesInUse}
+                  field={field}
+                  zForm={zForm}
+                  buttonRenderMode="symbol"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -273,7 +279,7 @@ export const TransferAmountCurrencyField = ({
   fxAmountFieldName,
   zForm,
 }: AmountCurrencyFieldProps) => {
-  const { accounts } = useGlobalContext();
+  const { accounts, currencies, currenciesInUse } = useGlobalContext();
 
   const debitAccountWatch = useWatch({ control: zForm?.control, name: 'debitAccountId' });
   const creditAccountWatch = useWatch({ control: zForm?.control, name: 'creditAccountId' });
@@ -311,7 +317,13 @@ export const TransferAmountCurrencyField = ({
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <CurrencyCombobox field={field} zForm={zForm} buttonRenderMode="symbol" />
+                <CurrencyCombobox
+                  currencies={currencies}
+                  currenciesInUse={currenciesInUse}
+                  field={field}
+                  zForm={zForm}
+                  buttonRenderMode="symbol"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

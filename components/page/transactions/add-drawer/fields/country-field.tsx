@@ -6,7 +6,7 @@ import {
 import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 
 export const CountryField = ({ zForm }: Partial<CountryComboboxProps>) => {
-  const { defaultCurrency } = useGlobalContext();
+  const { defaultCurrency, countries, countriesInUse } = useGlobalContext();
 
   return (
     <FormField
@@ -18,6 +18,8 @@ export const CountryField = ({ zForm }: Partial<CountryComboboxProps>) => {
           <FormControl>
             <CountryCombobox
               mode="inUse"
+              countries={countries}
+              countriesInUse={countriesInUse}
               field={field}
               zForm={zForm}
               onSelectFn={(currentValue) => {
