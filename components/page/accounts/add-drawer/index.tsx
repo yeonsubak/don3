@@ -23,12 +23,6 @@ import { useMediaQuery } from 'usehooks-ts';
 import { useAccountDrawerContext } from './drawer-context';
 import { ManageAccountCard } from './manage-account-card';
 
-const SaveButton = () => (
-  <Button type="submit" variant="default" disableOnProcess>
-    Save
-  </Button>
-);
-
 export const AddAccountButton = ({ countryCode }: { countryCode: string }) => {
   const { setOpen, setCountryCode } = useAccountDrawerContext();
 
@@ -50,6 +44,12 @@ export const AddAccountDrawer = () => {
 
   const MODAL_TITLE = 'Add an account';
   const MODAL_CANCEL_BUTTON_LABEL = 'Cancel';
+
+  const SaveButton = () => (
+    <Button type="submit" variant="default" disableOnProcess>
+      Save
+    </Button>
+  );
 
   if (isDesktop) {
     return (

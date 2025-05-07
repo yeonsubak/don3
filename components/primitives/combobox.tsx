@@ -21,6 +21,7 @@ import type {
 } from 'react-hook-form';
 import type { TailwindClass } from '../common-types';
 import { Separator } from '../ui/separator';
+import { useMediaQuery } from 'usehooks-ts';
 
 export interface ComboboxItem<T = unknown> {
   label: string;
@@ -82,6 +83,7 @@ export const Combobox = ({
   keyRenderFn,
 }: ComboboxProps) => {
   const [open, setOpen] = useState(false);
+  const isDesktop = useMediaQuery('(min-width: 768px)');
 
   const Item = ({ children, label, recursiveCnt = 0, value, keywords, data }: ComboboxItem) => {
     if (children && children.length > 0) {
@@ -140,6 +142,7 @@ export const Combobox = ({
         className={cn('z-[99] p-0', popoverContentClass ? popoverContentClass : 'w-80')}
         side={popoverContentSide}
         align={popoverContentAlign}
+        onOpenAutoFocus={(e) => !isDesktop && e.preventDefault()}
       >
         <Command>
           {searchable ? <CommandInput placeholder={searchPlaceholder} /> : <></>}
