@@ -18,9 +18,11 @@ import type {
   AccountGroupSelectAll,
   AccountGroupType,
 } from '@/db/drizzle/types';
+import { QUERIES } from '@/lib/tanstack-queries';
 import { getAccountsService } from '@/services/helper';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus } from '@phosphor-icons/react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { CountryCombobox } from '../../../compositions/country-combobox';
@@ -29,8 +31,6 @@ import { AddAccountGroupForm } from '../../groups/add-account-group-form';
 import { AccountTypeToggle } from '../account-type-toggle';
 import { createAccountForm, type CreateAccountForm } from '../form-schema';
 import { useAccountDrawerContext } from './drawer-context';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { QUERIES } from '@/lib/tanstack-queries';
 
 type ManageAccountCardProps = {
   footer: React.ReactNode;
@@ -50,7 +50,8 @@ function mapAccountGroupsToComboboxItems(
 }
 
 export const ManageAccountCard = ({ footer }: ManageAccountCardProps) => {
-  const { setAccounts, accountGroups, currencies, countries } = useGlobalContext();
+  const { setAccounts, accountGroups, currencies, currenciesInUse, countries, countriesInUse } =
+    useGlobalContext();
   const { groupType, countryCode, setOpen } = useAccountDrawerContext();
   const queryClient = useQueryClient();
   const defaultCurrency = currencies.find(
@@ -155,7 +156,13 @@ export const ManageAccountCard = ({ footer }: ManageAccountCardProps) => {
             <FormItem>
               <FormLabel>Country</FormLabel>
               <FormControl>
-                <CountryCombobox mode="all" field={field} zForm={form} />
+                <CountryCombobox
+                  mode="all"
+                  countries={countries}
+                  countriesInUse={countriesInUse}
+                  field={field}
+                  zForm={form}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -168,7 +175,12 @@ export const ManageAccountCard = ({ footer }: ManageAccountCardProps) => {
             <FormItem>
               <FormLabel>Currency</FormLabel>
               <FormControl>
-                <CurrencyCombobox field={field} zForm={form} />
+                <CurrencyCombobox
+                  currencies={currencies}
+                  currenciesInUse={currenciesInUse}
+                  field={field}
+                  zForm={form}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

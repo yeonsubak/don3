@@ -1,22 +1,20 @@
-import { useGlobalContext } from '@/app/app/global-context';
 import type { CurrencyInsert, CurrencySelect } from '@/db/drizzle/types';
 import { useMemo } from 'react';
 import { Combobox, flattenComboboxItems, type ComboboxProps } from '../primitives/combobox';
 
 interface CurrencyComboboxProps extends ComboboxProps {
   buttonRenderMode?: 'normal' | 'symbol';
-  currencies?: CurrencySelect[] | CurrencyInsert[];
+  currencies: CurrencySelect[] | CurrencyInsert[];
+  currenciesInUse?: CurrencySelect[];
 }
 
 export const CurrencyCombobox = ({
   field,
   buttonRenderMode = 'normal',
-  currencies: _currencies,
+  currencies,
+  currenciesInUse,
   ...props
 }: CurrencyComboboxProps) => {
-  const { currencies: globalCurrencies, currenciesInUse: globalCurrenciesInUse } =
-    useGlobalContext();
-
   function mapToCurrencyItems(currencies: CurrencySelect[]) {
     return currencies.map((currency) => ({
       label: `${currency.symbol} - ${currency.name}`,
@@ -24,9 +22,6 @@ export const CurrencyCombobox = ({
       data: currency,
     }));
   }
-
-  const currencies = _currencies ? _currencies : globalCurrencies;
-  const currenciesInUse = _currencies ? null : globalCurrenciesInUse;
 
   const currencyItems = useMemo(() => {
     const favorite = currenciesInUse

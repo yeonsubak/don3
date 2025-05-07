@@ -1,4 +1,3 @@
-import { useGlobalContext } from '@/app/app/global-context';
 import type { CountryInsert, CountrySelect } from '@/db/drizzle/types';
 import { useTranslations } from 'next-intl';
 import { useMemo } from 'react';
@@ -6,19 +5,17 @@ import { Combobox, type ComboboxItem, type ComboboxProps } from '../primitives/c
 
 export interface CountryComboboxProps extends ComboboxProps {
   mode: 'all' | 'inUse';
-  countries?: CountrySelect[] | CountryInsert[];
+  countries: CountrySelect[] | CountryInsert[];
+  countriesInUse?: CountrySelect[];
 }
 
 export const CountryCombobox = ({
   mode,
-  countries: _countries,
+  countries,
+  countriesInUse,
   ...props
 }: CountryComboboxProps) => {
   const tCountry = useTranslations('countryCode');
-  const { countries: globalCountries, countriesInUse: globalCountriesInUse } = useGlobalContext();
-
-  const countries = _countries ? _countries : globalCountries;
-  const countriesInUse = _countries ? null : globalCountriesInUse;
 
   const countryItems = useMemo(() => {
     function mapToCountryItems(countries: CountrySelect[]): ComboboxItem<CountrySelect>[] {
