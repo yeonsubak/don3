@@ -1,4 +1,4 @@
-"use client"
+'use client';
 
 import { live } from '@electric-sql/pglite/live';
 import { PGliteWorker as _PGliteWorker } from '@electric-sql/pglite/worker';
@@ -10,10 +10,10 @@ export class PGliteWorker {
   private static instance: PGliteWorker;
 
   public static async getInstance() {
-    if (!this.instance) {
+    if (!PGliteWorker.instance) {
+      PGliteWorker.instance = new PGliteWorker();
       const dbInitializer = await DBInitializer.getInstance();
       await dbInitializer.ensureDbReady();
-
       const worker = await _PGliteWorker.create(
         new Worker(new URL('@/public/pglite-worker.js', import.meta.url), {
           type: 'module',
@@ -23,9 +23,9 @@ export class PGliteWorker {
         },
       );
 
-      this.instance = worker;
+      PGliteWorker.instance = worker;
     }
 
-    return this.instance;
+    return PGliteWorker.instance;
   }
 }
