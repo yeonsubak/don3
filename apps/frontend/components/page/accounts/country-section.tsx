@@ -11,7 +11,7 @@ export const CountryLabel = ({ countryCode, className }: CountryLabelProps) => {
   const tCountry = useTranslations('countryCode');
 
   return (
-    <h2 className={cn('p-4 text-2xl font-semibold', className)}>
+    <h2 className={cn('p-4 text-xl font-semibold', className)}>
       {tCountry(countryCode)}
       <span className="emoji ml-2">
         {countriesInUse.find((country) => country.code === countryCode)?.emoji}

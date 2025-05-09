@@ -19,7 +19,6 @@ export const AccountGroupTab = ({ tabValue }: AccountGroupTabProps) => {
   const { setOpen, setCountryCode } = useAccountDrawerContext();
   const {
     data: fetchedAccountGroupsByCountry,
-    isPending,
     isError,
     error,
   } = useQuery(QUERIES.accounts.accountGroupsByCountry(tabValue));
@@ -28,10 +27,6 @@ export const AccountGroupTab = ({ tabValue }: AccountGroupTabProps) => {
     () => fetchedAccountGroupsByCountry ?? [],
     [fetchedAccountGroupsByCountry],
   );
-
-  if (isPending) {
-    return <p>Loading...</p>;
-  }
 
   if (isError) {
     return <p>Error: {error.message}</p>;

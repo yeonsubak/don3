@@ -28,7 +28,7 @@ export const baseTxForm = z
     amount: z.string().min(1).default('').refine(parseNumber, { message: 'Invalid amount' }),
     fxRate: z.string().default(''),
     fxAmount: z.string().default(''),
-    title: z.string(),
+    title: z.string().min(1, { message: 'Title must be longer than 1 character.' }),
     description: z.string(),
     isFx: z.boolean().default(false), // Not for mutation
   })
