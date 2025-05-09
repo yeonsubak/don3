@@ -52,7 +52,6 @@ export const AccountField = ({ label, fieldName, zForm, accountItems }: AccountF
               <Combobox
                 items={accountItems}
                 field={field}
-                zForm={zForm}
                 onSelectFn={defaultOnSelectFn}
                 popoverContentClass="w-fit"
                 buttonLabelRenderFn={

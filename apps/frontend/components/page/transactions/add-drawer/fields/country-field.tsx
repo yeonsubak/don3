@@ -1,11 +1,9 @@
 import { useGlobalContext } from '@/app/app/global-context';
-import {
-  CountryCombobox,
-  type CountryComboboxProps,
-} from '@/components/compositions/country-combobox';
+import type { ZForm } from '@/components/common-types';
+import { CountryCombobox } from '@/components/compositions/country-combobox';
 import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 
-export const CountryField = ({ zForm }: Partial<CountryComboboxProps>) => {
+export const CountryField = ({ zForm }: { zForm: ZForm }) => {
   const { defaultCurrency, countries, countriesInUse } = useGlobalContext();
 
   return (
@@ -21,7 +19,6 @@ export const CountryField = ({ zForm }: Partial<CountryComboboxProps>) => {
               countries={countries}
               countriesInUse={countriesInUse}
               field={field}
-              zForm={zForm}
               onSelectFn={(currentValue) => {
                 const currencyCode = defaultCurrency?.code ?? 'USD';
                 zForm?.setValue('currencyCode', currencyCode);

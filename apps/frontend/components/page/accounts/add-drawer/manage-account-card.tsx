@@ -115,7 +115,7 @@ export const ManageAccountCard = ({ footer }: ManageAccountCardProps) => {
               <FormControl>
                 <div className="flex flex-row items-end gap-2">
                   <div className="grow">
-                    <Combobox items={accountGroupComboItems} field={field} zForm={form} />
+                    <Combobox items={accountGroupComboItems} field={field} />
                   </div>
                   <Popover open={openAddAccountGroup} onOpenChange={setOpenAddAccountGroup}>
                     <PopoverTrigger asChild>
@@ -178,7 +178,6 @@ export const ManageAccountCard = ({ footer }: ManageAccountCardProps) => {
                   countries={countries}
                   countriesInUse={countriesInUse}
                   field={field}
-                  zForm={form}
                 />
               </FormControl>
               <FormMessage />
@@ -196,7 +195,6 @@ export const ManageAccountCard = ({ footer }: ManageAccountCardProps) => {
                   currencies={currencies}
                   currenciesInUse={currenciesInUse}
                   field={field}
-                  zForm={form}
                 />
               </FormControl>
               <FormMessage />

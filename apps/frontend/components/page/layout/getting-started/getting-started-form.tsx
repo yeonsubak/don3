@@ -1,5 +1,6 @@
 import { CountryCombobox } from '@/components/compositions/country-combobox';
 import { CurrencyCombobox } from '@/components/compositions/currency-combobox';
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -10,11 +11,10 @@ import {
 } from '@/components/ui/form';
 import { DATASET_COUNTRY } from '@/db/dataset/country';
 import { DATASET_CURRENCY_FIAT } from '@/db/dataset/currency';
+import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { defaultConfigForm, type DefaultConfigForm } from './form-schema';
-import { Button } from '@/components/ui/button';
-import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
 
 export const GettingStartedForm = ({ posthook }: { posthook: () => void }) => {
   const lang = navigator.languages.at(0);
@@ -49,12 +49,7 @@ export const GettingStartedForm = ({ posthook }: { posthook: () => void }) => {
             <FormItem>
               <FormLabel>Country</FormLabel>
               <FormControl>
-                <CountryCombobox
-                  mode="all"
-                  countries={DATASET_COUNTRY}
-                  field={field}
-                  zForm={form}
-                />
+                <CountryCombobox mode="all" countries={DATASET_COUNTRY} field={field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -67,7 +62,7 @@ export const GettingStartedForm = ({ posthook }: { posthook: () => void }) => {
             <FormItem>
               <FormLabel>Currency</FormLabel>
               <FormControl>
-                <CurrencyCombobox currencies={DATASET_CURRENCY_FIAT} field={field} zForm={form} />
+                <CurrencyCombobox currencies={DATASET_CURRENCY_FIAT} field={field} />
               </FormControl>
               <FormMessage />
             </FormItem>
