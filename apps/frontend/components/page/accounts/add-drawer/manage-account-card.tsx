@@ -1,6 +1,7 @@
 'use client';
 
 import { useGlobalContext } from '@/app/app/global-context';
+import { EmojiPicker } from '@/components/compositions/emoji-picker';
 import { Combobox, type ComboboxItem } from '@/components/primitives/combobox';
 import { Button } from '@/components/ui/button';
 import {
@@ -73,6 +74,7 @@ export const ManageAccountCard = ({ footer }: ManageAccountCardProps) => {
       currencyCode: defaultCurrency?.code ?? 'USD',
       countryCode: countryCode,
       accountGroupId: '',
+      icon: '💸',
     },
   });
 
@@ -136,19 +138,34 @@ export const ManageAccountCard = ({ footer }: ManageAccountCardProps) => {
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="accountName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Account Name</FormLabel>
-              <FormControl>
-                <Input type="text" id="name" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="flex flex-row gap-2">
+          <FormField
+            control={form.control}
+            name="accountName"
+            render={({ field }) => (
+              <FormItem className="grow">
+                <FormLabel>Account Name</FormLabel>
+                <FormControl>
+                  <Input type="text" id="name" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="icon"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="place-self-center justify-self-center">Icon</FormLabel>
+                <FormControl>
+                  <EmojiPicker field={field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
         <FormField
           control={form.control}
           name="countryCode"

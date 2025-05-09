@@ -32,6 +32,7 @@ export class AccountsService extends Service {
     countryCode,
     accountType,
     accountName,
+    icon,
   }: CreateAccountForm): Promise<AccountSelectAll | undefined> {
     const currency = await this.configRepository.getCurrencyByCode(currencyCode);
     const country = await this.configRepository.getCountryByCode(countryCode);
@@ -49,6 +50,7 @@ export class AccountsService extends Service {
           name: accountName,
           currencyId: currency.id,
           countryId: country.id,
+          icon,
         });
 
         if (!insertedAccount) throw new Error('Insert account failed');

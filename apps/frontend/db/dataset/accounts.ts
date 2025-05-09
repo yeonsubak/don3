@@ -1,4 +1,7 @@
 import type { AccountInsert } from '../drizzle/types';
+import type { IconName } from 'lucide-react/dynamic';
+
+const a: IconName = 'house';
 
 const DATASET_ACCOUNTS_EXPENSE: (countryId: number, currencyId: number) => AccountInsert[] = (
   countryId,
@@ -10,7 +13,7 @@ const DATASET_ACCOUNTS_EXPENSE: (countryId: number, currencyId: number) => Accou
     accountGroupId: 6,
     currencyId: currencyId,
     countryId: countryId,
-    icon: 'house-line',
+    icon: '🏠',
   },
   {
     name: 'Telecommunication',
@@ -18,7 +21,7 @@ const DATASET_ACCOUNTS_EXPENSE: (countryId: number, currencyId: number) => Accou
     accountGroupId: 6,
     currencyId: currencyId,
     countryId: countryId,
-    icon: 'phone-plus',
+    icon: '📱',
   },
   {
     name: 'Insurance Preminums',
@@ -26,7 +29,7 @@ const DATASET_ACCOUNTS_EXPENSE: (countryId: number, currencyId: number) => Accou
     accountGroupId: 6,
     currencyId: currencyId,
     countryId: countryId,
-    icon: 'umbrella',
+    icon: '🛡️',
   },
   {
     name: 'Subscriptions',
@@ -34,23 +37,7 @@ const DATASET_ACCOUNTS_EXPENSE: (countryId: number, currencyId: number) => Accou
     accountGroupId: 6,
     currencyId: currencyId,
     countryId: countryId,
-    icon: 'calendar-sync',
-  },
-  {
-    name: 'Transportations',
-    type: 'credit',
-    accountGroupId: 7,
-    currencyId: currencyId,
-    countryId: countryId,
-    icon: 'bus',
-  },
-  {
-    name: 'Gift',
-    type: 'credit',
-    accountGroupId: 7,
-    currencyId: currencyId,
-    countryId: countryId,
-    icon: 'gift',
+    icon: '📺',
   },
   {
     name: 'Groceries',
@@ -58,7 +45,23 @@ const DATASET_ACCOUNTS_EXPENSE: (countryId: number, currencyId: number) => Accou
     accountGroupId: 7,
     currencyId: currencyId,
     countryId: countryId,
-    icon: 'carrot',
+    icon: '🛒',
+  },
+  {
+    name: 'Transportations',
+    type: 'credit',
+    accountGroupId: 7,
+    currencyId: currencyId,
+    countryId: countryId,
+    icon: '🚌',
+  },
+  {
+    name: 'Gift',
+    type: 'credit',
+    accountGroupId: 7,
+    currencyId: currencyId,
+    countryId: countryId,
+    icon: '🎁',
   },
   {
     name: 'Fashion & Beauty',
@@ -66,7 +69,7 @@ const DATASET_ACCOUNTS_EXPENSE: (countryId: number, currencyId: number) => Accou
     accountGroupId: 7,
     currencyId: currencyId,
     countryId: countryId,
-    icon: 'high-heel',
+    icon: '👠',
   },
 ];
 
@@ -80,7 +83,7 @@ const DATASET_ACCOUNTS_INCOME: (countryId: number, currencyId: number) => Accoun
     accountGroupId: 8,
     currencyId: currencyId,
     countryId: countryId,
-    icon: 'money',
+    icon: '💼',
   },
   {
     name: 'Overtime pay',
@@ -88,7 +91,7 @@ const DATASET_ACCOUNTS_INCOME: (countryId: number, currencyId: number) => Accoun
     accountGroupId: 8,
     currencyId: currencyId,
     countryId: countryId,
-    icon: 'money',
+    icon: '⏰',
   },
   {
     name: 'Bonuses',
@@ -96,7 +99,7 @@ const DATASET_ACCOUNTS_INCOME: (countryId: number, currencyId: number) => Accoun
     accountGroupId: 8,
     currencyId: currencyId,
     countryId: countryId,
-    icon: 'money',
+    icon: '🥳',
   },
   {
     name: 'Freelance income',
@@ -104,31 +107,23 @@ const DATASET_ACCOUNTS_INCOME: (countryId: number, currencyId: number) => Accoun
     accountGroupId: 9,
     currencyId: currencyId,
     countryId: countryId,
-    icon: 'money',
+    icon: '💻',
   },
   {
-    name: 'Service fees',
-    type: 'credit',
-    accountGroupId: 9,
-    currencyId: currencyId,
-    countryId: countryId,
-    icon: 'money',
-  },
-  {
-    name: 'Rental income',
+    name: 'Investment profits & dividends',
     type: 'credit',
     accountGroupId: 10,
     currencyId: currencyId,
     countryId: countryId,
-    icon: 'money',
+    icon: '🚀',
   },
   {
-    name: 'Stock dividends',
+    name: 'Real estate',
     type: 'credit',
     accountGroupId: 10,
     currencyId: currencyId,
     countryId: countryId,
-    icon: 'money',
+    icon: '🏘️',
   },
   {
     name: 'Government pension',
@@ -136,31 +131,23 @@ const DATASET_ACCOUNTS_INCOME: (countryId: number, currencyId: number) => Accoun
     accountGroupId: 11,
     currencyId: currencyId,
     countryId: countryId,
-    icon: 'money',
+    icon: '🧓',
   },
   {
-    name: 'Unemployment benefits',
+    name: 'Subsidies',
     type: 'credit',
     accountGroupId: 11,
     currencyId: currencyId,
     countryId: countryId,
-    icon: 'money',
+    icon: '🏛️',
   },
   {
-    name: 'Inheritance',
+    name: 'Cashback rewards',
     type: 'credit',
     accountGroupId: 12,
     currencyId: currencyId,
     countryId: countryId,
-    icon: 'money',
-  },
-  {
-    name: 'Lottery winnings',
-    type: 'credit',
-    accountGroupId: 12,
-    currencyId: currencyId,
-    countryId: countryId,
-    icon: 'money',
+    icon: '💰',
   },
 ];
 

@@ -1,5 +1,5 @@
 import { parseMoney } from '@/components/common-functions';
-import { AccountIcon } from '@/components/primitives/account-icon';
+import { AccountIconEmojiOnly } from '@/components/primitives/account-icon-emoji-only';
 import { Skeleton, SVGSkeleton } from '@/components/primitives/skeleton';
 import { Badge } from '@/components/ui/badge';
 import type { AccountSelect, JournalEntrySelect, JournalEntryType } from '@/db/drizzle/types';
@@ -95,7 +95,7 @@ const TransactionMobile = ({ items }: TransactionRecordProps) => {
             'transition-all duration-200',
           )}
         >
-          <AccountIcon iconValue={icon} />
+          <AccountIconEmojiOnly iconValue={icon} />
           <div className="flex min-w-0 flex-1 items-center justify-between">
             <div className="space-y-0.5">
               <h3 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{title}</h3>
@@ -232,7 +232,7 @@ const TransactionDesktop = ({ items }: TransactionRecordProps) => {
                         'transition-all duration-200',
                       )}
                     >
-                      <AccountIcon iconValue={icon} />
+                      <AccountIconEmojiOnly iconValue={icon} />
                     </div>
                     <div className="ml-4">
                       <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">

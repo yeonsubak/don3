@@ -1,18 +1,10 @@
 'use client';
 
+import type { ForexSelect } from '@/db/drizzle/types';
 import { QUERIES } from '@/lib/tanstack-queries';
 import { useQuery } from '@tanstack/react-query';
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  type Dispatch,
-  type ReactNode,
-  type SetStateAction,
-} from 'react';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { useGlobalContext } from '../global-context';
-import type { ForexSelect } from '@/db/drizzle/types';
 
 export type AccountsContextProps = {
   fxRates: ForexSelect[];
