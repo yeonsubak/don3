@@ -81,6 +81,6 @@ export class TransactionRepository extends Repository {
   }
 
   public async insertTransaction(insertObj: TransactionInsert) {
-    this.db.insert(transactions).values(insertObj);
+    await this.db.insert(transactions).values(insertObj);
   }
 }
