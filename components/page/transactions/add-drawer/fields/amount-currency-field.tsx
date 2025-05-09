@@ -98,7 +98,6 @@ export const AmountCurrencyField = ({
                   currencies={currencies}
                   currenciesInUse={currenciesInUse}
                   field={field}
-                  zForm={zForm}
                   buttonRenderMode="symbol"
                 />
               </FormControl>
@@ -321,7 +320,6 @@ export const TransferAmountCurrencyField = ({
                   currencies={currencies}
                   currenciesInUse={currenciesInUse}
                   field={field}
-                  zForm={zForm}
                   buttonRenderMode="symbol"
                 />
               </FormControl>

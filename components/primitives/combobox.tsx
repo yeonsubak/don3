@@ -13,15 +13,10 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { useState } from 'react';
-import type {
-  ControllerRenderProps,
-  FieldValue,
-  FieldValues,
-  UseFormReturn,
-} from 'react-hook-form';
+import type { ControllerRenderProps, FieldValue, FieldValues } from 'react-hook-form';
+import { useMediaQuery } from 'usehooks-ts';
 import type { TailwindClass } from '../common-types';
 import { Separator } from '../ui/separator';
-import { useMediaQuery } from 'usehooks-ts';
 
 export interface ComboboxItem<T = unknown> {
   label: string;
@@ -39,7 +34,6 @@ export type ComboboxProps = {
   notFoundPlaceholder?: string;
   searchable?: boolean;
   field?: ControllerRenderProps<FieldValue<FieldValues>>;
-  zForm?: UseFormReturn<FieldValue<FieldValues>>;
   isChevron?: boolean;
   buttonLabelRenderFn?: () => string;
   onSelectFn?: (currentValue: string) => void;
@@ -63,7 +57,6 @@ export const Combobox = ({
   notFoundPlaceholder = 'Not found',
   searchable = true,
   field,
-  zForm,
   isChevron = true,
   buttonLabelRenderFn = () => {
     if (field?.value && field.value.length > 0) {
@@ -113,7 +106,7 @@ export const Combobox = ({
             onSelectFn(currentValue);
           }
 
-          zForm?.setValue(field!.name, currentValue);
+          field?.onChange(currentValue);
           setOpen(false);
         }}
         data={data}
