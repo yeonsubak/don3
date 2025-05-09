@@ -75,6 +75,10 @@
   body {
     font-family: var(--font-pretendard), var(--font-noto-color-emoji);
   }
+
+  .emoji {
+    font-family: var(--font-noto-color-emoji);
+  }
 }
 
 @layer base {

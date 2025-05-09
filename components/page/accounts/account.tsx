@@ -1,7 +1,7 @@
 import { useAccountsContext } from '@/app/app/accounts/accounts-context';
 import { useGlobalContext } from '@/app/app/global-context';
 import { parseMoney } from '@/components/common-functions';
-import { AccountIcon } from '@/components/primitives/account-icon';
+import { AccountIconEmojiOnly } from '@/components/primitives/account-icon-emoji-only';
 import type { AccountSelect } from '@/db/drizzle/types';
 
 type AccountProps = {
@@ -29,7 +29,7 @@ export const Account = ({ account }: AccountProps) => {
 
   return (
     <div className="flex flex-row items-center gap-2">
-      <AccountIcon iconValue={account.icon} />
+      <AccountIconEmojiOnly iconValue={account.icon} />
       <p className="grow text-base break-keep">{account.name}</p>
       <div className="text-right">
         <p className="font-semibold text-sky-600">

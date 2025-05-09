@@ -12,6 +12,7 @@ export const createAccountForm = z.object({
   accountType: z.enum(accounts.type.enumValues),
   currencyCode: z.string().min(3).max(3),
   countryCode: z.string().min(3).max(3),
+  icon: z.string(),
 });
 
 export type CreateAccountForm = z.infer<typeof createAccountForm>;
