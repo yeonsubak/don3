@@ -87,7 +87,7 @@ export const ExpenseForm = ({ footer, onSuccess }: TxFormProps) => {
     const insertedEntry = await transactionService.insertTransaction(form);
     if (!insertedEntry) throw new Error('Error ocurred while on inserting the transaction.');
 
-    await onSuccess([insertedEntry]);
+    await onSuccess(insertedEntry);
   };
 
   if (isError) return error.map((e) => <p key={e?.name}>Error: ${e?.message}</p>);

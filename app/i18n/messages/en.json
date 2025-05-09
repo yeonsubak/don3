@@ -9,6 +9,13 @@
     "expense": "Expense",
     "uncategorized": "Uncategorized"
   },
+  "Entry": {
+    "Type": {
+      "income": "Income",
+      "expense": "Expense",
+      "transfer": "Transfer"
+    }
+  },
   "countryCode": {
     "AFG": "Afghanistan",
     "ALB": "Albania",

@@ -6,7 +6,7 @@ import type { FieldValue, FieldValues, UseFormReturn } from 'react-hook-form';
 
 export interface TxFormProps {
   footer: ReactNode;
-  onSuccess: (entry: JournalEntrySelect<{ currency: true; transactions: true }>[]) => Promise<void>;
+  onSuccess: (entry: JournalEntrySelect<{ currency: true; transactions: true }>) => Promise<void>;
 }
 
 export type Form = UseFormReturn<FieldValue<FieldValues>>;

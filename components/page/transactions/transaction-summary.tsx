@@ -39,7 +39,7 @@ export const TransactionSummary = ({ dateRange: { from, to } }: TransactionSumma
   const currencyPadding = useMemo(() => {
     const max = Math.max(income.toLocaleString().length, expense.toLocaleString().length);
     const min = Math.min(income.toLocaleString().length, expense.toLocaleString().length);
-    return max - min + 1;
+    return max - min - 2;
   }, [income, expense]);
 
   if (isPending) return <LoadingSkeleton />;

@@ -32,7 +32,7 @@ export const Account = ({ account }: AccountProps) => {
       <AccountIconEmojiOnly iconValue={account.icon} />
       <p className="grow text-base break-keep">{account.name}</p>
       <div className="text-right">
-        <p className="font-semibold text-sky-600">
+        <p className="min-w-[30px] font-semibold text-sky-600">
           {`${currency?.symbol ?? ''} ${accountBalance.formatted}`}
         </p>
         {convertedBalance && (

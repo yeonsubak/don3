@@ -1,10 +1,13 @@
 'use client';
 
 import { useGlobalContext } from '@/app/app/global-context';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { JournalEntrySelect } from '@/db/drizzle/types';
 import { getTransactionService } from '@/services/helper';
+import { useTranslations } from 'next-intl';
 import { type ReactNode } from 'react';
+import { toast } from 'sonner';
 import { useTransactionContext } from '../transaction-context';
 import { mapToTransactionItems } from '../transaction-record';
 import { useTransactionDrawerContext } from './drawer-context';
@@ -12,7 +15,15 @@ import { ExpenseForm } from './forms/expense-form';
 import { FundTransferForm } from './forms/fund-transfer-form';
 import { IncomeForm } from './forms/income-form';
 
-export const TransactionFormTab = ({ footer }: { footer: ReactNode }) => {
+export const TransactionFormTab = ({ footer }: { footer?: ReactNode }) => {
+  if (!footer) {
+    footer = (
+      <Button type="submit" variant="default" disableOnProcess>
+        Save
+      </Button>
+    );
+  }
+
   const { defaultCurrency } = useGlobalContext();
   const { setOpen } = useTransactionDrawerContext();
   const {
@@ -22,7 +33,9 @@ export const TransactionFormTab = ({ footer }: { footer: ReactNode }) => {
     transactionRecordState: [txRecord, setTxRecord],
   } = useTransactionContext();
 
-  const onSuccess = async (entry: JournalEntrySelect<{ currency: true; transactions: true }>[]) => {
+  const t = useTranslations('Entry.Type');
+
+  const onSuccess = async (entry: JournalEntrySelect<{ currency: true; transactions: true }>) => {
     const transactionService = await getTransactionService();
     if (!transactionService) throw new Error('TransactionService must be initialized first');
 
@@ -38,8 +51,16 @@ export const TransactionFormTab = ({ footer }: { footer: ReactNode }) => {
     setIncome(summary.income);
     setExpense(summary.expense);
 
-    const txItem = mapToTransactionItems(entry);
+    const txItem = mapToTransactionItems([entry]);
     setTxRecord((prev) => [...txItem, ...prev]);
+
+    toast.success(
+      <div>
+        <h3 className="font-bold">A record has been added.</h3>
+        <span>{`[${t(entry.type)}] ${entry.title}`}</span>
+      </div>,
+      { position: 'top-center' },
+    );
 
     setOpen(false);
   };
