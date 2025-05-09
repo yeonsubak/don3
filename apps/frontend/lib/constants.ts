@@ -8,5 +8,6 @@ export const LOCAL_STORAGE_KEYS = {
     DEFAULT_CURRENCY: 'app.defaultCurrency',
     DEFAULT_COUNTRY: 'app.defaultCountry',
     DEFAULT_LANGUAGE: 'app.defaultLanguage',
+    INITIALIZED: 'app.initialized',
   },
 } as const;

@@ -9,7 +9,7 @@
     "lint": "next lint && tsc --noEmit",
     "test": "vitest",
     "coverage": "vitest run --coverage",
-    "shadcn": "pnpm dlx shadcn@canary add",
+    "shadcn": "pnpm dlx shadcn@latest add",
     "drk": "pnpm drizzle-kit --config=db/drizzle/drizzle.config.ts",
     "ext-drk": "pnpm drizzle-kit --config=db/external-db/drizzle.config.ts",
     "prepare": "husky"
@@ -23,6 +23,7 @@
     "@radix-ui/react-dialog": "^1.1.13",
     "@radix-ui/react-label": "^2.1.6",
     "@radix-ui/react-popover": "^1.1.13",
+    "@radix-ui/react-progress": "^1.1.6",
     "@radix-ui/react-scroll-area": "^1.2.8",
     "@radix-ui/react-separator": "^1.1.6",
     "@radix-ui/react-slot": "^1.2.2",
@@ -33,6 +34,8 @@
     "@radix-ui/react-visually-hidden": "^1.2.2",
     "@tanstack/react-query": "^5.64.1",
     "@tanstack/react-table": "^8.21.2",
+    "@vercel/analytics": "^1.5.0",
+    "@vercel/speed-insights": "^1.2.0",
     "@vitejs/plugin-react": "^4.3.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -43,12 +46,14 @@
     "luxon": "^3.5.0",
     "next": "15.3.1",
     "next-intl": "^4.1.0",
+    "next-themes": "^0.4.6",
     "pg": "^8.13.1",
     "postgres": "^3.4.5",
     "react": "^19.0.0",
     "react-day-picker": "8.10.1",
     "react-dom": "^19.0.0",
-    "react-hook-form": "^7.54.2",
+    "react-hook-form": "^7.56.3",
+    "sonner": "^2.0.3",
     "tailwind-merge": "^3.2.0",
     "tailwindcss-animate": "^1.0.7",
     "usehooks-ts": "^3.1.0",
@@ -86,6 +91,7 @@
       "@babel/helpers": ">=7.26.10"
     },
     "onlyBuiltDependencies": [
+      "@vercel/speed-insights",
       "esbuild",
       "sharp"
     ]
