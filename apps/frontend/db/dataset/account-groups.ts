@@ -28,6 +28,24 @@ const DATASET_ACCOUNT_GROUPS_LIABILITIES: AccountGroupInsert[] = [
     name: 'Credit Cards',
     parentGroupId: null,
   },
+  {
+    id: 13,
+    type: 'liability',
+    name: 'Split-bill Payables',
+    parentGroupId: null,
+  },
+  {
+    id: 14,
+    type: 'liability',
+    name: 'Short-term loans',
+    parentGroupId: null,
+  },
+  {
+    id: 15,
+    type: 'liability',
+    name: 'Long-term loans',
+    parentGroupId: null,
+  },
 ];
 
 const DATASET_ACCOUNT_GROUPS_EXPENSES: AccountGroupInsert[] = [
