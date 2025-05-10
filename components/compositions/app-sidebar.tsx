@@ -42,13 +42,18 @@ const menuItems: MenuItems = {
       url: '/app/transactions',
       icon: PencilLine,
     },
-  ],
-  navBottom: [
     {
       title: 'Settings',
       url: '#',
       icon: Settings,
     },
+  ],
+  navBottom: [
+    // {
+    //   title: 'Settings',
+    //   url: '#',
+    //   icon: Settings,
+    // },
   ],
 };
 
