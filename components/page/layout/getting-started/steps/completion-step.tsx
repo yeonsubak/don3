@@ -1,7 +1,7 @@
 import { Check } from 'lucide-react';
 
 export const CompletionStep = () => (
-  <div className="flex flex-grow flex-col space-y-4 py-4 text-center">
+  <div className="flex grow flex-col space-y-4 py-4 text-center">
     <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
       <Check className="h-8 w-8 text-green-600" />
     </div>

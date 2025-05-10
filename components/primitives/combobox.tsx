@@ -134,7 +134,7 @@ export const Combobox = ({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className={cn('z-[99] p-0', popoverContentClass ? popoverContentClass : 'w-80')}
+        className={cn('z-99 p-0', popoverContentClass ? popoverContentClass : 'w-80')}
         side={popoverContentSide}
         align={popoverContentAlign}
         onOpenAutoFocus={(e) => !isDesktop && e.preventDefault()}

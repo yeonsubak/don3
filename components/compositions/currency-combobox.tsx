@@ -56,7 +56,7 @@ export const CurrencyCombobox = ({
           return currency?.label.split('-').map((e) => e.trim())[0] ?? '';
         }}
         isChevron={false}
-        popoverButtonClass="min-w-[3.25rem] w-fit justify-center"
+        popoverButtonClass="min-w-13 w-fit justify-center"
         field={field}
         {...props}
       />
