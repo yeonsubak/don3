@@ -1,7 +1,7 @@
 'use client';
 
-import { AccountsPage } from '@/components/page/accounts/accounts-page';
+import { AccountsOverview } from '@/components/page/accounts/accounts-overview';
 
-export default function Accounts() {
-  return <AccountsPage />;
+export default function AccountsPage() {
+  return <AccountsOverview />;
 }

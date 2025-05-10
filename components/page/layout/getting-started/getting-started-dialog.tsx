@@ -11,10 +11,10 @@ import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import { ChevronLeft, ChevronRight, LoaderCircle } from 'lucide-react';
 import React, { useCallback, useRef, useState } from 'react';
-import { AccountsPage } from '../../accounts/accounts-page';
+import { AccountsOverview } from '../../accounts/accounts-overview';
 import { TransactionFormTab } from '../../transactions/add-drawer/transaction-form-tab';
-import { DefaultValueStep } from './steps/default-value-step';
 import { CompletionStep } from './steps/completion-step';
+import { DefaultValueStep } from './steps/default-value-step';
 import { Step, type StepProps } from './steps/step';
 
 export function GettingStartedDialog({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -39,7 +39,7 @@ export function GettingStartedDialog({ children }: Readonly<{ children: React.Re
       order: 2,
       title: 'Add accounts',
       description: 'Please add accounts that track your incomes and expenses.',
-      children: <AccountsPage className="h-[60vh]" />,
+      children: <AccountsOverview className="h-[60vh]" />,
     },
     {
       order: 3,
@@ -131,7 +131,7 @@ export function GettingStartedDialog({ children }: Readonly<{ children: React.Re
             </div>
 
             {/* Current step content */}
-            <div className="flex max-h-[68vh] min-h-[350px] overflow-y-auto">
+            <div className="flex max-h-[58vh] min-h-[350px] overflow-y-auto md:max-h-[68vh]">
               <Step
                 order={currentStepData.order}
                 title={currentStepData?.title}
