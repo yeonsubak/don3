@@ -40,6 +40,12 @@ export class ConfigService extends Service {
     baseCurrency: CurrencySelect,
     targetCurrencies: CurrencySelect[],
   ): Promise<ForexSelect[]> {
+    targetCurrencies = targetCurrencies.filter((currency) => currency.id !== baseCurrency.id);
+
+    if (targetCurrencies.length === 0) {
+      return [];
+    }
+
     const targetCurrencyCodes = targetCurrencies.map((currency) => currency.code);
     const now = DateTime.now();
     let fxRates = await this.configRepository.getLatestFxRate({
