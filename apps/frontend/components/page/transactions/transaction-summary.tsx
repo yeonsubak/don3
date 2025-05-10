@@ -3,9 +3,9 @@ import { invisibleCharMd } from '@/components/common-functions';
 import { useTransactionContext } from '@/components/page/transactions/transaction-context';
 import { Separator } from '@/components/ui/separator';
 import { getTransactionService } from '@/services/helper';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, type ReactNode } from 'react';
 
-export const TransactionSummary = () => {
+export const TransactionSummary = ({ children }: { children?: ReactNode }) => {
   const { defaultCurrency } = useGlobalContext();
   const {
     calendarDateState: [dates],
@@ -57,32 +57,11 @@ export const TransactionSummary = () => {
         <p className="grow text-right text-red-700">-{expense.toLocaleString()}</p>
       </div>
       <Separator />
-      <div className="flex flex-row gap-8">
+      <div className="mb-2 flex flex-row gap-8">
         <p className="grow">Total</p>
         <p className="grow text-right">{total.toLocaleString()}</p>
       </div>
-    </div>
-  );
-};
-
-const LoadingSkeleton = () => {
-  const { defaultCurrency } = useGlobalContext();
-
-  return (
-    <div className="flex w-full flex-col gap-2 text-lg font-normal md:w-96 md:rounded-lg md:p-4">
-      <div className="flex flex-row gap-8">
-        <p className="grow text-left">Income</p>
-        <p className="text-primary grow text-right">{defaultCurrency.symbol}0</p>
-      </div>
-      <div className="flex flex-row gap-8">
-        <p className="grow text-left">Expense</p>
-        <p className="grow text-right text-red-700">-0</p>
-      </div>
-      <Separator />
-      <div className="flex flex-row gap-8">
-        <p className="grow">Total</p>
-        <p className="grow text-right">0</p>
-      </div>
+      {children}
     </div>
   );
 };
