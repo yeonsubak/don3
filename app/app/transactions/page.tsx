@@ -10,12 +10,12 @@ export default function TransactionPage() {
   return (
     <div className="flex max-w-6xl flex-col gap-6">
       <TransactionCalendar />
-      <TransactionSummary />
-      <div className="mb-2">
+      <TransactionSummary>
         <TransactionDrawerContextProvider>
           <AddTransactionDrawer />
         </TransactionDrawerContextProvider>
-      </div>
+      </TransactionSummary>
+      <div className="mb-2"></div>
 
       {/* Transaction records */}
       <TransactionRecord />
