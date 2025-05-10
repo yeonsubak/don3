@@ -3,26 +3,51 @@
 import {
   createContext,
   useContext,
+  useEffect,
+  useRef,
   useState,
   type Dispatch,
   type ReactNode,
+  type RefObject,
   type SetStateAction,
 } from 'react';
+import type { z } from 'zod';
+import type { baseTxForm } from './forms/form-schema';
+
+type SharedForm = Partial<z.infer<typeof baseTxForm>> & {
+  debitAccountId?: number;
+  creditAccountId?: number;
+  countryCode?: string;
+};
 
 export type TransactionDrawerContext = {
   open: boolean;
   setOpen: Dispatch<SetStateAction<boolean>>;
+  sharedFormRef: RefObject<SharedForm | undefined>;
+  setSharedFormRef: (form: SharedForm | undefined) => void;
 };
 export const TransactionDrawerContext = createContext<TransactionDrawerContext | null>(null);
 
 export const TransactionDrawerContextProvider = ({ children }: { children: ReactNode }) => {
   const [open, setOpen] = useState(false);
+  const sharedFormRef = useRef<SharedForm | undefined>(undefined);
+  const setSharedFormRef = (form: SharedForm | undefined) => {
+    sharedFormRef.current = form;
+  };
+
+  useEffect(() => {
+    if (!open) {
+      setSharedFormRef(undefined);
+    }
+  }, [open, setSharedFormRef]);
 
   return (
     <TransactionDrawerContext.Provider
       value={{
         open,
         setOpen,
+        sharedFormRef,
+        setSharedFormRef,
       }}
     >
       {children}

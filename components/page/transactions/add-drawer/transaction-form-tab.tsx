@@ -1,15 +1,14 @@
 'use client';
 
-import { useGlobalContext } from '@/app/app/global-context';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { JournalEntrySelect } from '@/db/drizzle/types';
 import { getTransactionService } from '@/services/helper';
+import { DateTime } from 'luxon';
 import { useTranslations } from 'next-intl';
 import { type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { useTransactionContext } from '../transaction-context';
-import { mapToTransactionItems } from '../transaction-record';
 import { useTransactionDrawerContext } from './drawer-context';
 import { ExpenseForm } from './forms/expense-form';
 import { FundTransferForm } from './forms/fund-transfer-form';
@@ -24,13 +23,9 @@ export const TransactionFormTab = ({ footer }: { footer?: ReactNode }) => {
     );
   }
 
-  const { defaultCurrency } = useGlobalContext();
   const { setOpen } = useTransactionDrawerContext();
   const {
-    calendarDateState: [calendarDate],
-    incomeSummaryState: [income, setIncome],
-    expenseSummaryState: [expense, setExpense],
-    transactionRecordState: [txRecord, setTxRecord],
+    calendarDateState: [dates, setDates],
   } = useTransactionContext();
 
   const t = useTranslations('Entry.Type');
@@ -38,31 +33,13 @@ export const TransactionFormTab = ({ footer }: { footer?: ReactNode }) => {
   const onSuccess = async (entry: JournalEntrySelect<{ currency: true; transactions: true }>) => {
     const transactionService = await getTransactionService();
     if (!transactionService) throw new Error('TransactionService must be initialized first');
-
-    const dateError = new Error('Date must be selected');
-
-    if (!calendarDate) throw dateError;
-
-    const { from, to } = calendarDate;
-    if (!from || !to) throw dateError;
-
-    const summary = await transactionService.getSummary(from, to, defaultCurrency!);
-
-    setIncome(summary.income);
-    setExpense(summary.expense);
-
-    const txItem = mapToTransactionItems([entry]);
-    setTxRecord((prev) => [...txItem, ...prev]);
-
-    toast.success(
-      <div>
-        <h3 className="font-bold">A record has been added.</h3>
-        <span>{`[${t(entry.type)}] ${entry.title}`}</span>
-      </div>,
-      { position: 'top-center' },
-    );
-
+    const start = DateTime.fromJSDate(entry.date).startOf('month');
+    const end = start.endOf('month');
+    setDates({ from: start.toJSDate(), to: end.toJSDate() });
     setOpen(false);
+    toast.success(`A record has been added: [${t(entry.type)}] ${entry.title}`, {
+      position: 'top-center',
+    });
   };
 
   return (

@@ -1,11 +1,12 @@
+import { DATASET_COUNTRY } from '@/db/dataset/country';
 import { DATASET_CURRENCY_FIAT } from '@/db/dataset/currency';
 import type {
-  AccountGroupSelect,
   AccountGroupSelectAll,
   AccountSelectAll,
   CountrySelect,
   CurrencySelect,
 } from '@/db/drizzle/types';
+import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
 import { QUERIES } from '@/lib/tanstack-queries';
 import { useQueries } from '@tanstack/react-query';
 import {
@@ -26,6 +27,9 @@ type GlobalContext = {
   countriesInUse: CountrySelect[];
   currenciesInUse: CurrencySelect[];
 
+  defaultCountry: CountrySelect;
+  setDefaultCountry: Dispatch<SetStateAction<CountrySelect>>;
+
   defaultCurrency: CurrencySelect;
   setDefaultCurrency: Dispatch<SetStateAction<CurrencySelect>>;
 
@@ -42,7 +46,12 @@ type GlobalContext = {
 export const GlobalContext = createContext<GlobalContext | null>(null);
 
 export const GlobalContextProvider = ({ children }: { children: ReactNode }) => {
-  const USD = DATASET_CURRENCY_FIAT.find((e) => e.code === 'USD') as CurrencySelect;
+  const currencyFallback = DATASET_CURRENCY_FIAT.find(
+    (e) => e.code === (localStorage.getItem(LOCAL_STORAGE_KEYS.APP.DEFAULT_CURRENCY) ?? 'USD'),
+  ) as CurrencySelect;
+  const countryFallback = DATASET_COUNTRY.find(
+    (e) => e.code === (localStorage.getItem(LOCAL_STORAGE_KEYS.APP.DEFAULT_COUNTRY) ?? 'USA'),
+  ) as CountrySelect;
 
   const {
     data: {
@@ -65,7 +74,7 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
     ],
     combine: (results) => ({
       data: {
-        fetchedDefaultCurrency: results[0].data ?? USD,
+        fetchedDefaultCurrency: results[0].data ?? currencyFallback,
         fetchedCountries: results[1].data,
         fetchedCurrencies: results[2].data,
         fetchedAccounts: results[3].data,
@@ -77,7 +86,8 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
     }),
   });
 
-  const [defaultCurrency, setDefaultCurrency] = useState<CurrencySelect>(USD);
+  const [defaultCurrency, setDefaultCurrency] = useState<CurrencySelect>(currencyFallback);
+  const [defaultCountry, setDefaultCountry] = useState<CountrySelect>(countryFallback);
   const [defaultLanguage, setDefaultLanguage] = useState<string>('en');
   const [countries, setCountries] = useState<CountrySelect<{ defaultCurrency: true }>[]>([]);
   const [currencies, setCurrencies] = useState<CurrencySelect[]>([]);
@@ -125,6 +135,8 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
         countriesInUse,
         currenciesInUse,
         isMultiCountry,
+        defaultCountry,
+        setDefaultCountry,
         defaultCurrency,
         setDefaultCurrency,
         defaultLanguage,

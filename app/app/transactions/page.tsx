@@ -8,7 +8,7 @@ import { TransactionSummary } from '@/components/page/transactions/transaction-s
 
 export default function TransactionPage() {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex max-w-6xl flex-col gap-6">
       <TransactionCalendar />
       <TransactionSummary />
       <div className="mb-2">
