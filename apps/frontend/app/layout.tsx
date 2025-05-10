@@ -12,7 +12,6 @@ export const metadata: Metadata = {
     'Free, browser-based budget tracking app with double-entry accounting, multi-currency support, and planned stock & crypto features.',
 };
 
-import { ThemeProvider } from '@/components/page/layout/theme-provider';
 import './globals.css';
 
 const pretendard = localFont({
@@ -43,14 +42,7 @@ export default async function RootLayout({
     <html lang={locale} suppressHydrationWarning>
       <body className={`${pretendard.variable} ${notoColorEmoji.variable} antialiased`}>
         <NextIntlClientProvider messages={messages}>
-          <ThemeProvider
-            attribute={'class'}
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            {children}
-          </ThemeProvider>
+          {children}
           <Analytics />
           <SpeedInsights />
         </NextIntlClientProvider>
