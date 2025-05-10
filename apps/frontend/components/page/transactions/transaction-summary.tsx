@@ -2,6 +2,7 @@ import { useGlobalContext } from '@/app/app/global-context';
 import { invisibleCharMd } from '@/components/common-functions';
 import { useTransactionContext } from '@/components/page/transactions/transaction-context';
 import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
 import { getTransactionService } from '@/services/helper';
 import { useEffect, useMemo, type ReactNode } from 'react';
 
@@ -47,19 +48,30 @@ export const TransactionSummary = ({ children }: { children?: ReactNode }) => {
     <div className="flex w-full flex-col gap-2 text-lg font-normal md:w-96 md:rounded-lg md:p-4">
       <div className="flex flex-row gap-8">
         <p className="grow text-left">Income</p>
-        <p className="text-primary grow text-right">
+        <p className="grow text-right text-emerald-600 dark:text-emerald-400">
           {defaultCurrency.symbol.padEnd(currencyPadding, invisibleCharMd)}
           {income.toLocaleString()}
         </p>
       </div>
       <div className="flex flex-row gap-8">
         <p className="grow text-left">Expense</p>
-        <p className="grow text-right text-red-700">-{expense.toLocaleString()}</p>
+        <p className="grow text-right text-red-600 dark:text-red-400">
+          -{expense.toLocaleString()}
+        </p>
       </div>
       <Separator />
       <div className="mb-2 flex flex-row gap-8">
         <p className="grow">Total</p>
-        <p className="grow text-right">{total.toLocaleString()}</p>
+        <p
+          className={cn(
+            'grow text-right',
+            total >= 0
+              ? 'text-emerald-600 dark:text-emerald-400'
+              : 'text-red-600 dark:text-red-400',
+          )}
+        >
+          {total.toLocaleString()}
+        </p>
       </div>
       {children}
     </div>

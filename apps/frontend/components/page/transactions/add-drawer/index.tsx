@@ -36,7 +36,7 @@ export const AddTransactionDrawer = () => {
     return (
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button variant="default" className="px-6 text-lg">
+          <Button variant="default" className="px-6 text-lg dark:text-white">
             {TRIGGER_BUTTON_LABEL}
           </Button>
         </DialogTrigger>

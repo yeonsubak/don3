@@ -2,6 +2,7 @@
 
 import { AppSidebar } from '@/components/compositions/app-sidebar';
 import { Breadcrumb } from '@/components/compositions/breadcrumb';
+import { DarkModeToggle } from '@/components/compositions/dark-mode-toggle';
 import { GettingStartedDialog } from '@/components/page/layout/getting-started/getting-started-dialog';
 import { Separator } from '@/components/ui/separator';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
@@ -36,6 +37,7 @@ function SideBar({ children }: Readonly<{ children: React.ReactNode }>) {
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-2 h-4" />
           <Breadcrumb pathname={pathname} />
+          <DarkModeToggle className="ml-auto" />
         </header>
         <main className="h-full w-full px-6 py-4">{children}</main>
         <Toaster expand={true} />
