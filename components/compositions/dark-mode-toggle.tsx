@@ -18,7 +18,7 @@ export const DarkModeToggle = ({ ...props }: React.ComponentProps<typeof Button>
 
   useEffect(() => {
     setTheme(isDarkMode ? 'dark' : 'light');
-  }, [isDarkMode]);
+  }, [isDarkMode, setTheme]);
 
   return (
     <Button variant="outline" size="icon" onClick={handleToggle} {...props}>
