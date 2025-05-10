@@ -11,11 +11,29 @@ import type { DateRange } from 'react-day-picker';
 export const TransactionCalendar = () => {
   const { defaultLanguage } = useGlobalContext();
   const {
-    calendarDateState: [date, setDate],
+    calendarDateState: [dates, setDates],
   } = useTransactionContext();
 
-  const handlePreviousMonth = () => {};
-  const handleNextMonth = () => {};
+  const handlePreviousMonth = () => {
+    const start = DateTime.fromJSDate(dates?.to ?? new Date())
+      .startOf('month')
+      .minus({ months: 1 });
+    const end = start.endOf('month');
+    setDates({ from: start.toJSDate(), to: end.toJSDate() });
+  };
+  const handleNextMonth = () => {
+    const start = DateTime.fromJSDate(dates?.to ?? new Date())
+      .startOf('month')
+      .plus({ months: 1 });
+    const end = start.endOf('month');
+    setDates({ from: start.toJSDate(), to: end.toJSDate() });
+  };
+
+  const handleSelectDates = (range: DateRange | undefined) => {
+    if (!range) return;
+
+    setDates(range);
+  };
 
   return (
     <div className="flex items-center justify-center gap-3">
@@ -25,15 +43,15 @@ export const TransactionCalendar = () => {
       <Popover>
         <PopoverTrigger asChild>
           <Button variant="ghost" className="text-lg font-normal">
-            {formatDateRange(date, defaultLanguage)}
+            {formatDateRange(dates, defaultLanguage)}
           </Button>
         </PopoverTrigger>
         <PopoverContent>
           <Calendar
             mode="range"
-            defaultMonth={date?.from}
-            selected={date}
-            onSelect={setDate}
+            defaultMonth={dates?.from}
+            selected={dates}
+            onSelect={handleSelectDates}
             numberOfMonths={1}
           />
         </PopoverContent>

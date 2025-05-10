@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { useTransactionContext } from './transaction-context';
+import { getTransactionService } from '@/services/helper';
 
 export type TransactionItem = {
   id: number;
@@ -48,10 +49,10 @@ type TransactionRecordProps = {
 export const TransactionRecord = () => {
   const {
     transactionRecordState: [transactionRecord, setTransactionRecord],
-    calendarDateState: [date, _],
+    calendarDateState: [dates, setDates],
   } = useTransactionContext();
 
-  const { from, to } = date!;
+  const { from, to } = dates!;
   const {
     data: entries,
     isPending,
@@ -62,6 +63,22 @@ export const TransactionRecord = () => {
   );
 
   useEffect(() => {
+    async function fetchRecords() {
+      const transactionService = await getTransactionService();
+      const entries = await transactionService.getJournalEntries(
+        ['income', 'expense', 'transfer'],
+        dates!,
+        true,
+      );
+      const records: TransactionItem[] = mapToTransactionItems(entries);
+      records.sort((a, b) => b.date.getTime() - a.date.getTime());
+      setTransactionRecord(records);
+    }
+
+    fetchRecords();
+  }, [dates, setTransactionRecord]);
+
+  useEffect(() => {
     if (!entries) return;
 
     const records: TransactionItem[] = mapToTransactionItems(entries);
@@ -69,8 +86,7 @@ export const TransactionRecord = () => {
     setTransactionRecord(records);
   }, [entries, setTransactionRecord]);
 
-  // if (isPending) return <SkeletonSimple heightInPx={97} />;
-  if (isPending) return <LoadingSkeleton />;
+  if (isPending) return <></>;
 
   if (isError) return <p>Error: ${error.message}</p>;
 
@@ -202,26 +218,37 @@ const TransactionDesktop = ({ items }: TransactionRecordProps) => {
   return (
     <div className="hidden overflow-hidden rounded-lg border border-zinc-200 bg-white md:block dark:border-zinc-800 dark:bg-zinc-900/70">
       <div className="overflow-x-auto">
-        <table className="w-full">
+        <table className="w-full table-fixed">
           <thead>
             <tr className="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-800/50">
-              <th className="px-4 py-3 text-left text-xs font-medium tracking-wider text-zinc-500 uppercase dark:text-zinc-400">
-                Transaction
+              <th className="w-32 px-4 py-3 text-center text-xs font-medium tracking-wider text-zinc-500 uppercase dark:text-zinc-400">
+                Date
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium tracking-wider text-zinc-500 uppercase dark:text-zinc-400">
-                Amount
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium tracking-wider text-zinc-500 uppercase dark:text-zinc-400">
+              <th className="w-52 px-4 py-3 text-center text-xs font-medium tracking-wider text-zinc-500 uppercase dark:text-zinc-400">
                 Category
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium tracking-wider text-zinc-500 uppercase dark:text-zinc-400">
-                Date
+              <th className="px-4 py-3 text-center text-xs font-medium tracking-wider text-zinc-500 uppercase dark:text-zinc-400">
+                Transaction
+              </th>
+              <th className="w-52 px-4 py-3 text-center text-xs font-medium tracking-wider text-zinc-500 uppercase dark:text-zinc-400">
+                Amount
               </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
             {items.map(({ id, amount, category, currencySymbol, date, icon, title, type }) => (
-              <tr key={id} className="transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
+              <tr
+                key={id}
+                className="text-center transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+              >
+                <td className="px-4 py-4 whitespace-nowrap">
+                  <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                    {date.toLocaleDateString()}
+                  </div>
+                </td>
+                <td className="px-4 py-4 whitespace-nowrap">
+                  <div className="text-sm text-zinc-600 dark:text-zinc-400">{category}</div>
+                </td>
                 <td className="px-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div
@@ -259,14 +286,6 @@ const TransactionDesktop = ({ items }: TransactionRecordProps) => {
                     <span>{amount}</span>
                   </div>
                 </td>
-                <td className="px-4 py-4 whitespace-nowrap">
-                  <div className="text-sm text-zinc-600 dark:text-zinc-400">{category}</div>
-                </td>
-                <td className="px-4 py-4 whitespace-nowrap">
-                  <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                    {date.toLocaleDateString()}
-                  </div>
-                </td>
               </tr>
             ))}
           </tbody>
@@ -275,246 +294,3 @@ const TransactionDesktop = ({ items }: TransactionRecordProps) => {
     </div>
   );
 };
-
-const LoadingSkeleton = () => (
-  <>
-    <div className="hidden border border-zinc-200 md:block dark:border-zinc-800">
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-zinc-200 dark:border-zinc-800">
-              <th className="px-4 py-3 text-left tracking-wider">
-                <Skeleton className="w-[88px] max-w-full" />
-              </th>
-              <th className="px-4 py-3 text-left tracking-wider">
-                <Skeleton className="w-[48px] max-w-full" />
-              </th>
-              <th className="px-4 py-3 text-left tracking-wider">
-                <Skeleton className="w-[64px] max-w-full" />
-              </th>
-              <th className="px-4 py-3 text-left tracking-wider">
-                <Skeleton className="w-[32px] max-w-full" />
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr className="transition-colors">
-              <td className="px-4">
-                <div className="flex items-center">
-                  <div className="flex items-center gap-3">
-                    <div className="flex-none border border-zinc-200 p-2">
-                      <SVGSkeleton className="h-5 w-5" />
-                    </div>
-                  </div>
-                  <div className="ml-4">
-                    <div>
-                      <Skeleton className="w-[24px] max-w-full" />
-                    </div>
-                  </div>
-                </div>
-              </td>
-              <td className="px-4 py-4">
-                <div className="text-right">
-                  <span className="mr-1">
-                    <Skeleton className="w-[14px] max-w-full" />
-                  </span>
-                  <span className="mr-1">
-                    <Skeleton className="w-[14px] max-w-full" />
-                  </span>
-                  <span>
-                    <Skeleton className="w-[48px] max-w-full" />
-                  </span>
-                </div>
-              </td>
-              <td className="px-4 py-4">
-                <div>
-                  <Skeleton className="w-[120px] max-w-full" />
-                </div>
-              </td>
-              <td className="px-4 py-4">
-                <div>
-                  <Skeleton className="w-[88px] max-w-full" />
-                </div>
-              </td>
-            </tr>
-            <tr className="transition-colors">
-              <td className="px-4">
-                <div className="flex items-center">
-                  <div className="flex items-center gap-3">
-                    <div className="flex-none border border-zinc-200 p-2">
-                      <SVGSkeleton className="h-5 w-5" />
-                    </div>
-                  </div>
-                  <div className="ml-4">
-                    <div>
-                      <Skeleton className="w-[40px] max-w-full" />
-                    </div>
-                  </div>
-                </div>
-              </td>
-              <td className="px-4 py-4">
-                <div className="text-right">
-                  <span className="mr-1">
-                    <Skeleton className="w-[14px] max-w-full" />
-                  </span>
-                  <span className="mr-1">
-                    <Skeleton className="w-[14px] max-w-full" />
-                  </span>
-                  <span>
-                    <Skeleton className="w-[48px] max-w-full" />
-                  </span>
-                </div>
-              </td>
-              <td className="px-4 py-4">
-                <div>
-                  <Skeleton className="w-[120px] max-w-full" />
-                </div>
-              </td>
-              <td className="px-4 py-4">
-                <div>
-                  <Skeleton className="w-[88px] max-w-full" />
-                </div>
-              </td>
-            </tr>
-            <tr className="transition-colors">
-              <td className="px-4">
-                <div className="flex items-center">
-                  <div className="flex items-center gap-3">
-                    <div className="flex-none border border-zinc-200 p-2">
-                      <SVGSkeleton className="h-5 w-5" />
-                    </div>
-                  </div>
-                  <div className="ml-4">
-                    <div>
-                      <Skeleton className="w-[24px] max-w-full" />
-                    </div>
-                  </div>
-                </div>
-              </td>
-              <td className="px-4 py-4">
-                <div className="text-right">
-                  <span className="mr-1"></span>
-                  <span className="mr-1">
-                    <Skeleton className="w-[16px] max-w-full" />
-                  </span>
-                  <span>
-                    <Skeleton className="w-[40px] max-w-full" />
-                  </span>
-                </div>
-              </td>
-              <td className="px-4 py-4">
-                <div>
-                  <Skeleton className="w-[32px] max-w-full" />
-                </div>
-              </td>
-              <td className="px-4 py-4">
-                <div>
-                  <Skeleton className="w-[88px] max-w-full" />
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-    <div className="flex flex-col gap-6 md:hidden">
-      <div className="flex items-center gap-3">
-        <div className="flex-none border border-zinc-200 p-2">
-          <SVGSkeleton className="h-5 w-5" />
-        </div>
-        <div className="flex min-w-0 flex-1 items-center justify-between">
-          <div className="space-y-0.5">
-            <h3>
-              <Skeleton className="w-[24px] max-w-full" />
-            </h3>
-            <div className="flex items-center gap-2">
-              <p>
-                <Skeleton className="w-[88px] max-w-full" />
-              </p>
-              <div className="inline-flex items-center border border-transparent px-2.5 py-0.5 transition-colors">
-                <Skeleton className="w-[120px] max-w-full" />
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-1.5 pl-3">
-            <span className="text-right">
-              <span className="mr-1">
-                <Skeleton className="w-[14px] max-w-full" />
-              </span>
-              <span className="mr-1">
-                <Skeleton className="w-[14px] max-w-full" />
-              </span>
-              <span>
-                <Skeleton className="w-[48px] max-w-full" />
-              </span>
-            </span>
-          </div>
-        </div>
-      </div>
-      <div className="flex items-center gap-3">
-        <div className="flex-none border border-zinc-200 p-2">
-          <SVGSkeleton className="h-5 w-5" />
-        </div>
-        <div className="flex min-w-0 flex-1 items-center justify-between">
-          <div className="space-y-0.5">
-            <h3>
-              <Skeleton className="w-[40px] max-w-full" />
-            </h3>
-            <div className="flex items-center gap-2">
-              <p>
-                <Skeleton className="w-[88px] max-w-full" />
-              </p>
-              <div className="inline-flex items-center border border-transparent px-2.5 py-0.5 transition-colors">
-                <Skeleton className="w-[120px] max-w-full" />
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-1.5 pl-3">
-            <span className="text-right">
-              <span className="mr-1">
-                <Skeleton className="w-[14px] max-w-full" />
-              </span>
-              <span className="mr-1">
-                <Skeleton className="w-[14px] max-w-full" />
-              </span>
-              <span>
-                <Skeleton className="w-[48px] max-w-full" />
-              </span>
-            </span>
-          </div>
-        </div>
-      </div>
-      <div className="flex items-center gap-3">
-        <div className="flex-none border border-zinc-200 p-2">
-          <SVGSkeleton className="h-5 w-5" />
-        </div>
-        <div className="flex min-w-0 flex-1 items-center justify-between">
-          <div className="space-y-0.5">
-            <h3>
-              <Skeleton className="w-[24px] max-w-full" />
-            </h3>
-            <div className="flex items-center gap-2">
-              <p>
-                <Skeleton className="w-[88px] max-w-full" />
-              </p>
-              <div className="inline-flex items-center border border-transparent px-2.5 py-0.5 transition-colors">
-                <Skeleton className="w-[32px] max-w-full" />
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-1.5 pl-3">
-            <span className="text-right">
-              <span className="mr-1"></span>
-              <span className="mr-1">
-                <Skeleton className="w-[16px] max-w-full" />
-              </span>
-              <span>
-                <Skeleton className="w-[40px] max-w-full" />
-              </span>
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </>
-);

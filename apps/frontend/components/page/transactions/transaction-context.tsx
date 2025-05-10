@@ -1,4 +1,4 @@
-import { DateTime } from 'luxon';
+import { getFirstLastDayInMonth } from '@/components/common-functions';
 import {
   createContext,
   useContext,
@@ -24,12 +24,9 @@ export const TransactionContextProvider = ({ children }: { children: ReactNode }
   const expenseSummaryState = useState<number>(0);
   const transactionRecordState = useState<TransactionItem[]>([]);
 
-  const now = DateTime.now();
+  const { firstDate, lastDate } = getFirstLastDayInMonth(new Date());
 
-  const calendarDateState = useState<DateRange | undefined>({
-    from: now.startOf('month').toJSDate(),
-    to: now.endOf('month').toJSDate(),
-  });
+  const calendarDateState = useState<DateRange | undefined>({ from: firstDate, to: lastDate });
 
   return (
     <TransactionContext.Provider
