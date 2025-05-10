@@ -90,6 +90,21 @@ export const ManageAccountCard = ({ footer }: ManageAccountCardProps) => {
     }
   }
 
+  const namePlaceholder = useMemo(() => {
+    switch (groupType) {
+      case 'asset':
+        return 'e.g., Cash, Bank Account, Accounts Receivable';
+      case 'liability':
+        return 'e.g., Credit Card, Loan Payable, Mortgage';
+      case 'income':
+        return 'e.g., Salary, Freelance Work, Interest Income';
+      case 'expense':
+        return 'e.g., Rent, Groceries, Utilities';
+      case 'uncategorized':
+        return '';
+    }
+  }, [groupType]);
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-2 px-4">
@@ -111,7 +126,7 @@ export const ManageAccountCard = ({ footer }: ManageAccountCardProps) => {
           name="accountGroupId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Account Group</FormLabel>
+              <FormLabel>Group</FormLabel>
               <FormControl>
                 <div className="flex flex-row items-end gap-2">
                   <div className="grow">
@@ -144,9 +159,9 @@ export const ManageAccountCard = ({ footer }: ManageAccountCardProps) => {
             name="accountName"
             render={({ field }) => (
               <FormItem className="grow">
-                <FormLabel>Account Name</FormLabel>
+                <FormLabel>Name</FormLabel>
                 <FormControl>
-                  <Input type="text" id="name" {...field} />
+                  <Input type="text" id="name" placeholder={namePlaceholder} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

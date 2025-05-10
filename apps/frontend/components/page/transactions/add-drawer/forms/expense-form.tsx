@@ -7,6 +7,7 @@ import { useQueries } from '@tanstack/react-query';
 import { DateTime } from 'luxon';
 import { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
+import { useTransactionDrawerContext } from '../drawer-context';
 import { AccountField } from '../fields/account-field';
 import { AmountCurrencyField } from '../fields/amount-currency-field';
 import { CountryField } from '../fields/country-field';
@@ -18,30 +19,41 @@ import { mapAccounts, type AccountComboItem, type TxFormProps } from './common';
 import { expenseTxForm, type ExpenseTxForm } from './form-schema';
 
 export const ExpenseForm = ({ footer, onSuccess }: TxFormProps) => {
-  const { countriesInUse, defaultCurrency } = useGlobalContext();
+  const { defaultCurrency, defaultCountry } = useGlobalContext();
+  const {
+    open,
+    sharedFormRef: { current: sharedForm },
+    setSharedFormRef: setSharedForm,
+  } = useTransactionDrawerContext();
+
   const curDate = DateTime.now();
   const form = useForm<ExpenseTxForm>({
     resolver: zodResolver(expenseTxForm),
     defaultValues: {
-      date: curDate.toJSDate(),
-      time: { hour: curDate.get('hour'), minute: curDate.get('minute') },
+      date: sharedForm?.date ?? curDate.toJSDate(),
+      time: sharedForm?.time ?? { hour: curDate.get('hour'), minute: curDate.get('minute') },
       journalEntryType: 'expense',
-      currencyCode: defaultCurrency?.code ?? 'USD',
-      amount: '',
-      fxRate: '',
-      fxAmount: '',
-      title: '',
-      description: '',
-      debitAccountId: -1,
+      currencyCode: sharedForm?.currencyCode ?? defaultCurrency?.code ?? 'USD',
+      amount: sharedForm?.amount ?? '',
+      fxRate: sharedForm?.fxRate ?? '',
+      fxAmount: sharedForm?.fxAmount ?? '',
+      title: sharedForm?.title ?? '',
+      description: sharedForm?.description ?? '',
+      debitAccountId: sharedForm?.debitAccountId ?? -1,
       creditAccountId: -1,
-      countryCode: countriesInUse.at(0)?.code ?? '',
-      isFx: false,
+      countryCode: sharedForm?.countryCode ?? defaultCountry?.code ?? 'USA',
+      isFx: sharedForm?.isFx ?? false,
     },
   });
 
+  const formWatch = useWatch({ control: form.control }) as ExpenseTxForm;
+  useEffect(() => {
+    if (!formWatch) return;
+    setSharedForm({ ...formWatch });
+  }, [formWatch, setSharedForm]);
+
   const {
     data: { assetGroupsByCountry, liabilityGroupsByCountry, expenseGroupsByCountry },
-    isPending,
     isError,
     error,
   } = useQueries({

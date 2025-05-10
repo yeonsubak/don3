@@ -59,7 +59,7 @@ export const AccountGroupTab = ({ tabValue }: AccountGroupTabProps) => {
   }
 
   return (
-    <div className={cn('flex h-full w-full flex-col xl:w-md', isMultiCountry ? '' : 'gap-4')}>
+    <div className={cn('flex h-full w-full flex-col', isMultiCountry ? '' : 'gap-4')}>
       {Object.entries(accountGroupsByCountry).map(([countryCode, accountGroup]) => (
         <CountrySection key={countryCode} countryCode={countryCode}>
           {accountGroup.map((accountGroup, idx) => (

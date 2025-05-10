@@ -7,7 +7,8 @@ import { useQueries } from '@tanstack/react-query';
 import { DateTime } from 'luxon';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
+import { useTransactionDrawerContext } from '../drawer-context';
 import { AccountField } from '../fields/account-field';
 import { TransferAmountCurrencyField } from '../fields/amount-currency-field';
 import { DateField } from '../fields/date-field';
@@ -19,25 +20,35 @@ import { fundTransferTxForm, type FundTransferTxForm } from './form-schema';
 
 export const FundTransferForm = ({ footer, onSuccess }: TxFormProps) => {
   const { countriesInUse, isMultiCountry, defaultCurrency } = useGlobalContext();
+  const {
+    sharedFormRef: { current: sharedForm },
+    setSharedFormRef: setSharedForm,
+  } = useTransactionDrawerContext();
 
   const curDate = DateTime.now();
   const form = useForm<FundTransferTxForm>({
     resolver: zodResolver(fundTransferTxForm),
     defaultValues: {
-      date: curDate.toJSDate(),
-      time: { hour: curDate.get('hour'), minute: curDate.get('minute') },
+      date: sharedForm?.date ?? curDate.toJSDate(),
+      time: sharedForm?.time ?? { hour: curDate.get('hour'), minute: curDate.get('minute') },
       journalEntryType: 'transfer',
-      currencyCode: defaultCurrency?.code ?? 'USD',
-      amount: '',
-      fxRate: '',
-      fxAmount: '',
-      title: '',
-      description: '',
-      debitAccountId: -1,
+      currencyCode: sharedForm?.currencyCode ?? defaultCurrency?.code ?? 'USD',
+      amount: sharedForm?.amount ?? '',
+      fxRate: sharedForm?.fxRate ?? '',
+      fxAmount: sharedForm?.fxAmount ?? '',
+      title: sharedForm?.title ?? '',
+      description: sharedForm?.description ?? '',
+      debitAccountId: sharedForm?.debitAccountId ?? -1,
       creditAccountId: -1,
-      isFx: false,
+      isFx: sharedForm?.isFx ?? false,
     },
   });
+
+  const formWatch = useWatch({ control: form.control }) as FundTransferTxForm;
+  useEffect(() => {
+    if (!formWatch) return;
+    setSharedForm({ ...formWatch });
+  }, [formWatch, setSharedForm]);
 
   const {
     data: { assetGroupsByCountry, liabilityGroupsByCountry },

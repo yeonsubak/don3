@@ -27,7 +27,7 @@ export interface ComboboxItem<T = unknown> {
   recursiveCnt?: number;
 }
 
-export type ComboboxProps = {
+export interface ComboboxProps {
   items?: ComboboxItem[];
   placeholder?: string;
   searchPlaceholder?: string;
@@ -42,7 +42,8 @@ export type ComboboxProps = {
   popoverContentSide?: 'top' | 'right' | 'bottom' | 'left';
   popoverContentAlign?: 'start' | 'center' | 'end';
   keyRenderFn?: (item: ComboboxItem) => string;
-};
+  labelRenderFn?: (itemData: unknown) => string;
+}
 
 export function flattenComboboxItems<T>(items: ComboboxItem<T>[]): ComboboxItem<T>[] {
   return items.flatMap((item) =>
@@ -74,6 +75,7 @@ export const Combobox = ({
   popoverContentSide = 'bottom',
   popoverContentAlign = 'center',
   keyRenderFn,
+  labelRenderFn,
 }: ComboboxProps) => {
   const [open, setOpen] = useState(false);
   const isDesktop = useMediaQuery('(min-width: 768px)');
@@ -114,7 +116,7 @@ export const Combobox = ({
         <Check
           className={cn('mr-2 h-4 w-4', field?.value === value ? 'opacity-100' : 'opacity-0')}
         />
-        {label}
+        {labelRenderFn ? labelRenderFn(data) : label}
       </CommandItem>
     );
   };

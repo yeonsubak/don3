@@ -7,6 +7,7 @@ import { useQueries } from '@tanstack/react-query';
 import { DateTime } from 'luxon';
 import { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
+import { useTransactionDrawerContext } from '../drawer-context';
 import { AccountField } from '../fields/account-field';
 import { AmountCurrencyField } from '../fields/amount-currency-field';
 import { CountryField } from '../fields/country-field';
@@ -18,27 +19,37 @@ import { mapAccounts, type AccountComboItem, type TxFormProps } from './common';
 import { incomeTxForm, type IncomeTxForm } from './form-schema';
 
 export const IncomeForm = ({ footer, onSuccess }: TxFormProps) => {
-  const { countriesInUse, defaultCurrency } = useGlobalContext();
+  const { defaultCurrency, defaultCountry } = useGlobalContext();
+  const {
+    sharedFormRef: { current: sharedForm },
+    setSharedFormRef: setSharedForm,
+  } = useTransactionDrawerContext();
 
   const curDate = DateTime.now();
   const form = useForm<IncomeTxForm>({
     resolver: zodResolver(incomeTxForm),
     defaultValues: {
-      date: curDate.toJSDate(),
-      time: { hour: curDate.get('hour'), minute: curDate.get('minute') },
+      date: sharedForm?.date ?? curDate.toJSDate(),
+      time: sharedForm?.time ?? { hour: curDate.get('hour'), minute: curDate.get('minute') },
       journalEntryType: 'income',
-      currencyCode: defaultCurrency?.code ?? 'USD',
-      amount: '',
-      fxRate: '',
-      fxAmount: '',
-      title: '',
-      description: '',
-      debitAccountId: -1,
-      creditAccountId: -1,
-      countryCode: countriesInUse.at(0)?.code ?? '',
-      isFx: false,
+      currencyCode: sharedForm?.currencyCode ?? defaultCurrency?.code ?? 'USD',
+      amount: sharedForm?.amount ?? '',
+      fxRate: sharedForm?.fxRate ?? '',
+      fxAmount: sharedForm?.fxAmount ?? '',
+      title: sharedForm?.title ?? '',
+      description: sharedForm?.description ?? '',
+      debitAccountId: sharedForm?.debitAccountId ?? -1,
+      creditAccountId: sharedForm?.creditAccountId ?? -1,
+      countryCode: sharedForm?.countryCode ?? defaultCountry?.code ?? 'USA',
+      isFx: sharedForm?.isFx ?? false,
     },
   });
+
+  const formWatch = useWatch({ control: form.control }) as IncomeTxForm;
+  useEffect(() => {
+    if (!formWatch) return;
+    setSharedForm({ ...formWatch });
+  }, [formWatch, setSharedForm]);
 
   const {
     data: { assetGroupsByCountry, incomeGroupsByCountry },
