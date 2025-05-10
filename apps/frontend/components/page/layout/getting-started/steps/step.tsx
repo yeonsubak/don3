@@ -21,7 +21,7 @@ export type StepProps = {
 
 const StepElement = ({ title, description, children }: StepProps) => {
   return (
-    <div className="flex flex-grow flex-col space-y-2 py-4">
+    <div className="flex grow flex-col space-y-2 py-4">
       <h3 className="text-lg font-medium">{title}</h3>
       <p className="text-muted-foreground">{description}</p>
       <div className="space-y-4">{children}</div>

@@ -216,8 +216,8 @@ const TransactionDesktop = ({ items }: TransactionRecordProps) => {
   */
 
   return (
-    <div className="hidden overflow-hidden rounded-lg border border-zinc-200 bg-white md:block dark:border-zinc-800 dark:bg-zinc-900/70">
-      <div className="overflow-x-auto">
+    <div className="hidden rounded-lg border border-zinc-200 bg-white md:block dark:border-zinc-800 dark:bg-zinc-900/70">
+      <div className="">
         <table className="w-full table-fixed">
           <thead>
             <tr className="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-800/50">

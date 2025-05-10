@@ -39,7 +39,7 @@ export const TimeInput = ({ format, time, setTime }: TimeInputProps) => {
   const containerCn = 'flex basis-6/13 flex-col gap-2';
   const timeCn = 'grow text-5xl';
   const inputCn = cn(
-    'h-12 border-0 text-center !text-5xl shadow-none',
+    'h-12 border-0 text-center text-5xl! shadow-none',
     'appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
   );
 
