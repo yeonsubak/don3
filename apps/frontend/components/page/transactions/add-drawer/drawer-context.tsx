@@ -2,6 +2,7 @@
 
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useRef,
@@ -31,9 +32,10 @@ export const TransactionDrawerContext = createContext<TransactionDrawerContext |
 export const TransactionDrawerContextProvider = ({ children }: { children: ReactNode }) => {
   const [open, setOpen] = useState(false);
   const sharedFormRef = useRef<SharedForm | undefined>(undefined);
-  const setSharedFormRef = (form: SharedForm | undefined) => {
+
+  const setSharedFormRef = useCallback((form: SharedForm | undefined) => {
     sharedFormRef.current = form;
-  };
+  }, []);
 
   useEffect(() => {
     if (!open) {
