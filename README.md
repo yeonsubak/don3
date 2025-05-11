@@ -17,7 +17,8 @@ Don³ is a modern, browser-based budget tracking application built with Next.js 
 | ------------------------------------------ | ----------- | ----------------------------------------------------------------------------------------------------------------- |
 | **Basic Features**                         | Complete    | Implemented basic CRUD functionality for managing accounts and records.                                           |
 | **Multi-country & Multi-currency Support** | Complete    | Integrated currency conversion API and developed UI for managing multi-country setups.                            |
-| **Getting started**                        | In progress | A step-by-step initial configuration and tutorial for using the app.                                              |
+| **Getting started**                        | Complete    | A step-by-step initial configuration and tutorial for using the app.                                              |
+| **Dashboard**                              | In progress | Dashboard with analytics widgets                                                                                  |
 | **Backup and Restore Database**            | Planned     | Implementing backup and restore functionality for database management.                                            |
 | **Stock & Cryptocurrency Tracking**        | Planned     | Integrating financial APIs to provide real-time stock and cryptocurrency data, with a UI for investment tracking. |
 | **Financial Statement Generation**         | Planned     | Developing tools for generating balance sheets and income statements, with export options (CSV, PDF).             |
@@ -78,8 +79,9 @@ https://dbdiagram.io/d/Don^3-67b5d8cb263d6cf9a0b98f23
 
 ## Thanks to
 
-- @ourworldincode: Providing list of currencies at [`ourworldincode/currency`](https://github.com/ourworldincode/currency).
-- @ksafranski and @shivanshtalwar0: Providing a map of currencies by currency code at [`ksafranski/Common-Currency.json`](https://gist.github.com/ksafranski/2973986?permalink_comment_id=5284647#gistcomment-5284647)
+- [@ourworldincode](https://github.com/ourworldincode): For providing a list of currencies at [`ourworldincode/currency`](https://github.com/ourworldincode/currency).
+- [@ksafranski](https://github.com/ksafranski) & [@shivanshtalwar0](https://github.com/shivanshtalwar0): For providing a map of currencies by currency code at [`ksafranski/Common-Currency.json`](https://gist.github.com/ksafranski/2973986?permalink_comment_id=5284647#gistcomment-5284647).
+- [@chalda-pnuzig](https://github.com/chalda-pnuzig): For providing a complete list of emojis by category for the EmojiPicker component.
 
 ## License
 
