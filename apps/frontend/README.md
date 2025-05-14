@@ -13,16 +13,16 @@ Don³ is a modern, browser-based budget tracking application built with Next.js 
 
 ## Current Milestones
 
-| Milestone                                  | Status      | Details                                                                                                           |
-| ------------------------------------------ | ----------- | ----------------------------------------------------------------------------------------------------------------- |
-| **Basic Features**                         | Complete    | Implemented basic CRUD functionality for managing accounts and records.                                           |
-| **Multi-country & Multi-currency Support** | Complete    | Integrated currency conversion API and developed UI for managing multi-country setups.                            |
-| **Getting started**                        | Complete    | A step-by-step initial configuration and tutorial for using the app.                                              |
-| **Dashboard**                              | In progress | Dashboard with analytics widgets                                                                                  |
-| **Backup and Restore Database**            | Planned     | Implementing backup and restore functionality for database management.                                            |
-| **Stock & Cryptocurrency Tracking**        | Planned     | Integrating financial APIs to provide real-time stock and cryptocurrency data, with a UI for investment tracking. |
-| **Financial Statement Generation**         | Planned     | Developing tools for generating balance sheets and income statements, with export options (CSV, PDF).             |
-| **AI Assistant Integration**               | Planned     | Building an AI-powered assistant for financial advice, utilizing natural language processing for user queries.    |
+| Milestone                                  | Status      | Details                                                                                                                       |
+| ------------------------------------------ | ----------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| **Basic Features**                         | Complete    | Implemented basic CRUD functionality for managing accounts and records.                                                       |
+| **Multi-country & Multi-currency Support** | Complete    | Integrated currency conversion API and developed UI for managing multi-country setups.                                        |
+| **Getting started**                        | Complete    | A step-by-step initial configuration and tutorial for using the app.                                                          |
+| **Dashboard**                              | In progress | Dashboard with analytics widgets                                                                                              |
+| **Backup and Restore Database**            | In progress | Implementing database synchronization with end-to-end encryption, ensuring zero knowledge of user data in the remote database |
+| **Stock & Cryptocurrency Tracking**        | Planned     | Integrating financial APIs to provide real-time stock and cryptocurrency data, with a UI for investment tracking.             |
+| **Financial Statement Generation**         | Planned     | Developing tools for generating balance sheets and income statements, with export options (CSV, PDF).                         |
+| **AI Assistant Integration**               | Planned     | Building an AI-powered assistant for financial advice, utilizing natural language processing for user queries.                |
 
 ## Getting Started
 
