@@ -1,7 +1,5 @@
-import type { SchemaDefinition } from '@/app/api/database/common';
-import type { Version } from '@/app/api/database/get-latest-version/route';
+import { type SchemaDefinition } from '@/app/api/database/common';
 import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
-import { sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/pglite';
 import type { PgliteDrizzle } from '.';
 import { DATASET_ACCOUNT_GROUPS } from './dataset/account-groups';
@@ -10,10 +8,16 @@ import { DATASET_COUNTRY } from './dataset/country';
 import { DATASET_CURRENCY_FIAT } from './dataset/currency';
 import type { UserConfigKey } from './drizzle/schema';
 import * as schema from './drizzle/schema';
+import {
+  getLatestSchemaVersion,
+  LATEST_CLEAN_VERSION,
+  SCHEMA_VERSION_TABLE,
+} from './drizzle/version-table';
 import { PgliteClient } from './pglite-client';
 
 export class DBInitializer {
   private static instance: DBInitializer;
+  private pg!: PgliteClient;
   private db!: PgliteDrizzle;
   private defaultCountry!: string;
   private defaultCurrency!: string;
@@ -26,11 +30,12 @@ export class DBInitializer {
   public static async getInstance(): Promise<DBInitializer> {
     if (!DBInitializer.instance) {
       DBInitializer.instance = new DBInitializer();
-      const pg = PgliteClient.getInstance();
+      const pg = PgliteClient.getInstance()!;
       const pgDrizzle = drizzle(pg!, {
         schema,
         casing: 'snake_case',
       });
+      DBInitializer.instance.pg = pg;
       DBInitializer.instance.db = pgDrizzle;
       DBInitializer.instance.defaultCountry =
         localStorage.getItem(LOCAL_STORAGE_KEYS.APP.DEFAULT_COUNTRY) ?? 'USA';
@@ -57,14 +62,11 @@ export class DBInitializer {
   }
 
   private async initialize() {
-    const latestVersion = await this.getLatestVersion();
-    const userSchemaVersion = window.localStorage.getItem(LOCAL_STORAGE_KEYS.PGLITE.SCHEMA_VERSION);
-
-    if (!(await this.validateSchemaVersion(userSchemaVersion, latestVersion.schema))) {
-      await this.syncSchema(userSchemaVersion);
+    if (!this.validateSchemaVersion()) {
+      await this.syncSchema();
     }
 
-    if (!(await this.validateDataset(latestVersion.dataset))) {
+    if (!(await this.validateDataset())) {
       await this.syncDataset();
     }
 
@@ -81,44 +83,72 @@ export class DBInitializer {
     DBInitializer.isInitialized = true;
   }
 
-  private async getLatestVersion(): Promise<Version> {
-    return await (await fetch('/api/database/get-latest-version', { method: 'GET' })).json();
+  private validateSchemaVersion() {
+    const latestVersion = getLatestSchemaVersion();
+    const currentVersion = window.localStorage.getItem(LOCAL_STORAGE_KEYS.PGLITE.SCHEMA_VERSION);
+    return currentVersion === latestVersion;
   }
 
-  private async validateSchemaVersion(userSchemaVersion: string | null, schemaVersion: string) {
-    return userSchemaVersion === schemaVersion;
+  private async syncSchema() {
+    const updateSchema = async (nextVersion: string | undefined, latestVersion: string) => {
+      if (!nextVersion) return;
+
+      const currentVersion = window.localStorage.getItem(LOCAL_STORAGE_KEYS.PGLITE.SCHEMA_VERSION);
+      if (currentVersion === latestVersion) return;
+
+      const url = new URL('/api/database/get-schema-definition', window.location.origin);
+      url.searchParams.append('schemaVersion', nextVersion);
+      const { sql, version }: SchemaDefinition = await (await fetch(url, { method: 'GET' })).json();
+      await this.pg.transaction(async (tx) => {
+        try {
+          await tx.exec(sql);
+        } catch (err) {
+          console.log(err);
+          tx.rollback();
+        }
+      });
+
+      await this.db.transaction(async (tx) => {
+        try {
+          return await tx
+            .insert(schema.information)
+            .values({ name: 'schemaVersion', value: version.version })
+            .onConflictDoUpdate({
+              target: schema.information.name,
+              set: { value: version.version },
+            })
+            .returning();
+        } catch (err) {
+          console.log(err);
+          tx.rollback();
+        }
+      });
+
+      window.localStorage.setItem(
+        LOCAL_STORAGE_KEYS.PGLITE.SCHEMA_VERSION,
+        version.requireMigration ? version.nextVersion! : version.version,
+      );
+
+      console.log(
+        `Synchronized the local database schema to ${window.localStorage.getItem(LOCAL_STORAGE_KEYS.PGLITE.SCHEMA_VERSION)}`,
+      );
+
+      await updateSchema(version.nextVersion, latestVersion);
+    };
+
+    const currentVersion = window.localStorage.getItem(LOCAL_STORAGE_KEYS.PGLITE.SCHEMA_VERSION);
+    const nextVersion = currentVersion
+      ? SCHEMA_VERSION_TABLE[currentVersion].nextVersion
+      : LATEST_CLEAN_VERSION.version;
+    const latestVersion = getLatestSchemaVersion();
+
+    await updateSchema(nextVersion, latestVersion);
   }
 
-  private async syncSchema(userSchemaVersion: string | null) {
-    // Create schemas and tables to the IndexedDb
-    const url = new URL('/api/database/get-schema-definition', window.location.origin);
-    if (userSchemaVersion) url.searchParams.append('schemaVersion', userSchemaVersion);
-
-    const fetched: SchemaDefinition[] = await (await fetch(url, { method: 'GET' })).json();
-
-    for (const { sql, version } of fetched) {
-      await this.db.$client.exec(sql);
-      await this.db
-        .insert(schema.information)
-        .values({ name: 'schemaVersion', value: version })
-        .onConflictDoUpdate({
-          target: schema.information.name,
-          set: { value: version },
-        });
-
-      window.localStorage.setItem(LOCAL_STORAGE_KEYS.PGLITE.SCHEMA_VERSION, version);
-    }
-
-    console.log(
-      `Synchronized the local database schema to ${window.localStorage.getItem(LOCAL_STORAGE_KEYS.PGLITE.SCHEMA_VERSION)}`,
-    );
-  }
-
-  private async validateDataset(datasetVersion: string) {
-    let localDatasetVersion = window.localStorage.getItem(
-      LOCAL_STORAGE_KEYS.PGLITE.DATASET_VERSION,
-    );
-    return localDatasetVersion === datasetVersion;
+  private async validateDataset() {
+    const latestVersion = '0.0.1';
+    const currentVersion = window.localStorage.getItem(LOCAL_STORAGE_KEYS.PGLITE.DATASET_VERSION);
+    return currentVersion === latestVersion;
   }
 
   private async syncDataset() {
@@ -133,17 +163,11 @@ export class DBInitializer {
 
     await this.db
       .insert(schema.information)
-      .values({ name: LOCAL_STORAGE_KEYS.PGLITE.SCHEMA_VERSION, value: version })
+      .values({ name: 'datasetVersion', value: version })
       .onConflictDoUpdate({
         target: schema.information.name,
         set: { value: '0.0.1' },
       });
-
-    await Promise.all([
-      this.updateSequence('config.currencies'),
-      this.updateSequence('config.countries'),
-      this.updateSequence('app.account_groups'),
-    ]);
 
     window.localStorage.setItem(LOCAL_STORAGE_KEYS.PGLITE.DATASET_VERSION, version);
     console.log(
@@ -205,21 +229,10 @@ export class DBInitializer {
     }
 
     await this.db.insert(schema.accounts).values(DATASET_ACCOUNTS(country.id, currency.id));
-    await this.updateSequence('app.accounts');
   }
 
   private async hasAccounts() {
     const cnt = await this.db.$count(schema.accounts);
     return cnt > 0;
-  }
-
-  private async updateSequence(tableName: string) {
-    const seqNameQueryResult = await this.db.execute(
-      sql.raw(`SELECT pg_get_serial_sequence('${tableName}', 'id') as seq_name`),
-    );
-    const seqName = seqNameQueryResult.rows.at(0)?.seq_name as string;
-    const maxIdQueryResult = await this.db.execute(sql.raw(`SELECT MAX(id) FROM ${tableName}`));
-    const maxId = maxIdQueryResult.rows.at(0)?.max as number;
-    await this.db.execute(sql.raw(`ALTER SEQUENCE ${seqName} RESTART WITH ${maxId + 1}`));
   }
 }

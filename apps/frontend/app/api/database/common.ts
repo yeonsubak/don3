@@ -1,4 +1,4 @@
-import { promises as fs } from 'fs';
+import type { Version } from '@/db/drizzle/version-table';
 
 const semanticVersionRegex = /^ver-(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?\.sql$/;
 
@@ -23,10 +23,4 @@ export const compareSemanticVersions = (a: string, b: string) => {
   return 0;
 };
 
-export const listSqlFiles = async () => {
-  return (await fs.readdir('db/drizzle/migration'))
-    .filter((fileName) => fileName.endsWith('.sql'))
-    .sort(compareSemanticVersions);
-};
-
-export type SchemaDefinition = { sql: string; version: string };
+export type SchemaDefinition = { sql: string; version: Version };

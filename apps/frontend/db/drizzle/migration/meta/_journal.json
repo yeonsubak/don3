@@ -29,6 +29,27 @@
       "when": 1745662963413,
       "tag": "ver-0.0.4",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1747149972646,
+      "tag": "ver-0.0.5",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1747159513734,
+      "tag": "ver-0.0.6",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1747160090075,
+      "tag": "ver-1.0.0",
+      "breakpoints": true
     }
   ]
 }
