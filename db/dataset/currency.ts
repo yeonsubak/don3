@@ -2,7 +2,7 @@ import type { CurrencyInsert } from '../drizzle/types';
 
 export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
   {
-    id: 1,
+    id: '1f341cd6-0ce9-458e-9b03-2f0f2f6582aa',
     type: 'fiat',
     name: 'United Arab Emirates Dirham',
     code: 'AED',
@@ -11,7 +11,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 2,
+    id: 'c851e327-65c9-4f5c-8c39-77121aef35ae',
     type: 'fiat',
     name: 'Afghan Afghani',
     code: 'AFN',
@@ -20,7 +20,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 3,
+    id: 'fec9e071-f6c1-4f43-95fb-145e56c1bd8c',
     type: 'fiat',
     name: 'Albanian Lek',
     code: 'ALL',
@@ -29,7 +29,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 4,
+    id: 'aa7b5471-56dc-4dae-8e1f-5348a0e88f4b',
     type: 'fiat',
     name: 'Armenian Dram',
     code: 'AMD',
@@ -38,7 +38,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 6,
+    id: 'f2500e78-f46f-4f21-a679-3b58833bec22',
     type: 'fiat',
     name: 'Angolan Kwanza',
     code: 'AOA',
@@ -47,7 +47,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 7,
+    id: '6e54e441-bd50-409b-9e6b-5c6503c672f2',
     type: 'fiat',
     name: 'Argentine Peso',
     code: 'ARS',
@@ -56,7 +56,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 8,
+    id: 'a0e28701-3ce4-458f-add4-9669b81aec54',
     type: 'fiat',
     name: 'Australian Dollar',
     code: 'AUD',
@@ -65,7 +65,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 9,
+    id: '43d017ef-c815-4b16-81b3-989b1c3d3525',
     type: 'fiat',
     name: 'Aruban Florin',
     code: 'AWG',
@@ -74,7 +74,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 10,
+    id: '5725fc79-6862-4743-b6fe-5f384d45927e',
     type: 'fiat',
     name: 'Azerbaijani Manat',
     code: 'AZN',
@@ -83,7 +83,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 11,
+    id: '3e43fb49-1909-4126-a5da-fcd203f2ade2',
     type: 'fiat',
     name: 'Bosnia and Herzegovina Convertible Mark',
     code: 'BAM',
@@ -92,7 +92,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 12,
+    id: '99738e27-9e19-4487-a9ed-002988f9d9d4',
     type: 'fiat',
     name: 'Barbadian Dollar',
     code: 'BBD',
@@ -101,7 +101,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 13,
+    id: '27d98c53-72a1-42dc-a972-616b3bda8841',
     type: 'fiat',
     name: 'Bangladeshi Taka',
     code: 'BDT',
@@ -110,7 +110,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 14,
+    id: 'e03639b9-4ad0-4556-98cf-aa80892098db',
     type: 'fiat',
     name: 'Bulgarian Lev',
     code: 'BGN',
@@ -119,7 +119,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 15,
+    id: '5248eed6-2a8f-45eb-bc53-3c877324308b',
     type: 'fiat',
     name: 'Bahraini Dinar',
     code: 'BHD',
@@ -128,7 +128,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 3,
   },
   {
-    id: 16,
+    id: '69fcef5d-f85a-4b9a-96c7-81dd1c49fa52',
     type: 'fiat',
     name: 'Burundian Franc',
     code: 'BIF',
@@ -137,7 +137,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 0,
   },
   {
-    id: 17,
+    id: 'aaf0c7c0-80eb-4b3d-950a-0df07c7be2c6',
     type: 'fiat',
     name: 'Bermudian Dollar',
     code: 'BMD',
@@ -146,7 +146,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 18,
+    id: 'e823fc23-335f-4376-9b31-c437769e1fbc',
     type: 'fiat',
     name: 'Brunei Dollar',
     code: 'BND',
@@ -155,7 +155,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 19,
+    id: '83f94e80-97e0-4389-b0f1-760170c02e57',
     type: 'fiat',
     name: 'Bolivian Boliviano',
     code: 'BOB',
@@ -164,7 +164,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 20,
+    id: 'b018d7f3-13c0-435b-ac81-0b0ee249fa4b',
     type: 'fiat',
     name: 'Brazilian Real',
     code: 'BRL',
@@ -173,7 +173,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 21,
+    id: 'b3e33c96-ac1c-4e82-9c34-ce2aa692be99',
     type: 'fiat',
     name: 'Bahamian Dollar',
     code: 'BSD',
@@ -182,7 +182,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 22,
+    id: 'ea1ed1b3-358f-4a0c-b021-4c0dbbdc5cd8',
     type: 'fiat',
     name: 'Bhutanese Ngultrum',
     code: 'BTN',
@@ -191,7 +191,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 23,
+    id: '1f1a8cd9-3668-403a-8e15-049bd6450ca7',
     type: 'fiat',
     name: 'Botswana Pula',
     code: 'BWP',
@@ -200,7 +200,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 24,
+    id: '5c0a6807-34b6-4b5e-a7ca-9961ac521401',
     type: 'fiat',
     name: 'Belarusian Ruble',
     code: 'BYN',
@@ -209,7 +209,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 25,
+    id: 'da4eb820-d7fb-4883-83f4-41fb1cab861c',
     type: 'fiat',
     name: 'Belize Dollar',
     code: 'BZD',
@@ -218,7 +218,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 26,
+    id: 'eae462f2-4fa9-4dc5-84e7-b44ce5960327',
     type: 'fiat',
     name: 'Canadian Dollar',
     code: 'CAD',
@@ -227,7 +227,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 27,
+    id: 'f3508c2c-4962-4111-8a73-25be71cf3981',
     type: 'fiat',
     name: 'Congolese Franc',
     code: 'CDF',
@@ -236,7 +236,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 28,
+    id: '812a79c8-0728-4fba-a9f5-8923112829cd',
     type: 'fiat',
     name: 'Swiss Franc',
     code: 'CHF',
@@ -245,7 +245,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 29,
+    id: '7610d68d-09a7-4ceb-b07f-f97e6be7a182',
     type: 'fiat',
     name: 'Cook Islands Dollar',
     code: 'CKD',
@@ -254,7 +254,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 30,
+    id: '873d3b7c-f442-4ba0-816c-c0ca330283b9',
     type: 'fiat',
     name: 'Chilean Peso',
     code: 'CLP',
@@ -263,7 +263,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 0,
   },
   {
-    id: 31,
+    id: '2538f674-2c63-40d3-8c15-952d54f6a485',
     type: 'fiat',
     name: 'Chinese Yuan',
     code: 'CNY',
@@ -272,7 +272,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 32,
+    id: '42dbf34f-72d2-4549-aba8-d28ea9e175f2',
     type: 'fiat',
     name: 'Colombian Peso',
     code: 'COP',
@@ -281,7 +281,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 33,
+    id: '66d81620-7f9c-49e4-86d7-8c5538fe80b9',
     type: 'fiat',
     name: 'Costa Rican Colon',
     code: 'CRC',
@@ -290,7 +290,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 34,
+    id: '29a06f8a-8589-4935-8656-a5ccf7a8d9bd',
     type: 'fiat',
     name: 'Cuban convertible Peso',
     code: 'CUC',
@@ -299,7 +299,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 35,
+    id: '52508b48-64ac-4775-a8d7-9791d4417c8e',
     type: 'fiat',
     name: 'Cuban Peso',
     code: 'CUP',
@@ -308,7 +308,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 36,
+    id: '03f32211-75da-4e37-a5cc-716fb45b2e21',
     type: 'fiat',
     name: 'Cabo Verdean Escudo',
     code: 'CVE',
@@ -317,7 +317,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 37,
+    id: '8c21b97f-c3a0-4797-9c5e-70317d2cdb2b',
     type: 'fiat',
     name: 'Czech Koruna',
     code: 'CZK',
@@ -326,7 +326,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 38,
+    id: 'e97b0657-10e0-4725-a266-36c0ac12d9ab',
     type: 'fiat',
     name: 'Djiboutian Franc',
     code: 'DJF',
@@ -335,7 +335,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 0,
   },
   {
-    id: 39,
+    id: '2d8182c3-863d-4750-b1a2-031db142d8a3',
     type: 'fiat',
     name: 'Danish Krone',
     code: 'DKK',
@@ -344,7 +344,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 40,
+    id: '10fb9f0c-36f9-44c6-a8cc-9a0f1c802cea',
     type: 'fiat',
     name: 'Dominican Peso',
     code: 'DOP',
@@ -353,7 +353,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 41,
+    id: '10bec4b3-da22-4db3-87b4-b16f5ff25a3b',
     type: 'fiat',
     name: 'Algerian Dinar',
     code: 'DZD',
@@ -362,7 +362,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 42,
+    id: 'aeecb6cc-5af9-44a7-89ac-502b35b9dc9b',
     type: 'fiat',
     name: 'Egyptian Pound',
     code: 'EGP',
@@ -371,7 +371,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 43,
+    id: '90356a81-2bf8-45a4-b84c-d4524e3ea8b6',
     type: 'fiat',
     name: 'Sahrawi Peseta',
     code: 'EHP',
@@ -380,7 +380,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 44,
+    id: 'c8331b04-32be-449e-87c1-231720c362b2',
     type: 'fiat',
     name: 'Eritrean Nakfa',
     code: 'ERN',
@@ -389,7 +389,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 45,
+    id: 'f49a851e-7396-4c4b-92cc-d1e4d76ac66f',
     type: 'fiat',
     name: 'Ethiopian Birr',
     code: 'ETB',
@@ -397,9 +397,17 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     symbolNative: 'ብር',
     isoDigits: 2,
   },
-  { id: 46, type: 'fiat', name: 'Euro', code: 'EUR', symbol: '€', symbolNative: '€', isoDigits: 2 },
   {
-    id: 47,
+    id: '317c8111-4e0e-4933-b507-d9374aab32fe',
+    type: 'fiat',
+    name: 'Euro',
+    code: 'EUR',
+    symbol: '€',
+    symbolNative: '€',
+    isoDigits: 2,
+  },
+  {
+    id: 'f1dc6d54-fadb-431f-b727-dd5eed7b2429',
     type: 'fiat',
     name: 'Fijian Dollar',
     code: 'FJD',
@@ -408,7 +416,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 48,
+    id: '0e902401-21f1-4c39-8789-b4fc2e096810',
     type: 'fiat',
     name: 'Falkland Islands Pound',
     code: 'FKP',
@@ -417,7 +425,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 49,
+    id: 'f9869848-e213-4815-b236-10702881844e',
     type: 'fiat',
     name: 'Faroese Króna',
     code: 'FOK',
@@ -426,7 +434,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 50,
+    id: '4834a85f-0f83-4c97-b17f-57a51583ed20',
     type: 'fiat',
     name: 'Pound Sterling',
     code: 'GBP',
@@ -435,7 +443,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 51,
+    id: '644523de-b9df-4d3f-a1b8-9ec7f11bcabf',
     type: 'fiat',
     name: 'Georgian Lari',
     code: 'GEL',
@@ -444,7 +452,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 52,
+    id: 'c05ae485-cfe6-4150-be30-f5b7b263ed64',
     type: 'fiat',
     name: 'Guernsey Pound',
     code: 'GGP',
@@ -453,7 +461,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 53,
+    id: '89bee2d1-7b6a-4477-9535-1ba2d9d89baa',
     type: 'fiat',
     name: 'Ghanaian Cedi',
     code: 'GHS',
@@ -462,7 +470,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 54,
+    id: 'fa2b79c8-fd32-4ad7-a492-29c38ab7e763',
     type: 'fiat',
     name: 'Gibraltar Pound',
     code: 'GIP',
@@ -471,7 +479,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 55,
+    id: '17bca366-9b75-4d9d-8b2c-4e5b5eb5bdfe',
     type: 'fiat',
     name: 'Gambian Dalasi',
     code: 'GMD',
@@ -480,7 +488,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 56,
+    id: '246eb68e-1e5a-4412-b488-26131e25012b',
     type: 'fiat',
     name: 'Guinean Franc',
     code: 'GNF',
@@ -489,7 +497,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 0,
   },
   {
-    id: 57,
+    id: 'addb0ba9-e153-4799-b360-ff1fced452cc',
     type: 'fiat',
     name: 'Guatemalan Quetzal',
     code: 'GTQ',
@@ -498,7 +506,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 58,
+    id: 'a4aa54ff-b5ce-415f-9218-a8f3988a661a',
     type: 'fiat',
     name: 'Guyanese Dollar',
     code: 'GYD',
@@ -507,7 +515,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 59,
+    id: '1f83088a-0113-43d8-85cc-61e9777b52c2',
     type: 'fiat',
     name: 'Hong Kong Dollar',
     code: 'HKD',
@@ -516,7 +524,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 60,
+    id: '6883ce3a-2fff-44d1-874d-564e6c34418f',
     type: 'fiat',
     name: 'Honduran Lempira',
     code: 'HNL',
@@ -525,7 +533,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 61,
+    id: 'fdcf0c8f-41d3-4701-b419-eb8ba83c1457',
     type: 'fiat',
     name: 'Croatian Kuna',
     code: 'HRK',
@@ -534,7 +542,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 62,
+    id: '29265074-81ae-4978-a703-f6f69f1f3d09',
     type: 'fiat',
     name: 'Haitian Gourde',
     code: 'HTG',
@@ -543,7 +551,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 63,
+    id: '00861659-d888-43ab-aa4e-7261b93bd1c0',
     type: 'fiat',
     name: 'Hungarian Forint',
     code: 'HUF',
@@ -552,7 +560,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 64,
+    id: 'e4aa2f30-1275-4dbe-b72f-7afd4881e499',
     type: 'fiat',
     name: 'Indonesian Rupiah',
     code: 'IDR',
@@ -561,7 +569,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 65,
+    id: 'f5d482fd-03bd-4ab5-b67d-5e0036e6c2f1',
     type: 'fiat',
     name: 'Israeli new Shekel',
     code: 'ILS',
@@ -570,7 +578,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 66,
+    id: 'be5dfcc4-b988-43c3-847c-436d064fdb04',
     type: 'fiat',
     name: 'Manx Pound',
     code: 'IMP',
@@ -579,7 +587,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 67,
+    id: '41adf149-6a81-4af1-baab-f4b62e852c69',
     type: 'fiat',
     name: 'Indian Rupee',
     code: 'INR',
@@ -588,7 +596,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 68,
+    id: 'e9a7f732-8631-4d6e-a9dc-ad75a047a442',
     type: 'fiat',
     name: 'Iraqi Dinar',
     code: 'IQD',
@@ -597,7 +605,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 3,
   },
   {
-    id: 69,
+    id: 'f780c431-d32e-4c73-9154-6961252c6715',
     type: 'fiat',
     name: 'Iranian Rial',
     code: 'IRR',
@@ -606,7 +614,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 70,
+    id: 'b491c614-bc0c-41fb-8e7d-b17069fa7877',
     type: 'fiat',
     name: 'Icelandic Krona',
     code: 'ISK',
@@ -615,7 +623,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 0,
   },
   {
-    id: 71,
+    id: '893e4b26-742d-404a-bede-90bb338b2343',
     type: 'fiat',
     name: 'Jersey Pound',
     code: 'JEP',
@@ -624,7 +632,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 72,
+    id: '4a5b7a26-fcec-4ef1-a1df-a1e3a11b7716',
     type: 'fiat',
     name: 'Jamaican Dollar',
     code: 'JMD',
@@ -633,7 +641,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 73,
+    id: '2c3925d3-7cbe-4594-8858-c02833d740ee',
     type: 'fiat',
     name: 'Jordanian Dinar',
     code: 'JOD',
@@ -642,7 +650,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 3,
   },
   {
-    id: 74,
+    id: 'f33a4c09-de77-4ebb-add2-4ceb7312439a',
     type: 'fiat',
     name: 'Japanese Yen',
     code: 'JPY',
@@ -651,7 +659,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 0,
   },
   {
-    id: 75,
+    id: '30792379-2b10-4cba-bf32-52a9c15e1ba7',
     type: 'fiat',
     name: 'Kenyan Shilling',
     code: 'KES',
@@ -660,7 +668,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 76,
+    id: '96345a43-01e2-413c-a05b-ebfe71f9bd47',
     type: 'fiat',
     name: 'Kyrgyzstani Som',
     code: 'KGS',
@@ -669,7 +677,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 77,
+    id: '93a2a4e0-b129-400f-929b-f45da62df763',
     type: 'fiat',
     name: 'Cambodian Riel',
     code: 'KHR',
@@ -678,7 +686,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 78,
+    id: '00d0b296-cc25-4d71-97c0-a80ce731119f',
     type: 'fiat',
     name: 'Kiribati Dollar',
     code: 'KID',
@@ -687,7 +695,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 79,
+    id: '761829c3-8151-40db-970e-f9110415d882',
     type: 'fiat',
     name: 'Comorian Franc',
     code: 'KMF',
@@ -696,7 +704,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 0,
   },
   {
-    id: 80,
+    id: 'd31c4012-f194-4b46-9630-ec5c3631e561',
     type: 'fiat',
     name: 'North Korean Won',
     code: 'KPW',
@@ -705,7 +713,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 81,
+    id: '0449fd3c-e5bb-4124-8784-169ddbfc072b',
     type: 'fiat',
     name: 'South Korean Won',
     code: 'KRW',
@@ -714,7 +722,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 0,
   },
   {
-    id: 82,
+    id: '3a4bddf1-1631-4689-9e0f-e3b3209b2d2f',
     type: 'fiat',
     name: 'Kuwaiti Dinar',
     code: 'KWD',
@@ -723,7 +731,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 3,
   },
   {
-    id: 83,
+    id: '479596d7-8cb8-451d-9a24-d949aceccc40',
     type: 'fiat',
     name: 'Cayman Islands Dollar',
     code: 'KYD',
@@ -732,7 +740,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 84,
+    id: '5b033de6-582f-404d-8aa4-f546572a385e',
     type: 'fiat',
     name: 'Kazakhstani Tenge',
     code: 'KZT',
@@ -741,7 +749,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 85,
+    id: 'f0ad82c2-06b8-4cab-95c7-65f4fd5e22ac',
     type: 'fiat',
     name: 'Lao Kip',
     code: 'LAK',
@@ -750,7 +758,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 86,
+    id: '49579530-1e71-4e07-a8e3-940798205795',
     type: 'fiat',
     name: 'Lebanese Pound',
     code: 'LBP',
@@ -759,7 +767,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 87,
+    id: '2528de40-c3c1-427c-a8c7-ad56d84023ca',
     type: 'fiat',
     name: 'Sri Lankan Rupee',
     code: 'LKR',
@@ -768,7 +776,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 88,
+    id: 'ab29fb85-a56f-4fe0-9f6c-2e01b8144e32',
     type: 'fiat',
     name: 'Liberian Dollar',
     code: 'LRD',
@@ -777,7 +785,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 89,
+    id: '0b84609f-d9f4-47ee-9051-051b2f4f95cf',
     type: 'fiat',
     name: 'Lesotho Loti',
     code: 'LSL',
@@ -786,7 +794,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 90,
+    id: 'adf7f05e-d6e9-404f-a7ed-00acddba9068',
     type: 'fiat',
     name: 'Libyan Dinar',
     code: 'LYD',
@@ -795,7 +803,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 3,
   },
   {
-    id: 91,
+    id: '4cb0e87c-cf8d-473b-880d-a3483b2cb6c1',
     type: 'fiat',
     name: 'Moroccan Dirham',
     code: 'MAD',
@@ -804,7 +812,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 92,
+    id: 'cb2f4ba3-d077-4825-af1c-9d6552cc3f28',
     type: 'fiat',
     name: 'Moldovan Leu',
     code: 'MDL',
@@ -813,7 +821,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 93,
+    id: '2bcb135f-ad46-480d-82bc-6eb084fbd765',
     type: 'fiat',
     name: 'Malagasy Ariary',
     code: 'MGA',
@@ -822,7 +830,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 94,
+    id: 'b43c232c-0b2a-44e4-bbd8-5efd47c07b4c',
     type: 'fiat',
     name: 'Macedonian Denar',
     code: 'MKD',
@@ -831,7 +839,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 95,
+    id: '1183c008-febe-498a-86cf-18fb619b99ce',
     type: 'fiat',
     name: 'Myanmar Kyat',
     code: 'MMK',
@@ -840,7 +848,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 96,
+    id: '9a54ab08-2012-4746-92d9-db5dd02e6430',
     type: 'fiat',
     name: 'Mongolian Tögrög',
     code: 'MNT',
@@ -849,7 +857,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 97,
+    id: '069ead91-6ece-43d6-8b3e-9b01bbff95fa',
     type: 'fiat',
     name: 'Macanese Pataca',
     code: 'MOP',
@@ -858,7 +866,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 98,
+    id: '22773d8a-58b9-4843-bfaa-5e1e26f342ed',
     type: 'fiat',
     name: 'Mauritanian Ouguiya',
     code: 'MRU',
@@ -867,7 +875,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 99,
+    id: '7d6f748a-c483-4e8a-8a85-fa8b469374a7',
     type: 'fiat',
     name: 'Mauritian Rupee',
     code: 'MUR',
@@ -876,7 +884,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 100,
+    id: '300d5e72-8474-46d6-aeb9-4d56e43b5b00',
     type: 'fiat',
     name: 'Maldivian Rufiyaa',
     code: 'MVR',
@@ -885,7 +893,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 101,
+    id: 'f15f644c-23ee-4782-b1cb-0abe8effeef9',
     type: 'fiat',
     name: 'Malawian Kwacha',
     code: 'MWK',
@@ -894,7 +902,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 102,
+    id: '2849e24a-7f04-47cf-b5db-51b5b2e5e6d2',
     type: 'fiat',
     name: 'Mexican Peso',
     code: 'MXN',
@@ -903,7 +911,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 103,
+    id: '1155babb-668f-4de7-9684-92ea7a7a2357',
     type: 'fiat',
     name: 'Malaysian Ringgit',
     code: 'MYR',
@@ -912,7 +920,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 104,
+    id: '0c0477b3-f3b9-476a-a9ad-8d5a9a7914af',
     type: 'fiat',
     name: 'Mozambican Metical',
     code: 'MZN',
@@ -921,7 +929,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 105,
+    id: '4e185536-4168-4fca-8b66-171b0532a5d4',
     type: 'fiat',
     name: 'Namibian Dollar',
     code: 'NAD',
@@ -930,7 +938,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 106,
+    id: 'b26d8238-84e4-4394-babd-f99ae19f4953',
     type: 'fiat',
     name: 'Nigerian Naira',
     code: 'NGN',
@@ -939,7 +947,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 107,
+    id: 'b7c91831-2a98-4ff7-a346-a7049175e196',
     type: 'fiat',
     name: 'Nicaraguan Córdoba',
     code: 'NIO',
@@ -948,7 +956,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 108,
+    id: '75224f5a-4c76-4c83-87cf-59819c3fe505',
     type: 'fiat',
     name: 'Norwegian Krone',
     code: 'NOK',
@@ -957,7 +965,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 109,
+    id: '192f5cbe-bb79-4d08-83f9-557c8f654f2f',
     type: 'fiat',
     name: 'Nepalese Rupee',
     code: 'NPR',
@@ -966,7 +974,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 110,
+    id: 'c564ac4f-dafd-48d4-81fe-c660a39a237e',
     type: 'fiat',
     name: 'New Zealand Dollar',
     code: 'NZD',
@@ -975,7 +983,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 111,
+    id: '7f19938c-37ce-4598-a888-739c076e3a5f',
     type: 'fiat',
     name: 'Omani Rial',
     code: 'OMR',
@@ -984,7 +992,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 3,
   },
   {
-    id: 112,
+    id: '51b63042-b66a-4156-8123-368473064c1e',
     type: 'fiat',
     name: 'Panamanian Balboa',
     code: 'PAB',
@@ -993,7 +1001,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 113,
+    id: 'b3a3a013-bdb9-4b37-8499-a83d39f07bfe',
     type: 'fiat',
     name: 'Peruvian Sol',
     code: 'PEN',
@@ -1002,7 +1010,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 114,
+    id: '612bcfaf-d21d-45e1-aaf1-3093a42d0a42',
     type: 'fiat',
     name: 'Papua New Guinean Kina',
     code: 'PGK',
@@ -1011,7 +1019,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 115,
+    id: '0cfc9481-0f0f-4a3b-8db9-c3ceb42fbfd9',
     type: 'fiat',
     name: 'Philippine Peso',
     code: 'PHP',
@@ -1020,7 +1028,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 116,
+    id: '0657930a-d539-448f-b1b1-e50b54a3bcc1',
     type: 'fiat',
     name: 'Pakistani Rupee',
     code: 'PKR',
@@ -1029,7 +1037,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 117,
+    id: '2f36d00e-dac9-49a3-9354-6e870368bd37',
     type: 'fiat',
     name: 'Polish Zloty',
     code: 'PLN',
@@ -1038,7 +1046,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 118,
+    id: '09a99846-a423-4178-81b9-57381ffa4a8d',
     type: 'fiat',
     name: 'Pitcairn Islands Dollar',
     code: 'PND',
@@ -1047,7 +1055,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 119,
+    id: 'a17e5338-f4fd-4bf2-bd28-82701ecb8ee9',
     type: 'fiat',
     name: 'Transnistrian Ruble',
     code: 'PRB',
@@ -1056,7 +1064,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 120,
+    id: '68b8439b-7516-4b89-a2ba-9d14ff1ed141',
     type: 'fiat',
     name: 'Paraguayan Guaraní',
     code: 'PYG',
@@ -1065,7 +1073,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 0,
   },
   {
-    id: 121,
+    id: '4f224d77-0cf9-4c8c-bb69-79333f8f96d4',
     type: 'fiat',
     name: 'Qatari Riyal',
     code: 'QAR',
@@ -1074,7 +1082,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 122,
+    id: '210a90a4-a7bf-4c42-9803-ac07971d23ec',
     type: 'fiat',
     name: 'Romanian Leu',
     code: 'RON',
@@ -1083,7 +1091,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 123,
+    id: 'b59f43c0-a902-4b44-9e5d-3fa3d4cf338e',
     type: 'fiat',
     name: 'Serbian Dinar',
     code: 'RSD',
@@ -1092,7 +1100,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 124,
+    id: 'f7c913c0-dc92-4905-a470-dee97eca1f6b',
     type: 'fiat',
     name: 'Russian Ruble',
     code: 'RUB',
@@ -1101,7 +1109,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 125,
+    id: 'ce8f4528-8caa-4767-b835-1ac666b84366',
     type: 'fiat',
     name: 'Rwandan Franc',
     code: 'RWF',
@@ -1110,7 +1118,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 0,
   },
   {
-    id: 126,
+    id: 'e69c8f52-2903-4c0b-9b52-6981c0dac8a3',
     type: 'fiat',
     name: 'Saudi Riyal',
     code: 'SAR',
@@ -1119,7 +1127,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 127,
+    id: '2399dbfd-75b8-4d69-b250-b1492865b971',
     type: 'fiat',
     name: 'Solomon Islands Dollar',
     code: 'SBD',
@@ -1128,7 +1136,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 128,
+    id: 'f521cc4f-70e1-481a-b575-875fef2b635b',
     type: 'fiat',
     name: 'Seychellois Rupee',
     code: 'SCR',
@@ -1137,7 +1145,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 129,
+    id: 'b5e8ada0-1a4b-4a75-8597-23e0a07d1621',
     type: 'fiat',
     name: 'Sudanese Pound',
     code: 'SDG',
@@ -1146,7 +1154,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 130,
+    id: '45beba26-d892-4111-a738-dbdf9bc6e670',
     type: 'fiat',
     name: 'Swedish Krona',
     code: 'SEK',
@@ -1155,7 +1163,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 131,
+    id: 'fc04bc85-c8f8-44ee-b178-f3a7a2fd229f',
     type: 'fiat',
     name: 'Singapore Dollar',
     code: 'SGD',
@@ -1164,7 +1172,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 132,
+    id: '4908815c-d590-4b24-adec-cfe1c31b6c8c',
     type: 'fiat',
     name: 'Saint Helena Pound',
     code: 'SHP',
@@ -1173,7 +1181,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 133,
+    id: '63282bc5-0bcf-4135-8c14-2adfb94075f7',
     type: 'fiat',
     name: 'Sierra Leonean Leone',
     code: 'SLL',
@@ -1182,7 +1190,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 134,
+    id: 'b3c13e2f-4bdb-45bd-bb01-542727a9a64f',
     type: 'fiat',
     name: 'Somaliland Shilling',
     code: 'SLS',
@@ -1191,7 +1199,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 135,
+    id: '4b7edbb8-d246-4991-8364-a5e4685b700f',
     type: 'fiat',
     name: 'Somali Shilling',
     code: 'SOS',
@@ -1200,7 +1208,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 136,
+    id: 'ff9a11b9-0103-4498-b00b-61c988efb2c6',
     type: 'fiat',
     name: 'Surinamese Dollar',
     code: 'SRD',
@@ -1209,7 +1217,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 137,
+    id: '92341254-3300-4756-be46-c1a7ecd6a4fa',
     type: 'fiat',
     name: 'South Sudanese Pound',
     code: 'SSP',
@@ -1218,7 +1226,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 138,
+    id: '41e7e01c-ca6a-4f87-aeb7-7f13d29053ff',
     type: 'fiat',
     name: 'Sao Tome and Príncipe Dobra',
     code: 'STN',
@@ -1227,7 +1235,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 139,
+    id: '5de8a9c7-40a6-4d1e-a02d-cd9aeaf160ee',
     type: 'fiat',
     name: 'Salvadoran Colón',
     code: 'SVC',
@@ -1236,7 +1244,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 140,
+    id: 'ec0ded4c-0dd2-43de-ad4b-d0422762ac62',
     type: 'fiat',
     name: 'Syrian Pound',
     code: 'SYP',
@@ -1245,7 +1253,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 141,
+    id: '5e106138-fded-4472-9676-4028468a1937',
     type: 'fiat',
     name: 'Swazi Lilangeni',
     code: 'SZL',
@@ -1254,7 +1262,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 142,
+    id: '5a8afa54-85b6-4507-a098-eca56edaa392',
     type: 'fiat',
     name: 'Thai Baht',
     code: 'THB',
@@ -1263,7 +1271,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 143,
+    id: '6caf9513-5a8d-4107-a72b-8fc11b36117f',
     type: 'fiat',
     name: 'Tajikistani Somoni',
     code: 'TJS',
@@ -1272,7 +1280,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 144,
+    id: 'a0664789-86f8-489d-9715-70377bae4381',
     type: 'fiat',
     name: 'Turkmenistan Manat',
     code: 'TMT',
@@ -1281,7 +1289,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 145,
+    id: '06e8e9bc-3350-4b97-bd9a-5e1ac70189bd',
     type: 'fiat',
     name: 'Tunisian Dinar',
     code: 'TND',
@@ -1290,7 +1298,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 3,
   },
   {
-    id: 146,
+    id: '964cd1b2-5bff-4693-a8da-bd2b87248f50',
     type: 'fiat',
     name: 'Tongan Paʻanga',
     code: 'TOP',
@@ -1299,7 +1307,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 147,
+    id: '0d0d7aaf-8a75-442b-81a7-84861aa59200',
     type: 'fiat',
     name: 'Turkish Lira',
     code: 'TRY',
@@ -1308,7 +1316,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 148,
+    id: '5890a32d-508b-47b5-948b-3cc7dcf2fa92',
     type: 'fiat',
     name: 'Trinidad and Tobago Dollar',
     code: 'TTD',
@@ -1317,7 +1325,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 149,
+    id: 'c21b1abe-b49c-41da-8e0b-dcfc2836ddd5',
     type: 'fiat',
     name: 'Tuvaluan Dollar',
     code: 'TVD',
@@ -1326,7 +1334,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 150,
+    id: '61ab722b-e19b-4a29-bb6a-45dcb67eee19',
     type: 'fiat',
     name: 'New Taiwan Dollar',
     code: 'TWD',
@@ -1335,7 +1343,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 151,
+    id: '3f7ea53e-5270-4ad3-8df7-f22c199ab150',
     type: 'fiat',
     name: 'Tanzanian Shilling',
     code: 'TZS',
@@ -1344,7 +1352,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 152,
+    id: '518e7921-9950-4fc2-ad6b-6703ccb9803a',
     type: 'fiat',
     name: 'Ukrainian Hryvnia',
     code: 'UAH',
@@ -1353,7 +1361,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 153,
+    id: '2dd0d4f1-d8d9-4c18-8631-e06ab948dad2',
     type: 'fiat',
     name: 'Ugandan Shilling',
     code: 'UGX',
@@ -1362,7 +1370,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 0,
   },
   {
-    id: 154,
+    id: '19200d12-572c-4d48-8847-bf0bad398542',
     type: 'fiat',
     name: 'United States Dollar',
     code: 'USD',
@@ -1371,7 +1379,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 155,
+    id: '6abb82be-8374-43dc-94c4-dceb62c8211d',
     type: 'fiat',
     name: 'Uruguayan Peso',
     code: 'UYU',
@@ -1380,7 +1388,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 156,
+    id: '6791d8ad-5b14-44cf-b140-9a0a494b07ed',
     type: 'fiat',
     name: 'Uzbekistani Som',
     code: 'UZS',
@@ -1389,7 +1397,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 157,
+    id: '0393ea7c-9487-48ea-b8c5-3c55e1afd3c5',
     type: 'fiat',
     name: 'Venezuelan bolívar digital',
     code: 'VED',
@@ -1398,7 +1406,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 158,
+    id: '2abfaeb9-f57a-486b-9da7-55c147497162',
     type: 'fiat',
     name: 'Venezuelan Bolívar Soberano',
     code: 'VES',
@@ -1407,7 +1415,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 159,
+    id: 'e36c26f7-c95f-4a5f-a45b-4e02c45a9a5a',
     type: 'fiat',
     name: 'Vietnamese Dong',
     code: 'VND',
@@ -1416,7 +1424,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 0,
   },
   {
-    id: 160,
+    id: '74d695f8-a69d-43e8-887b-cbf963e555e6',
     type: 'fiat',
     name: 'Vanuatu Vatu',
     code: 'VUV',
@@ -1425,7 +1433,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 0,
   },
   {
-    id: 161,
+    id: '95a550cc-f917-4fcd-ae43-b10767b2abe0',
     type: 'fiat',
     name: 'Samoan Tala',
     code: 'WST',
@@ -1434,7 +1442,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 162,
+    id: 'f297afab-6dac-410e-8569-b07b8d9d9430',
     type: 'fiat',
     name: 'Central African CFA Franc BEAC',
     code: 'XAF',
@@ -1443,7 +1451,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 0,
   },
   {
-    id: 163,
+    id: '95856ea0-e5a3-4ed8-a207-0dbada96e770',
     type: 'fiat',
     name: 'East Caribbean Dollar',
     code: 'XCD',
@@ -1452,7 +1460,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 164,
+    id: '559068b3-3c68-4c35-93f9-782177d5a97c',
     type: 'fiat',
     name: 'West African CFA Franc BCEAO',
     code: 'XOF',
@@ -1461,7 +1469,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 0,
   },
   {
-    id: 165,
+    id: 'c381e8df-4c1d-4fb8-ba44-2d8aaa9d2522',
     type: 'fiat',
     name: 'CFP Franc (Franc Pacifique)',
     code: 'XPF',
@@ -1470,7 +1478,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 0,
   },
   {
-    id: 166,
+    id: 'c0e4592b-53a9-43c9-87de-6a31b61808cd',
     type: 'fiat',
     name: 'Yemeni Rial',
     code: 'YER',
@@ -1479,7 +1487,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 167,
+    id: '44045812-0ed6-48b8-9cdc-0f0ba61fe8b1',
     type: 'fiat',
     name: 'South African Rand',
     code: 'ZAR',
@@ -1488,7 +1496,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 168,
+    id: 'd2b09d1d-8d4a-4398-8d23-038dda74c19a',
     type: 'fiat',
     name: 'Zambian Kwacha',
     code: 'ZMW',
@@ -1497,7 +1505,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 2,
   },
   {
-    id: 169,
+    id: '6f25b993-10bd-46b7-bb56-d1c18e640dde',
     type: 'fiat',
     name: 'RTGS Dollar',
     code: 'ZWB',
@@ -1506,7 +1514,7 @@ export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
     isoDigits: 0,
   },
   {
-    id: 170,
+    id: '1d989e9b-e4b5-41f0-b7c1-99560df33b80',
     type: 'fiat',
     name: 'Zimbabwean Dollar',
     code: 'ZWL',
