@@ -1,4 +1,4 @@
-import type { Version } from '@/db/drizzle/version-table';
+import type { RemoteVersion } from '@/db/drizzle/version-table';
 
 const semanticVersionRegex = /^ver-(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?\.sql$/;
 
@@ -23,4 +23,4 @@ export const compareSemanticVersions = (a: string, b: string) => {
   return 0;
 };
 
-export type SchemaDefinition = { sql: string; version: Version };
+export type SchemaDefinition = { sql: string; version: RemoteVersion };

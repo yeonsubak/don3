@@ -35,7 +35,7 @@ export async function GET(
       .where(
         and(
           eq(schema.forex.baseCurrency, from),
-          between(schema.forex.createAt, fourHourBefore.toISO(), now.toISO()),
+          between(schema.forex.createAt, fourHourBefore.toJSDate(), now.toJSDate()),
         ),
       )
       .orderBy(schema.forex.baseCurrency, schema.forex.targetCurrency, desc(schema.forex.createAt));

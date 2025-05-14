@@ -1,16 +1,20 @@
 import { compareSemanticVersions } from '@/app/api/database/common';
 
-export type Version = {
+interface Version {
   version: string;
-  fileName: string;
-  nextVersion?: string;
+  nextVersion?: string | null | undefined;
   requireMigration?: boolean;
-  migrationVersion?: string;
   createAt: Date;
   updateAt?: Date;
-};
+}
 
-export const SCHEMA_VERSION_TABLE: Record<string, Version> = {
+export interface LocalVersion extends Version {
+  fileName: string;
+}
+
+export interface RemoteVersion extends Version {}
+
+export const SCHEMA_VERSION_TABLE: Record<string, LocalVersion> = {
   '0.0.1': {
     version: '0.0.1',
     fileName: 'ver-0.0.1.sql',
@@ -56,7 +60,7 @@ export const SCHEMA_VERSION_TABLE: Record<string, Version> = {
   },
 };
 
-export const LATEST_CLEAN_VERSION: Version = {
+export const LATEST_CLEAN_VERSION: LocalVersion = {
   version: '0.1.0',
   fileName: 'ver-0.1.0.sql',
   createAt: new Date('2025-05-14 18:00:55.265000+00'),
