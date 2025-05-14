@@ -23,7 +23,7 @@ export class AccountsRepository extends Repository {
     });
   }
 
-  public async getAccountById(id: number): Promise<AccountSelectAll | undefined> {
+  public async getAccountById(id: string): Promise<AccountSelectAll | undefined> {
     return await this.db.query.accounts.findFirst({
       where: (accounts, { eq }) => eq(accounts.id, id),
       with: {
@@ -40,7 +40,7 @@ export class AccountsRepository extends Repository {
     return result.at(0);
   }
 
-  public async getAccountGroup(_id: number) {
+  public async getAccountGroup(_id: string) {
     return this.db.query.accountGroups.findFirst({
       where: ({ id }, { eq }) => eq(id, _id),
       with: {
@@ -99,7 +99,7 @@ export class AccountsRepository extends Repository {
     return await this.db.insert(accountGroups).values(form).returning();
   }
 
-  public async getAccountBalance(targetAccountId: number) {
+  public async getAccountBalance(targetAccountId: string) {
     return await this.db.query.accountBalances.findFirst({
       where: ({ accountId }, { eq }) => eq(accountId, targetAccountId),
     });
@@ -123,7 +123,7 @@ export class AccountsRepository extends Repository {
   }
 
   public async updateAccountBalance(
-    accountId: number,
+    accountBalanceId: string,
     amount: number,
   ): Promise<AccountBalanceSelect> {
     const updatedAccountBalance: AccountBalanceSelect[] = await this.db
@@ -132,7 +132,7 @@ export class AccountsRepository extends Repository {
         balance: amount,
         updateAt: new Date(),
       })
-      .where(eq(accountBalances.id, accountId))
+      .where(eq(accountBalances.id, accountBalanceId))
       .returning();
 
     return updatedAccountBalance.at(0)!;

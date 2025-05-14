@@ -14,7 +14,7 @@ import { DateTime } from 'luxon';
 import { Repository } from './abstract-repository';
 
 export class TransactionRepository extends Repository {
-  public async getJournalEntryById(id: number) {
+  public async getJournalEntryById(id: string) {
     return await this.db.query.journalEntries.findFirst({
       where: (journalEntries, { eq }) => eq(journalEntries.id, id),
       with: {
@@ -53,7 +53,7 @@ export class TransactionRepository extends Repository {
   }
 
   public async insertJournalEntry(
-    currencyId: number,
+    currencyId: string,
     amount: number,
     form: IncomeTxForm | ExpenseTxForm | FundTransferTxForm,
   ) {

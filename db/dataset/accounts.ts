@@ -1,16 +1,16 @@
-import type { AccountInsert } from '../drizzle/types';
 import type { IconName } from 'lucide-react/dynamic';
+import type { AccountInsert } from '../drizzle/types';
 
 const a: IconName = 'house';
 
-const DATASET_ACCOUNTS_EXPENSE: (countryId: number, currencyId: number) => AccountInsert[] = (
+const DATASET_ACCOUNTS_EXPENSE: (countryId: string, currencyId: string) => AccountInsert[] = (
   countryId,
   currencyId,
 ) => [
   {
     name: 'Housing Costs',
     type: 'credit',
-    accountGroupId: 6,
+    accountGroupId: '607d24b7-ab8c-4776-9e46-cef8b277c443',
     currencyId: currencyId,
     countryId: countryId,
     icon: '🏠',
@@ -18,7 +18,7 @@ const DATASET_ACCOUNTS_EXPENSE: (countryId: number, currencyId: number) => Accou
   {
     name: 'Telecommunication',
     type: 'credit',
-    accountGroupId: 6,
+    accountGroupId: '607d24b7-ab8c-4776-9e46-cef8b277c443',
     currencyId: currencyId,
     countryId: countryId,
     icon: '📱',
@@ -26,7 +26,7 @@ const DATASET_ACCOUNTS_EXPENSE: (countryId: number, currencyId: number) => Accou
   {
     name: 'Insurance Preminums',
     type: 'credit',
-    accountGroupId: 6,
+    accountGroupId: '607d24b7-ab8c-4776-9e46-cef8b277c443',
     currencyId: currencyId,
     countryId: countryId,
     icon: '🛡️',
@@ -34,7 +34,7 @@ const DATASET_ACCOUNTS_EXPENSE: (countryId: number, currencyId: number) => Accou
   {
     name: 'Subscriptions',
     type: 'credit',
-    accountGroupId: 6,
+    accountGroupId: '607d24b7-ab8c-4776-9e46-cef8b277c443',
     currencyId: currencyId,
     countryId: countryId,
     icon: '📺',
@@ -42,7 +42,7 @@ const DATASET_ACCOUNTS_EXPENSE: (countryId: number, currencyId: number) => Accou
   {
     name: 'Groceries',
     type: 'credit',
-    accountGroupId: 7,
+    accountGroupId: '69ed430e-f978-41cb-910e-be45b8124b58',
     currencyId: currencyId,
     countryId: countryId,
     icon: '🛒',
@@ -50,7 +50,7 @@ const DATASET_ACCOUNTS_EXPENSE: (countryId: number, currencyId: number) => Accou
   {
     name: 'Transportations',
     type: 'credit',
-    accountGroupId: 7,
+    accountGroupId: '69ed430e-f978-41cb-910e-be45b8124b58',
     currencyId: currencyId,
     countryId: countryId,
     icon: '🚌',
@@ -58,7 +58,7 @@ const DATASET_ACCOUNTS_EXPENSE: (countryId: number, currencyId: number) => Accou
   {
     name: 'Gift',
     type: 'credit',
-    accountGroupId: 7,
+    accountGroupId: '69ed430e-f978-41cb-910e-be45b8124b58',
     currencyId: currencyId,
     countryId: countryId,
     icon: '🎁',
@@ -66,21 +66,21 @@ const DATASET_ACCOUNTS_EXPENSE: (countryId: number, currencyId: number) => Accou
   {
     name: 'Fashion & Beauty',
     type: 'credit',
-    accountGroupId: 7,
+    accountGroupId: '69ed430e-f978-41cb-910e-be45b8124b58',
     currencyId: currencyId,
     countryId: countryId,
     icon: '👠',
   },
 ];
 
-const DATASET_ACCOUNTS_INCOME: (countryId: number, currencyId: number) => AccountInsert[] = (
+const DATASET_ACCOUNTS_INCOME: (countryId: string, currencyId: string) => AccountInsert[] = (
   countryId,
   currencyId,
 ) => [
   {
     name: 'Regular salary',
     type: 'credit',
-    accountGroupId: 8,
+    accountGroupId: '5d41655b-635c-42a3-82ae-7b44a40fb7cd',
     currencyId: currencyId,
     countryId: countryId,
     icon: '💼',
@@ -88,7 +88,7 @@ const DATASET_ACCOUNTS_INCOME: (countryId: number, currencyId: number) => Accoun
   {
     name: 'Overtime pay',
     type: 'credit',
-    accountGroupId: 8,
+    accountGroupId: '5d41655b-635c-42a3-82ae-7b44a40fb7cd',
     currencyId: currencyId,
     countryId: countryId,
     icon: '⏰',
@@ -96,7 +96,7 @@ const DATASET_ACCOUNTS_INCOME: (countryId: number, currencyId: number) => Accoun
   {
     name: 'Bonuses',
     type: 'credit',
-    accountGroupId: 8,
+    accountGroupId: '5d41655b-635c-42a3-82ae-7b44a40fb7cd',
     currencyId: currencyId,
     countryId: countryId,
     icon: '🥳',
@@ -104,7 +104,7 @@ const DATASET_ACCOUNTS_INCOME: (countryId: number, currencyId: number) => Accoun
   {
     name: 'Freelance income',
     type: 'credit',
-    accountGroupId: 9,
+    accountGroupId: 'd1682653-6d15-4d15-acc8-01d3da264f0a',
     currencyId: currencyId,
     countryId: countryId,
     icon: '💻',
@@ -112,7 +112,7 @@ const DATASET_ACCOUNTS_INCOME: (countryId: number, currencyId: number) => Accoun
   {
     name: 'Investment profits & dividends',
     type: 'credit',
-    accountGroupId: 10,
+    accountGroupId: '95da1c00-11f5-4bad-a543-2f13ce3f74f0',
     currencyId: currencyId,
     countryId: countryId,
     icon: '🚀',
@@ -120,7 +120,7 @@ const DATASET_ACCOUNTS_INCOME: (countryId: number, currencyId: number) => Accoun
   {
     name: 'Real estate',
     type: 'credit',
-    accountGroupId: 10,
+    accountGroupId: '95da1c00-11f5-4bad-a543-2f13ce3f74f0',
     currencyId: currencyId,
     countryId: countryId,
     icon: '🏘️',
@@ -128,7 +128,7 @@ const DATASET_ACCOUNTS_INCOME: (countryId: number, currencyId: number) => Accoun
   {
     name: 'Government pension',
     type: 'credit',
-    accountGroupId: 11,
+    accountGroupId: '60d3d9c4-ba5d-4588-bb8d-4a1d8fc63fbf',
     currencyId: currencyId,
     countryId: countryId,
     icon: '🧓',
@@ -136,7 +136,7 @@ const DATASET_ACCOUNTS_INCOME: (countryId: number, currencyId: number) => Accoun
   {
     name: 'Subsidies',
     type: 'credit',
-    accountGroupId: 11,
+    accountGroupId: '60d3d9c4-ba5d-4588-bb8d-4a1d8fc63fbf',
     currencyId: currencyId,
     countryId: countryId,
     icon: '🏛️',
@@ -144,14 +144,14 @@ const DATASET_ACCOUNTS_INCOME: (countryId: number, currencyId: number) => Accoun
   {
     name: 'Cashback rewards',
     type: 'credit',
-    accountGroupId: 12,
+    accountGroupId: 'fc2bed98-3e63-48e1-b1e7-49c0df04e742',
     currencyId: currencyId,
     countryId: countryId,
     icon: '💰',
   },
 ];
 
-export const DATASET_ACCOUNTS: (countryId: number, currencyId: number) => AccountInsert[] = (
+export const DATASET_ACCOUNTS: (countryId: string, currencyId: string) => AccountInsert[] = (
   countryId,
   currencyId,
 ) => [

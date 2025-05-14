@@ -38,8 +38,8 @@ export const FundTransferForm = ({ footer, onSuccess }: TxFormProps) => {
       fxAmount: sharedForm?.fxAmount ?? '',
       title: sharedForm?.title ?? '',
       description: sharedForm?.description ?? '',
-      debitAccountId: sharedForm?.debitAccountId ?? -1,
-      creditAccountId: -1,
+      debitAccountId: sharedForm?.debitAccountId ?? '',
+      creditAccountId: '',
       isFx: sharedForm?.isFx ?? false,
     },
   });
