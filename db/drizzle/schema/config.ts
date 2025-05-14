@@ -1,23 +1,25 @@
-import { relations } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 import {
+  date,
   index,
   integer,
+  numeric,
   pgEnum,
   pgSchema,
   timestamp,
   unique,
   uniqueIndex,
+  uuid,
   varchar,
-  date,
-  numeric,
 } from 'drizzle-orm/pg-core';
+import { generateRandomUUID } from './helper';
 
 export const configSchema = pgSchema('config');
 
 export const information = configSchema.table(
   'information',
   {
-    id: integer().primaryKey().generatedByDefaultAsIdentity().notNull(),
+    id: uuid().primaryKey().default(generateRandomUUID).notNull(),
     name: varchar({ length: 255 }).notNull(),
     value: varchar({ length: 255 }).notNull(),
   },
@@ -30,11 +32,11 @@ export const information = configSchema.table(
 export const countries = configSchema.table(
   'countries',
   {
-    id: integer().primaryKey().generatedByDefaultAsIdentity().notNull(),
+    id: uuid().primaryKey().default(generateRandomUUID).notNull(),
     name: varchar({ length: 255 }).notNull(),
     code: varchar({ length: 3 }).notNull().unique(), // ISO 3166-1 alpha-3
     codeAlpha2: varchar({ length: 2 }).notNull().unique(),
-    defaultCurrencyId: integer(),
+    defaultCurrencyId: uuid(),
     emoji: varchar({ length: 3 }),
     createAt: timestamp({ withTimezone: true }).defaultNow(),
     updateAt: timestamp({ withTimezone: true }),
@@ -57,7 +59,7 @@ export const currencyTypeEnum = pgEnum('currency_type', ['fiat', 'crypto']);
 export const currencies = configSchema.table(
   'currencies',
   {
-    id: integer().primaryKey().generatedByDefaultAsIdentity().notNull(),
+    id: uuid().primaryKey().default(generateRandomUUID).notNull(),
     type: currencyTypeEnum().notNull(),
     name: varchar({ length: 255 }).notNull(),
     code: varchar({ length: 3 }).notNull(), // The currency code in accordance with ISO 4217
@@ -80,7 +82,7 @@ export const currenciesRelations = relations(currencies, ({ many }) => ({
 export const forex = configSchema.table(
   'forex',
   {
-    id: integer().primaryKey().generatedByDefaultAsIdentity().notNull(),
+    id: uuid().primaryKey().default(generateRandomUUID).notNull(),
     date: date().notNull(),
     baseCurrency: varchar('base_currency').notNull(),
     targetCurrency: varchar('target_currency').notNull(),

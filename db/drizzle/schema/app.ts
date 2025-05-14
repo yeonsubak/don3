@@ -9,10 +9,12 @@ import {
   text,
   timestamp,
   unique,
+  uuid,
   varchar,
   type AnyPgColumn,
 } from 'drizzle-orm/pg-core';
 import { countries, currencies } from './config';
+import { generateRandomUUID } from './helper';
 
 export const appSchema = pgSchema('app');
 
@@ -20,18 +22,21 @@ export const debitCreditEnum = pgEnum('debit_credit_enum', ['debit', 'credit']);
 export const accounts = appSchema.table(
   'accounts',
   {
-    id: integer().primaryKey().generatedByDefaultAsIdentity().notNull(),
+    id: uuid().primaryKey().default(generateRandomUUID).notNull(),
     name: varchar({ length: 255 }).notNull(),
     type: debitCreditEnum().notNull(),
-    currencyId: integer()
-      .references(() => currencies.id, { onDelete: 'restrict' })
+    currencyId: uuid()
+      .references(() => currencies.id, { onUpdate: 'cascade', onDelete: 'restrict' })
       .notNull(),
-    countryId: integer()
-      .references(() => countries.id, { onDelete: 'restrict' })
+    countryId: uuid()
+      .references(() => countries.id, { onUpdate: 'cascade', onDelete: 'restrict' })
       .notNull(),
-    accountGroupId: integer()
-      .default(1)
-      .references(() => accountGroups.id, { onDelete: 'set default' }),
+    accountGroupId: uuid()
+      .references(() => accountGroups.id, {
+        onUpdate: 'cascade',
+        onDelete: 'set default',
+      })
+      .notNull(),
     sortOrder: integer().notNull().default(0),
     isArchive: boolean().default(false),
     icon: varchar({ length: 20 }),
@@ -66,8 +71,8 @@ export const accountsRelations = relations(accounts, ({ one }) => ({
 export const accountBalances = appSchema.table(
   'account_balances',
   {
-    id: integer().primaryKey().generatedByDefaultAsIdentity().notNull(),
-    accountId: integer()
+    id: uuid().primaryKey().default(generateRandomUUID).notNull(),
+    accountId: uuid()
       .references(() => accounts.id, {
         onDelete: 'cascade',
         onUpdate: 'cascade',
@@ -93,10 +98,13 @@ export const accountGroupTypeEnum = pgEnum('account_group_type', [
 export const accountGroups = appSchema.table(
   'account_groups',
   {
-    id: integer().primaryKey().generatedByDefaultAsIdentity().notNull(),
-    parentGroupId: integer()
-      .default(1)
-      .references((): AnyPgColumn => accountGroups.id, { onDelete: 'set default' }),
+    id: uuid().primaryKey().default(generateRandomUUID).notNull(),
+    parentGroupId: uuid()
+      .default('f3cddbaf-cd30-4846-9a92-2b6fce7aca7e')
+      .references((): AnyPgColumn => accountGroups.id, {
+        onUpdate: 'cascade',
+        onDelete: 'set default',
+      }),
     type: accountGroupTypeEnum().notNull(),
     name: varchar({ length: 255 }).notNull(),
     description: text(),
@@ -124,12 +132,12 @@ export const journalEntryTypeEnum = pgEnum('journal_entry_type', ['income', 'exp
 export const journalEntries = appSchema.table(
   'journal_entries',
   {
-    id: integer().primaryKey().generatedByDefaultAsIdentity().notNull(),
+    id: uuid().primaryKey().default(generateRandomUUID).notNull(),
     date: timestamp({ withTimezone: true }).notNull(),
     type: journalEntryTypeEnum().notNull(),
-    currencyId: integer()
-      .notNull()
-      .references(() => currencies.id),
+    currencyId: uuid()
+      .references(() => currencies.id, { onUpdate: 'cascade', onDelete: 'restrict' })
+      .notNull(),
     amount: numeric({ precision: 15, scale: 2, mode: 'number' }).notNull(),
     title: varchar({ length: 255 }),
     description: text(),
@@ -156,16 +164,16 @@ export const journalEntriesRelations = relations(journalEntries, ({ many, one })
 export const journalEntryFxRates = appSchema.table(
   'journal_entry_fx_rates',
   {
-    id: integer().primaryKey().generatedByDefaultAsIdentity().notNull(),
-    journalEntryId: integer()
-      .notNull()
-      .references(() => journalEntries.id),
-    baseCurrencyId: integer()
-      .notNull()
-      .references(() => currencies.id),
-    targetCurrencyId: integer()
-      .notNull()
-      .references(() => currencies.id),
+    id: uuid().primaryKey().default(generateRandomUUID).notNull(),
+    journalEntryId: uuid()
+      .references(() => journalEntries.id, { onUpdate: 'cascade', onDelete: 'cascade' })
+      .notNull(),
+    baseCurrencyId: uuid()
+      .references(() => currencies.id, { onUpdate: 'cascade', onDelete: 'restrict' })
+      .notNull(),
+    targetCurrencyId: uuid()
+      .references(() => currencies.id, { onUpdate: 'cascade', onDelete: 'restrict' })
+      .notNull(),
     rate: numeric({ scale: 8, mode: 'number' }).notNull(),
     createAt: timestamp({ withTimezone: true }).defaultNow(),
     updateAt: timestamp({ withTimezone: true }),
@@ -201,14 +209,14 @@ export const journalEntryFxRatesRelations = relations(journalEntryFxRates, ({ on
 export const transactions = appSchema.table(
   'transactions',
   {
-    id: integer().primaryKey().generatedByDefaultAsIdentity().notNull(),
+    id: uuid().primaryKey().default(generateRandomUUID).notNull(),
     type: debitCreditEnum().notNull(),
-    journalEntryId: integer()
-      .notNull()
-      .references(() => journalEntries.id), // TODO: Add onDelete, onUpdate policy
-    accountId: integer()
-      .notNull()
-      .references(() => accounts.id), // TODO: Add onDelete, onUpdate policy
+    journalEntryId: uuid()
+      .references(() => journalEntries.id, { onUpdate: 'cascade', onDelete: 'cascade' })
+      .notNull(),
+    accountId: uuid()
+      .references(() => accounts.id, { onUpdate: 'cascade', onDelete: 'cascade' })
+      .notNull(),
     amount: numeric({ precision: 15, scale: 2, mode: 'number' }).notNull(),
     description: text(),
     createAt: timestamp({ withTimezone: true }).defaultNow(),

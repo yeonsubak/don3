@@ -1,10 +1,12 @@
-import { fetchLocal } from '@/app/api/database/get-schema-definition/route';
+import { parseSQLFile } from '@/app/api/database/get-schema-definition/route';
 import type { PgliteDrizzle } from '@/db';
 import { DATASET_ACCOUNT_GROUPS } from '@/db/dataset/account-groups';
 import { DATASET_COUNTRY } from '@/db/dataset/country';
 import { DATASET_CURRENCY_FIAT } from '@/db/dataset/currency';
 import * as schema from '@/db/drizzle/schema';
+import { LATEST_CLEAN_VERSION } from '@/db/drizzle/version-table';
 import { MemoryFS, PGlite } from '@electric-sql/pglite';
+import { uuid_ossp } from '@electric-sql/pglite/contrib/uuid_ossp';
 import { live } from '@electric-sql/pglite/live';
 import type { InferInsertModel, TableConfig } from 'drizzle-orm';
 import type { PgTable } from 'drizzle-orm/pg-core';
@@ -15,17 +17,26 @@ export const printTestResult = (input: unknown, expected: unknown, result: unkno
 };
 
 export async function createInMemoryPGLiteDrizzle(): Promise<PgliteDrizzle> {
-  const pg = new PGlite({ fs: new MemoryFS(), relaxedDurability: true, extensions: { live } });
+  const pg = new PGlite({
+    fs: new MemoryFS(),
+    relaxedDurability: true,
+    extensions: { live, uuid_ossp },
+  });
   const db = drizzle(pg, {
     schema,
     casing: 'snake_case',
   });
 
-  const sqls = await fetchLocal(null);
-
-  for (const { sql } of sqls) {
-    await db.$client.exec(sql);
-  }
+  const sql = await parseSQLFile(LATEST_CLEAN_VERSION.fileName);
+  await pg.transaction(async (tx) => {
+    try {
+      await tx.exec(sql);
+    } catch (err) {
+      console.error(err);
+      await tx.rollback();
+      throw new Error('Database initialization failed.');
+    }
+  });
 
   await Promise.all([
     db.insert(schema.currencies).values(DATASET_CURRENCY_FIAT).onConflictDoNothing(),
