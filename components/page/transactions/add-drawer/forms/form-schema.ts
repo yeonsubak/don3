@@ -37,21 +37,21 @@ export const baseTxForm = z
 export type ExpenseTxForm = z.infer<typeof expenseTxForm>;
 export const expenseTxForm = baseTxForm.extend({
   countryCode: z.string(), // Not for mutation
-  debitAccountId: z.coerce.number().gt(0, { message: "Please select 'Paid by' account" }),
-  creditAccountId: z.coerce.number().gt(0, { message: 'Please select the category' }),
+  debitAccountId: z.coerce.string().uuid({ message: "Please select 'Paid by' account" }),
+  creditAccountId: z.coerce.string().uuid({ message: 'Please select the category' }),
 });
 
 export type IncomeTxForm = z.infer<typeof incomeTxForm>;
 export const incomeTxForm = baseTxForm.extend({
   countryCode: z.string(), // Not for mutation
-  debitAccountId: z.coerce.number().gt(0, { message: 'Please select the account' }),
-  creditAccountId: z.coerce.number().gt(0, { message: 'Please select the category' }),
+  debitAccountId: z.coerce.string().uuid({ message: 'Please select the account' }),
+  creditAccountId: z.coerce.string().uuid({ message: 'Please select the category' }),
 });
 
 export type FundTransferTxForm = z.infer<typeof fundTransferTxForm>;
 export const fundTransferTxForm = baseTxForm.extend({
-  debitAccountId: z.coerce.number().gt(0, { message: 'Please select origin account' }),
-  creditAccountId: z.coerce.number().gt(0, { message: 'Please select destination account' }),
+  debitAccountId: z.coerce.string().uuid({ message: 'Please select origin account' }),
+  creditAccountId: z.coerce.string().uuid({ message: 'Please select destination account' }),
 });
 
 const fields = expenseTxForm.keyof().options;

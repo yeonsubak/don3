@@ -11,7 +11,7 @@ import { useTransactionContext } from './transaction-context';
 import { getTransactionService } from '@/services/helper';
 
 export type TransactionItem = {
-  id: number;
+  id: string;
   title: string;
   currencySymbol: string;
   amount: string;

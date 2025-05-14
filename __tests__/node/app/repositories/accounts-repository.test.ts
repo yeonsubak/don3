@@ -13,27 +13,27 @@ beforeEach(async () => {
 describe('AccountsRepository', () => {
   const INSERTING_ACCOUNTS: AccountInsert[] = [
     {
-      id: 1,
-      accountGroupId: 2,
+      id: crypto.randomUUID(),
+      accountGroupId: 'a3a1eeb2-4095-40c2-b46e-c89c71bf92ee',
       name: 'InsertTest',
       type: 'debit',
-      currencyId: 81,
-      countryId: 198,
+      currencyId: '0449fd3c-e5bb-4124-8784-169ddbfc072b',
+      countryId: 'ac2c2eb6-29d1-4858-a552-026d51d72f94',
       icon: 'piggy-bank',
     },
     {
-      id: 2,
-      accountGroupId: 3,
+      id: crypto.randomUUID(),
+      accountGroupId: '41687ca0-44a5-4da4-92ac-46c9c8f504b1',
       name: 'InsertTest2',
       type: 'debit',
-      currencyId: 81,
-      countryId: 198,
+      currencyId: '0449fd3c-e5bb-4124-8784-169ddbfc072b',
+      countryId: 'ac2c2eb6-29d1-4858-a552-026d51d72f94',
       icon: 'piggy-bank',
     },
   ];
 
   const INSERTING_ACCOUNT_BALANCE: AccountBalanceInsert = {
-    accountId: 1,
+    accountId: INSERTING_ACCOUNTS[0].id!,
     balance: 0,
   };
 
@@ -43,11 +43,11 @@ describe('AccountsRepository', () => {
     expect(insertResult).not.toBeNull();
     expect(insertResult).not.toBeUndefined();
     expect(insertResult).toMatchObject({
-      accountGroupId: 2,
+      accountGroupId: 'a3a1eeb2-4095-40c2-b46e-c89c71bf92ee',
       name: 'InsertTest',
       type: 'debit',
-      currencyId: 81,
-      countryId: 198,
+      currencyId: '0449fd3c-e5bb-4124-8784-169ddbfc072b',
+      countryId: 'ac2c2eb6-29d1-4858-a552-026d51d72f94',
       icon: 'piggy-bank',
     });
   });
@@ -59,27 +59,11 @@ describe('AccountsRepository', () => {
     expect(accountGetById).not.toBeNull();
     expect(accountGetById).not.toBeUndefined();
     expect(accountGetById).toMatchObject({
-      accountGroupId: 2,
+      accountGroupId: 'a3a1eeb2-4095-40c2-b46e-c89c71bf92ee',
       name: 'InsertTest',
       type: 'debit',
-      currencyId: 81,
-      countryId: 198,
-      icon: 'piggy-bank',
-    });
-  });
-
-  test('insert a new account and returns inserted account by getAccountById()', async () => {
-    const insertResult = await repo.insertAccount(INSERTING_ACCOUNTS[0]);
-    const accountGetById = await repo.getAccountById(insertResult!.id);
-
-    expect(accountGetById).not.toBeNull();
-    expect(accountGetById).not.toBeUndefined();
-    expect(accountGetById).toMatchObject({
-      accountGroupId: 2,
-      name: 'InsertTest',
-      type: 'debit',
-      currencyId: 81,
-      countryId: 198,
+      currencyId: '0449fd3c-e5bb-4124-8784-169ddbfc072b',
+      countryId: 'ac2c2eb6-29d1-4858-a552-026d51d72f94',
       icon: 'piggy-bank',
     });
   });
@@ -101,7 +85,7 @@ describe('AccountsRepository', () => {
     expect(insertedBalance).not.toBeNull();
     expect(insertedBalance).not.toBeUndefined();
     expect(insertedBalance).toMatchObject({
-      accountId: 1,
+      accountId: INSERTING_ACCOUNTS[0].id,
       balance: 0,
     });
   });
@@ -109,12 +93,12 @@ describe('AccountsRepository', () => {
   test('Update the balance of an account balance', async () => {
     const insertedAccount = await repo.insertAccount(INSERTING_ACCOUNTS[0]);
     const insertedBalance = await repo.insertAccountBalance(INSERTING_ACCOUNT_BALANCE);
-    const addedBalance = await repo.updateAccountBalance(insertedAccount!.id, 16521);
+    const addedBalance = await repo.updateAccountBalance(insertedBalance!.id, 16521);
 
     expect(addedBalance).not.toBeNull();
     expect(addedBalance).not.toBeUndefined();
     expect(addedBalance).toMatchObject({
-      accountId: 1,
+      accountId: INSERTING_ACCOUNTS[0].id,
       balance: 16521,
     });
   });
@@ -122,12 +106,12 @@ describe('AccountsRepository', () => {
   test('Update the balance of an account balance with scale - 1', async () => {
     const insertedAccount = await repo.insertAccount(INSERTING_ACCOUNTS[0]);
     const insertedBalance = await repo.insertAccountBalance(INSERTING_ACCOUNT_BALANCE);
-    const addedBalance = await repo.updateAccountBalance(insertedAccount!.id, 985.68);
+    const addedBalance = await repo.updateAccountBalance(insertedBalance!.id, 985.68);
 
     expect(addedBalance).not.toBeNull();
     expect(addedBalance).not.toBeUndefined();
     expect(addedBalance).toMatchObject({
-      accountId: 1,
+      accountId: INSERTING_ACCOUNTS[0].id,
       balance: 985.68,
     });
   });
@@ -135,12 +119,12 @@ describe('AccountsRepository', () => {
   test('Update the balance of an account balance with scale - 2', async () => {
     const insertedAccount = await repo.insertAccount(INSERTING_ACCOUNTS[0]);
     const insertedBalance = await repo.insertAccountBalance(INSERTING_ACCOUNT_BALANCE);
-    const addedBalance = await repo.updateAccountBalance(insertedAccount!.id, 16825.455555);
+    const addedBalance = await repo.updateAccountBalance(insertedBalance!.id, 16825.455555);
 
     expect(addedBalance).not.toBeNull();
     expect(addedBalance).not.toBeUndefined();
     expect(addedBalance).toMatchObject({
-      accountId: 1,
+      accountId: INSERTING_ACCOUNTS[0].id,
       balance: 16825.46,
     });
   });

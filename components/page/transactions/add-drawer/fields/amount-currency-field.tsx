@@ -284,11 +284,11 @@ export const TransferAmountCurrencyField = ({
   const creditAccountWatch = useWatch({ control: zForm?.control, name: 'creditAccountId' });
 
   const debitCurrency = useMemo(() => {
-    const debitAccount = accounts.find(({ id }) => id === parseInt(debitAccountWatch));
+    const debitAccount = accounts.find(({ id }) => id === debitAccountWatch);
     return debitAccount?.currency;
   }, [accounts, debitAccountWatch]);
   const creditCurrency = useMemo(() => {
-    const creditAccount = accounts.find(({ id }) => id === Number(creditAccountWatch));
+    const creditAccount = accounts.find(({ id }) => id === creditAccountWatch);
     return creditAccount?.currency;
   }, [accounts, creditAccountWatch]);
 
