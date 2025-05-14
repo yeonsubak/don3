@@ -150,7 +150,7 @@ export class TransactionService extends Service {
         ]);
 
         async function updateAccountBalance(
-          accountId: number,
+          accountId: string,
           amount: number,
           accountsRepo: AccountsRepository,
         ) {
@@ -160,7 +160,7 @@ export class TransactionService extends Service {
           }
 
           return await accountsRepo.updateAccountBalance(
-            accountId,
+            accountBalance.id,
             accountBalance.balance + amount,
           );
         }
@@ -180,7 +180,7 @@ export class TransactionService extends Service {
       }
     });
 
-    return await this.transactionRepository.getJournalEntryById(entryId ?? -1);
+    return await this.transactionRepository.getJournalEntryById(entryId ?? '');
   }
 
   public async updateBalance() {}

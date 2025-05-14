@@ -45,7 +45,7 @@ export class AccountsService extends Service {
         const accountsRepoWithTx = new AccountsRepository(tx);
 
         const insertedAccount = await accountsRepoWithTx.insertAccount({
-          accountGroupId: parseInt(accountGroupId),
+          accountGroupId: accountGroupId,
           type: accountType,
           name: accountName,
           currencyId: currency.id,
@@ -94,7 +94,7 @@ export class AccountsService extends Service {
     return groupedByCountry;
   }
 
-  public async getAccountGroup(id: number) {
+  public async getAccountGroup(id: string) {
     return this.accountsRepository.getAccountGroup(id);
   }
 

@@ -16,8 +16,8 @@ import type { z } from 'zod';
 import type { baseTxForm } from './forms/form-schema';
 
 type SharedForm = Partial<z.infer<typeof baseTxForm>> & {
-  debitAccountId?: number;
-  creditAccountId?: number;
+  debitAccountId?: string;
+  creditAccountId?: string;
   countryCode?: string;
 };
 
