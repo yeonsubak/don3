@@ -90,7 +90,7 @@ export class DBInitializer {
   }
 
   private async syncSchema() {
-    const updateSchema = async (nextVersion: string | undefined, latestVersion: string) => {
+    const updateSchema = async (nextVersion: string | undefined | null, latestVersion: string) => {
       if (!nextVersion) return;
 
       const currentVersion = window.localStorage.getItem(LOCAL_STORAGE_KEYS.PGLITE.SCHEMA_VERSION);
