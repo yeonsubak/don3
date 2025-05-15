@@ -1,7 +1,4 @@
-import type { IconName } from 'lucide-react/dynamic';
 import type { AccountInsert } from '../drizzle/types';
-
-const a: IconName = 'house';
 
 const DATASET_ACCOUNTS_EXPENSE: (countryId: string, currencyId: string) => AccountInsert[] = (
   countryId,

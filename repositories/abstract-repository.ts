@@ -2,7 +2,7 @@ import type { PgliteDrizzle } from '@/db';
 import type { PgliteTransaction } from '@/db/drizzle/types';
 
 export abstract class Repository {
-  protected db!: PgliteDrizzle | PgliteTransaction;
+  protected db: PgliteDrizzle | PgliteTransaction;
 
   constructor(db: PgliteDrizzle | PgliteTransaction) {
     this.db = db;
