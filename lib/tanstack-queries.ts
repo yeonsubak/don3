@@ -1,6 +1,5 @@
 import type { AccountGroupType, CurrencySelect, JournalEntryType } from '@/db/drizzle/types';
-import { getConfigService } from '@/services/config-service';
-import { getAccountsService, getTransactionService } from '@/services/helper';
+import { getAccountsService, getTransactionService, getConfigService } from '@/services/helper';
 import { queryOptions } from '@tanstack/react-query';
 
 export const QUERIES = {
