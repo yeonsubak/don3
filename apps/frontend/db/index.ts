@@ -8,6 +8,10 @@ export type PgliteDrizzle = PgliteDatabase<typeof schema> & {
 };
 
 export function drizzle(client: PGliteWorker): PgliteDrizzle {
+  if (!client) {
+    throw new Error('PGLite client is null');
+  }
+
   // @ts-expect-error
   return _drizzle(client, { schema, casing: 'snake_case' });
 }
