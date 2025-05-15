@@ -12,7 +12,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { Check, ChevronsUpDown } from 'lucide-react';
-import { useState } from 'react';
+import { useState, type Dispatch, type SetStateAction } from 'react';
 import type { ControllerRenderProps, FieldValue, FieldValues } from 'react-hook-form';
 import { useMediaQuery } from 'usehooks-ts';
 import type { TailwindClass } from '../common-types';
@@ -43,6 +43,7 @@ export interface ComboboxProps {
   popoverContentAlign?: 'start' | 'center' | 'end';
   keyRenderFn?: (item: ComboboxItem) => string;
   labelRenderFn?: (itemData: unknown) => string;
+  state?: [string, Dispatch<SetStateAction<string>>];
 }
 
 export function flattenComboboxItems<T>(items: ComboboxItem<T>[]): ComboboxItem<T>[] {
@@ -60,6 +61,13 @@ export const Combobox = ({
   field,
   isChevron = true,
   buttonLabelRenderFn = () => {
+    if (state && state[0].length > 0) {
+      return (
+        flattenComboboxItems(items ?? []).find((item) => item.value === state[0])?.label ??
+        placeholder
+      );
+    }
+
     if (field?.value && field.value.length > 0) {
       return (
         flattenComboboxItems(items ?? []).find((item) => item.value === field.value)?.label ??
@@ -76,6 +84,7 @@ export const Combobox = ({
   popoverContentAlign = 'center',
   keyRenderFn,
   labelRenderFn,
+  state,
 }: ComboboxProps) => {
   const [open, setOpen] = useState(false);
   const isDesktop = useMediaQuery('(min-width: 768px)');
@@ -106,6 +115,11 @@ export const Combobox = ({
         onSelect={(currentValue) => {
           if (onSelectFn) {
             onSelectFn(currentValue);
+          }
+
+          if (state) {
+            const [value, setValue] = state;
+            setValue(currentValue);
           }
 
           field?.onChange(currentValue);

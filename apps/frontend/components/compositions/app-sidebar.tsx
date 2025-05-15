@@ -44,7 +44,7 @@ const menuItems: MenuItems = {
     },
     {
       title: 'Settings',
-      url: '#',
+      url: '/app/settings',
       icon: Settings,
     },
   ],

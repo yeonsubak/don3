@@ -1,7 +1,7 @@
 'use client';
 
+import type { UserConfigKey } from '@/db/drizzle/schema';
 import type { CurrencySelect, ForexInsert, ForexSelect } from '@/db/drizzle/types';
-import { getConfigRepository } from '@/repositories/helper';
 import { DateTime } from 'luxon';
 import type { FetchFxRate } from '../app/api/get-latest-fx-rate/route';
 import { ConfigRepository } from '../repositories/config-repository';
@@ -86,9 +86,8 @@ export class ConfigService extends Service {
 
     return fxRates;
   }
-}
 
-export const getConfigService = async () => {
-  const configRepository = await getConfigRepository();
-  return new ConfigService(configRepository);
-};
+  public async updateUserConfig(key: UserConfigKey, value: string) {
+    return await this.configRepository.updateUserConfig(key, value);
+  }
+}
