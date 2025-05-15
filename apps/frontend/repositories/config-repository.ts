@@ -1,4 +1,4 @@
-import { forex, type UserConfigKey } from '@/db/drizzle/schema';
+import { forex, information, type UserConfigKey } from '@/db/drizzle/schema';
 import type { CurrencySelect, ForexInsert } from '@/db/drizzle/types';
 import { and, between, desc, eq, inArray } from 'drizzle-orm';
 import { DateTime } from 'luxon';
@@ -12,12 +12,6 @@ export class ConfigRepository extends Repository {
   public async getCurrencyByCode(code: string) {
     return await this.db.query.currencies.findFirst({
       where: (currency, { eq }) => eq(currency.code, code),
-    });
-  }
-
-  public async getUserConfig(key: UserConfigKey) {
-    return await this.db.query.information.findFirst({
-      where: (information, { eq }) => eq(information.name, key),
     });
   }
 
@@ -39,6 +33,26 @@ export class ConfigRepository extends Repository {
     return await this.db.query.countries.findMany({
       where: ({ code }, { inArray }) => inArray(code, countryCodes),
     });
+  }
+
+  public async getUserConfig(key: UserConfigKey) {
+    return await this.db.query.information.findFirst({
+      where: (information, { eq }) => eq(information.name, key),
+    });
+  }
+
+  public async insertUserConfig(key: UserConfigKey, value: string) {
+    const result = await this.db.insert(information).values({ name: key, value }).returning();
+    return result.at(0);
+  }
+
+  public async updateUserConfig(key: UserConfigKey, value: string) {
+    const result = await this.db
+      .update(information)
+      .set({ value })
+      .where(eq(information.name, key))
+      .returning();
+    return result.at(0);
   }
 
   public async getLatestFxRate({
