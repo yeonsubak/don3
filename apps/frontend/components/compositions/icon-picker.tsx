@@ -18,7 +18,7 @@ import type {
   FieldValues,
   UseFormReturn,
 } from 'react-hook-form';
-import { useMediaQuery } from 'usehooks-ts';
+import { useIsMobile } from '../hooks/use-mobile';
 import { Button } from '../ui/button';
 
 interface IconPickerProps {
@@ -35,7 +35,7 @@ export function IconPicker({ onChange, className, field }: IconPickerProps) {
   const ICONS_PER_PAGE = 24; // 8 columns x 3 rows
   const totalPages = Math.ceil(iconNames.length / ICONS_PER_PAGE);
 
-  const isDesktop = useMediaQuery('(min-width: 768px)');
+  const isMobile = useIsMobile();
 
   // Get current page icons
   const [currentPageIcons, setCurrentPageIcons] = React.useState<IconName[]>([]);
@@ -98,7 +98,7 @@ export function IconPicker({ onChange, className, field }: IconPickerProps) {
       <PopoverContent
         className="w-[360px] p-0"
         align="start"
-        onOpenAutoFocus={(e) => !isDesktop && e.preventDefault()}
+        onOpenAutoFocus={(e) => isMobile && e.preventDefault()}
       >
         <Command>
           <CommandInput

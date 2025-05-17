@@ -1,5 +1,6 @@
 'use client';
 
+import { useIsMobile } from '@/components/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -19,7 +20,6 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { Plus } from '@phosphor-icons/react';
-import { useMediaQuery } from 'usehooks-ts';
 import { useAccountDrawerContext } from './drawer-context';
 import { ManageAccountCard } from './manage-account-card';
 
@@ -40,7 +40,7 @@ export const AddAccountButton = ({ countryCode }: { countryCode: string }) => {
 
 export const AddAccountDrawer = () => {
   const { open, setOpen } = useAccountDrawerContext();
-  const isDesktop = useMediaQuery('(min-width: 768px)');
+  const isMobile = useIsMobile();
 
   const MODAL_TITLE = 'Add an account';
   const MODAL_CANCEL_BUTTON_LABEL = 'Cancel';
@@ -51,46 +51,46 @@ export const AddAccountDrawer = () => {
     </Button>
   );
 
-  if (isDesktop) {
+  if (isMobile) {
     return (
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-[540px]">
-          <DialogHeader>
-            <DialogTitle>{MODAL_TITLE}</DialogTitle>
-            <DialogDescription></DialogDescription>
-          </DialogHeader>
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent side="bottom" closeBtnOnHeader={false} className="gap-1">
+          <SheetHeader>
+            <SheetTitle className="text-xl">{MODAL_TITLE}</SheetTitle>
+          </SheetHeader>
           <ManageAccountCard
             footer={
-              <DialogFooter className="mt-4">
+              <SheetFooter className="px-0">
                 <SaveButton />
-                <DialogClose asChild>
+                <SheetClose asChild>
                   <Button variant="outline">{MODAL_CANCEL_BUTTON_LABEL}</Button>
-                </DialogClose>
-              </DialogFooter>
+                </SheetClose>
+              </SheetFooter>
             }
           />
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
     );
   }
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <SheetContent side="bottom" closeBtnOnHeader={false} className="gap-1">
-        <SheetHeader>
-          <SheetTitle className="text-xl">{MODAL_TITLE}</SheetTitle>
-        </SheetHeader>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent className="max-w-[540px]">
+        <DialogHeader>
+          <DialogTitle>{MODAL_TITLE}</DialogTitle>
+          <DialogDescription></DialogDescription>
+        </DialogHeader>
         <ManageAccountCard
           footer={
-            <SheetFooter className="px-0">
+            <DialogFooter className="mt-4">
               <SaveButton />
-              <SheetClose asChild>
+              <DialogClose asChild>
                 <Button variant="outline">{MODAL_CANCEL_BUTTON_LABEL}</Button>
-              </SheetClose>
-            </SheetFooter>
+              </DialogClose>
+            </DialogFooter>
           }
         />
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 };

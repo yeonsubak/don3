@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils';
 import { Check, ChevronLeft, ChevronRight, ChevronsUpDown } from 'lucide-react';
 import * as React from 'react';
 import type { ControllerRenderProps, FieldValue, FieldValues } from 'react-hook-form';
-import { useMediaQuery } from 'usehooks-ts';
+import { useIsMobile } from '../hooks/use-mobile';
 import { Button } from '../ui/button';
 import {
   loadEmojiData,
@@ -39,7 +39,7 @@ export function EmojiPicker({ onChange, className, field }: EmojiPickerProps) {
 
   const EMOJIS_PER_PAGE = 24; // 6 columns × 4 rows
 
-  const isDesktop = useMediaQuery('(min-width: 768px)');
+  const isMobile = useIsMobile();
 
   // Load emoji data
   React.useEffect(() => {
@@ -150,7 +150,7 @@ export function EmojiPicker({ onChange, className, field }: EmojiPickerProps) {
       <PopoverContent
         className="w-[320px] p-0"
         align="start"
-        onOpenAutoFocus={(e) => !isDesktop && e.preventDefault()}
+        onOpenAutoFocus={(e) => isMobile && e.preventDefault()}
       >
         <Command>
           <CommandInput
