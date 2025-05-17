@@ -14,8 +14,8 @@ import { cn } from '@/lib/utils';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { useState, type Dispatch, type SetStateAction } from 'react';
 import type { ControllerRenderProps, FieldValue, FieldValues } from 'react-hook-form';
-import { useMediaQuery } from 'usehooks-ts';
 import type { TailwindClass } from '../common-types';
+import { useIsMobile } from '../hooks/use-mobile';
 import { Separator } from '../ui/separator';
 
 export interface ComboboxItem<T = unknown> {
@@ -87,7 +87,7 @@ export const Combobox = ({
   state,
 }: ComboboxProps) => {
   const [open, setOpen] = useState(false);
-  const isDesktop = useMediaQuery('(min-width: 768px)');
+  const isMobile = useIsMobile();
 
   const Item = ({ children, label, recursiveCnt = 0, value, keywords, data }: ComboboxItem) => {
     if (children && children.length > 0) {
@@ -151,7 +151,7 @@ export const Combobox = ({
         className={cn('z-99 p-0', popoverContentClass ? popoverContentClass : 'w-80')}
         side={popoverContentSide}
         align={popoverContentAlign}
-        onOpenAutoFocus={(e) => !isDesktop && e.preventDefault()}
+        onOpenAutoFocus={(e) => isMobile && e.preventDefault()}
       >
         <Command>
           {searchable ? <CommandInput placeholder={searchPlaceholder} /> : <></>}
