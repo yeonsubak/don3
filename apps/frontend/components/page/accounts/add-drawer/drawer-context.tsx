@@ -9,31 +9,37 @@ import {
   type ReactNode,
   type SetStateAction,
 } from 'react';
+import { type AccountForm } from '../form-schema';
 
 export type AccountDrawerContextProps = {
   open: boolean;
   setOpen: Dispatch<SetStateAction<boolean>>;
-  groupType: AccountGroupType;
-  setGroupType: Dispatch<SetStateAction<AccountGroupType>>;
-  countryCode: string;
-  setCountryCode: Dispatch<SetStateAction<string>>;
+  selectedTab: AccountGroupType;
+  setSelectedTab: Dispatch<SetStateAction<AccountGroupType>>;
+  formValues: Partial<AccountForm> | undefined;
+  setFormValues: Dispatch<SetStateAction<Partial<AccountForm> | undefined>>;
+  mode: 'add' | 'edit';
+  setMode: Dispatch<SetStateAction<'add' | 'edit'>>;
 };
 export const AccountDrawerContext = createContext<AccountDrawerContextProps | null>(null);
 
 export const AccountDrawerContextProvider = ({ children }: { children: ReactNode }) => {
   const [open, setOpen] = useState(false);
-  const [groupType, setGroupType] = useState<AccountGroupType>('asset');
-  const [countryCode, setCountryCode] = useState<string>('');
+  const [selectedTab, setSelectedTab] = useState<AccountGroupType>('asset');
+  const [formValues, setFormValues] = useState<Partial<AccountForm> | undefined>(undefined);
+  const [mode, setMode] = useState<'add' | 'edit'>('add');
 
   return (
     <AccountDrawerContext.Provider
       value={{
         open,
         setOpen,
-        groupType,
-        setGroupType,
-        countryCode,
-        setCountryCode,
+        selectedTab,
+        setSelectedTab,
+        formValues,
+        setFormValues,
+        mode,
+        setMode,
       }}
     >
       {children}

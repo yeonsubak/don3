@@ -1,6 +1,6 @@
 'use client';
 
-import type { CreateAccountForm } from '@/components/page/accounts/form-schema';
+import type { AccountForm } from '@/components/page/accounts/form-schema';
 import type { CreateAccountGroupForm } from '@/components/page/groups/form-schema';
 import type {
   AccountGroupSelect,
@@ -33,7 +33,7 @@ export class AccountsService extends Service {
     accountType,
     accountName,
     icon,
-  }: CreateAccountForm): Promise<AccountSelectAll | undefined> {
+  }: AccountForm): Promise<AccountSelectAll> {
     const currency = await this.configRepository.getCurrencyByCode(currencyCode);
     const country = await this.configRepository.getCountryByCode(countryCode);
 
@@ -69,7 +69,38 @@ export class AccountsService extends Service {
       }
     });
 
+    if (!insertedAccount)
+      throw new Error('The result of AccountsRepository.insertAccount() method is null.');
+
     return insertedAccount;
+  }
+
+  public async updateAccount(update: AccountForm) {
+    const isValidForm = Object.values(update).every((value) => !!value);
+    if (!isValidForm)
+      throw new Error('The submitted form for updating an account is invalid.', {
+        cause: { value: JSON.stringify(update) },
+      });
+
+    const currency = await this.configRepository.getCurrencyByCode(update.currencyCode);
+    const country = await this.configRepository.getCountryByCode(update.countryCode);
+    if (!currency) throw new Error('Currency not found');
+    if (!country) throw new Error('Country not found');
+
+    const result = await this.accountsRepository.updateAccount({
+      id: update.accountId!,
+      accountGroupId: update.accountGroupId,
+      name: update.accountName,
+      type: update.accountType,
+      currencyId: currency.id,
+      countryId: country.id,
+      icon: update.icon,
+    });
+
+    if (!result)
+      throw new Error('The result of AccountsRepository.updateAccount() method is null.');
+
+    return await this.accountsRepository.getAccountById(result.id);
   }
 
   public async getAcountsByCountry(groupType: AccountGroupType): Promise<GroupAccountsByCountry> {

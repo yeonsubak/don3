@@ -16,7 +16,7 @@ type AccountGroupTabProps = {
 
 export const AccountGroupTab = ({ tabValue }: AccountGroupTabProps) => {
   const { isMultiCountry } = useGlobalContext();
-  const { setOpen, setCountryCode } = useAccountDrawerContext();
+  const { setOpen, setFormValues } = useAccountDrawerContext();
   const {
     data: fetchedAccountGroupsByCountry,
     isError,
@@ -41,7 +41,7 @@ export const AccountGroupTab = ({ tabValue }: AccountGroupTabProps) => {
     function handleAddButton() {
       const defaultCountryCode =
         localStorage.getItem(LOCAL_STORAGE_KEYS.APP.DEFAULT_COUNTRY) ?? 'USA';
-      setCountryCode(defaultCountryCode);
+      setFormValues({ countryCode: defaultCountryCode });
       setOpen(true);
     }
 

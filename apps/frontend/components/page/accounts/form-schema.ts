@@ -1,7 +1,8 @@
 import { accounts } from '@/db/drizzle/schema';
 import { z } from 'zod';
 
-export const createAccountForm = z.object({
+export const accountForm = z.object({
+  accountId: z.string().nullable(),
   accountGroupId: z.coerce.string().min(1),
   accountName: z
     .string()
@@ -12,7 +13,7 @@ export const createAccountForm = z.object({
   accountType: z.enum(accounts.type.enumValues),
   currencyCode: z.string().min(3).max(3),
   countryCode: z.string().min(3).max(3),
-  icon: z.string(),
+  icon: z.string().nullish(),
 });
 
-export type CreateAccountForm = z.infer<typeof createAccountForm>;
+export type AccountForm = z.infer<typeof accountForm>;

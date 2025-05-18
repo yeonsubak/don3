@@ -2,8 +2,10 @@
 
 import { useGlobalContext } from '@/app/app/global-context';
 import { EmojiPicker } from '@/components/compositions/emoji-picker';
+import { useIsMobile } from '@/components/hooks/use-mobile';
 import { Combobox, type ComboboxItem } from '@/components/primitives/combobox';
 import { Button } from '@/components/ui/button';
+import { DialogClose, DialogFooter } from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
@@ -14,28 +16,27 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { SheetClose, SheetFooter } from '@/components/ui/sheet';
 import type {
   AccountGroupSelect,
   AccountGroupSelectAll,
   AccountGroupType,
 } from '@/db/drizzle/types';
 import { QUERIES } from '@/lib/tanstack-queries';
+import { cn } from '@/lib/utils';
 import { getAccountsService } from '@/services/helper';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus } from '@phosphor-icons/react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useMemo, useState } from 'react';
+import { LoaderCircle } from 'lucide-react';
+import { useMemo, useState, type ComponentProps } from 'react';
 import { useForm } from 'react-hook-form';
 import { CountryCombobox } from '../../../compositions/country-combobox';
 import { CurrencyCombobox } from '../../../compositions/currency-combobox';
 import { AddAccountGroupForm } from '../../groups/add-account-group-form';
 import { AccountTypeToggle } from '../account-type-toggle';
-import { createAccountForm, type CreateAccountForm } from '../form-schema';
+import { accountForm, type AccountForm } from '../form-schema';
 import { useAccountDrawerContext } from './drawer-context';
-
-type ManageAccountCardProps = {
-  footer: React.ReactNode;
-};
 
 function mapAccountGroupsToComboboxItems(
   _accountGroups: AccountGroupSelectAll[],
@@ -45,53 +46,83 @@ function mapAccountGroupsToComboboxItems(
     .filter((group) => group.type === groupType)
     .map((group) => ({
       label: group.name,
-      value: `${group.id}`,
+      value: group.id,
       data: group,
     }));
 }
 
-export const ManageAccountCard = ({ footer }: ManageAccountCardProps) => {
-  const { setAccounts, accountGroups, currencies, currenciesInUse, countries, countriesInUse } =
-    useGlobalContext();
-  const { groupType, countryCode, setOpen } = useAccountDrawerContext();
+export const ManageAccountCard = () => {
+  const {
+    setAccounts,
+    accountGroups,
+    currencies,
+    currenciesInUse,
+    countries,
+    countriesInUse,
+    defaultCountry,
+    defaultCurrency,
+  } = useGlobalContext();
+
+  const { selectedTab, formValues, setOpen, mode } = useAccountDrawerContext();
+
+  const isMobile = useIsMobile();
   const queryClient = useQueryClient();
-  const defaultCurrency = currencies.find(
-    (currency) =>
-      currency.id === countries.find((country) => country.code === countryCode)?.defaultCurrencyId,
-  );
-  const [openAddAccountGroup, setOpenAddAccountGroup] = useState(false);
-
+  const [openGroup, setOpenGroup] = useState<boolean>(false);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const accountGroupComboItems = useMemo(
-    () => mapAccountGroupsToComboboxItems(accountGroups, groupType),
-    [accountGroups, groupType],
+    () => mapAccountGroupsToComboboxItems(accountGroups, selectedTab),
+    [accountGroups, selectedTab],
   );
 
-  const form = useForm<CreateAccountForm>({
-    resolver: zodResolver(createAccountForm),
-    defaultValues: {
-      accountName: '',
-      accountType: groupType === 'asset' ? 'debit' : 'credit',
-      currencyCode: defaultCurrency?.code ?? 'USD',
-      countryCode: countryCode,
-      accountGroupId: '',
-      icon: '💸',
-    },
+  const CANCEL_BUTTON_LABEL = 'Cancel';
+
+  const form = useForm<AccountForm>({
+    resolver: zodResolver(accountForm),
+    defaultValues:
+      mode === 'add'
+        ? {
+            accountId: '',
+            accountName: '',
+            accountType: selectedTab === 'asset' ? 'debit' : 'credit',
+            currencyCode: defaultCurrency?.code ?? 'USD',
+            countryCode: defaultCountry.code ?? 'USA',
+            accountGroupId: formValues?.accountGroupId ?? '',
+            icon: formValues?.icon ?? '💸',
+          }
+        : {
+            accountId: formValues?.accountId,
+            accountName: formValues?.accountName,
+            accountType: formValues?.accountType,
+            currencyCode: formValues?.currencyCode,
+            countryCode: formValues?.countryCode,
+            accountGroupId: formValues?.accountGroupId,
+            icon: formValues?.icon,
+          },
   });
 
-  async function onSubmit(form: CreateAccountForm) {
-    const accountsService = await getAccountsService();
-    const result = await accountsService.insertAccount(form);
-    if (result) {
+  async function onSubmit(form: AccountForm) {
+    setIsProcessing(true);
+    try {
+      const accountsService = await getAccountsService();
+      const result =
+        mode === 'add'
+          ? await accountsService.insertAccount(form)
+          : await accountsService.updateAccount(form);
+
       setAccounts((prev) => [...prev, result]);
-      setOpen(false);
-      const query = QUERIES.accounts.accountGroupsByCountry(groupType);
-      const newData = await accountsService.getAcountsByCountry(groupType);
+      const query = QUERIES.accounts.accountGroupsByCountry(selectedTab);
+      const newData = await accountsService.getAcountsByCountry(selectedTab);
       queryClient.setQueryData(query.queryKey, newData);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsProcessing(false);
+      setOpen(false);
     }
   }
 
   const namePlaceholder = useMemo(() => {
-    switch (groupType) {
+    switch (selectedTab) {
       case 'asset':
         return 'e.g., Cash, Bank Account, Accounts Receivable';
       case 'liability':
@@ -103,7 +134,18 @@ export const ManageAccountCard = ({ footer }: ManageAccountCardProps) => {
       case 'uncategorized':
         return '';
     }
-  }, [groupType]);
+  }, [selectedTab]);
+
+  const SaveButton = ({ ...props }: ComponentProps<typeof Button>) => (
+    <Button
+      type="submit"
+      variant="default"
+      className={props.className}
+      disabled={!form.formState.isDirty || isProcessing}
+    >
+      {isProcessing ? <LoaderCircle className={cn('h-4 w-4 animate-spin')} /> : <span>Save</span>}
+    </Button>
+  );
 
   return (
     <Form {...form}>
@@ -132,7 +174,7 @@ export const ManageAccountCard = ({ footer }: ManageAccountCardProps) => {
                   <div className="grow">
                     <Combobox items={accountGroupComboItems} field={field} />
                   </div>
-                  <Popover open={openAddAccountGroup} onOpenChange={setOpenAddAccountGroup}>
+                  <Popover open={openGroup} onOpenChange={setOpenGroup}>
                     <PopoverTrigger asChild>
                       <Button variant="outline">
                         <Plus weight="bold" />
@@ -140,9 +182,9 @@ export const ManageAccountCard = ({ footer }: ManageAccountCardProps) => {
                     </PopoverTrigger>
                     <PopoverContent className="w-80">
                       <AddAccountGroupForm
-                        groupType={groupType}
+                        groupType={selectedTab}
                         submitPostHook={() => {
-                          setOpenAddAccountGroup(false);
+                          setOpenGroup(false);
                         }}
                       />
                     </PopoverContent>
@@ -216,7 +258,21 @@ export const ManageAccountCard = ({ footer }: ManageAccountCardProps) => {
             </FormItem>
           )}
         />
-        {footer}
+        {isMobile ? (
+          <SheetFooter className="px-0">
+            <SaveButton />
+            <SheetClose asChild>
+              <Button variant="outline">{CANCEL_BUTTON_LABEL}</Button>
+            </SheetClose>
+          </SheetFooter>
+        ) : (
+          <DialogFooter className="mt-4">
+            <SaveButton className="w-20" />
+            <DialogClose asChild>
+              <Button variant="outline">{CANCEL_BUTTON_LABEL}</Button>
+            </DialogClose>
+          </DialogFooter>
+        )}
       </form>
     </Form>
   );
