@@ -4,30 +4,24 @@ import { useIsMobile } from '@/components/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Plus } from '@phosphor-icons/react';
 import { useAccountDrawerContext } from './drawer-context';
 import { ManageAccountCard } from './manage-account-card';
 
 export const AddAccountButton = ({ countryCode }: { countryCode: string }) => {
-  const { setOpen, setCountryCode } = useAccountDrawerContext();
+  const { setOpen, formValues, setFormValues } = useAccountDrawerContext();
 
   const handleClick = () => {
-    setCountryCode(countryCode);
+    setFormValues({
+      ...formValues,
+      countryCode: countryCode,
+    });
     setOpen(true);
   };
 
@@ -39,57 +33,40 @@ export const AddAccountButton = ({ countryCode }: { countryCode: string }) => {
 };
 
 export const AddAccountDrawer = () => {
-  const { open, setOpen } = useAccountDrawerContext();
+  const { open, setOpen, setFormValues, mode, setMode } = useAccountDrawerContext();
   const isMobile = useIsMobile();
 
-  const MODAL_TITLE = 'Add an account';
-  const MODAL_CANCEL_BUTTON_LABEL = 'Cancel';
+  const modalTitle = mode == 'add' ? 'Add an account' : 'Edit the account';
 
-  const SaveButton = () => (
-    <Button type="submit" variant="default" disableOnProcess>
-      Save
-    </Button>
-  );
+  function handleOpenChange(open: boolean) {
+    if (!open) {
+      setFormValues(undefined);
+      setMode('add');
+    }
+    setOpen(open);
+  }
 
   if (isMobile) {
     return (
-      <Sheet open={open} onOpenChange={setOpen}>
+      <Sheet open={open} onOpenChange={handleOpenChange}>
         <SheetContent side="bottom" closeBtnOnHeader={false} className="gap-1">
           <SheetHeader>
-            <SheetTitle className="text-xl">{MODAL_TITLE}</SheetTitle>
+            <SheetTitle className="text-xl">{modalTitle}</SheetTitle>
           </SheetHeader>
-          <ManageAccountCard
-            footer={
-              <SheetFooter className="px-0">
-                <SaveButton />
-                <SheetClose asChild>
-                  <Button variant="outline">{MODAL_CANCEL_BUTTON_LABEL}</Button>
-                </SheetClose>
-              </SheetFooter>
-            }
-          />
+          <ManageAccountCard />
         </SheetContent>
       </Sheet>
     );
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-[540px]">
         <DialogHeader>
-          <DialogTitle>{MODAL_TITLE}</DialogTitle>
+          <DialogTitle>{modalTitle}</DialogTitle>
           <DialogDescription></DialogDescription>
         </DialogHeader>
-        <ManageAccountCard
-          footer={
-            <DialogFooter className="mt-4">
-              <SaveButton />
-              <DialogClose asChild>
-                <Button variant="outline">{MODAL_CANCEL_BUTTON_LABEL}</Button>
-              </DialogClose>
-            </DialogFooter>
-          }
-        />
+        <ManageAccountCard />
       </DialogContent>
     </Dialog>
   );

@@ -3,7 +3,6 @@ import type {
   AccountBalanceInsert,
   AccountBalanceSelect,
   AccountGroupInsert,
-  AccountGroupSelect,
   AccountGroupType,
   AccountInsert,
   AccountSelectAll,
@@ -23,8 +22,8 @@ export class AccountsRepository extends Repository {
     });
   }
 
-  public async getAccountById(id: string): Promise<AccountSelectAll | undefined> {
-    return await this.db.query.accounts.findFirst({
+  public async getAccountById(id: string): Promise<AccountSelectAll> {
+    const result = await this.db.query.accounts.findFirst({
       where: (accounts, { eq }) => eq(accounts.id, id),
       with: {
         currency: true,
@@ -33,10 +32,26 @@ export class AccountsRepository extends Repository {
         balance: true,
       },
     });
+
+    if (!result)
+      throw new Error('The result of AccountsRepository.getAccountById() method is null.');
+    return result;
   }
 
   public async insertAccount(insert: AccountInsert) {
     const result = await this.db.insert(accounts).values(insert).returning();
+    return result.at(0);
+  }
+
+  public async updateAccount(update: AccountInsert) {
+    const result = await this.db
+      .update(accounts)
+      .set({
+        ...update,
+        id: undefined,
+      })
+      .where(eq(accounts.id, update.id!))
+      .returning();
     return result.at(0);
   }
 

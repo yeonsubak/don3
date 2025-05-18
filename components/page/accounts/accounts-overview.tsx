@@ -12,11 +12,11 @@ import type React from 'react';
 
 export const AccountsOverview: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ className }) => {
   const accountGroupTypes = accountGroupTypeEnum.enumValues;
-  const { setGroupType } = useAccountDrawerContext();
+  const { setSelectedTab } = useAccountDrawerContext();
   const t = useTranslations('AccountGroupType');
 
   const handleTabChange = (value: string) => {
-    setGroupType(value as AccountGroupType);
+    setSelectedTab(value as AccountGroupType);
   };
 
   return (
