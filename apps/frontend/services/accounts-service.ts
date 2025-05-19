@@ -1,6 +1,6 @@
 'use client';
 
-import type { AccountForm } from '@/components/page/accounts/form-schema';
+import type { AccountFormSchema } from '@/components/page/accounts/drawer/account-form-schema';
 import type { CreateAccountGroupForm } from '@/components/page/groups/form-schema';
 import type {
   AccountGroupSelect,
@@ -33,7 +33,7 @@ export class AccountsService extends Service {
     accountType,
     accountName,
     icon,
-  }: AccountForm): Promise<AccountSelectAll> {
+  }: AccountFormSchema): Promise<AccountSelectAll> {
     const currency = await this.configRepository.getCurrencyByCode(currencyCode);
     const country = await this.configRepository.getCountryByCode(countryCode);
 
@@ -75,7 +75,7 @@ export class AccountsService extends Service {
     return insertedAccount;
   }
 
-  public async updateAccount(update: AccountForm) {
+  public async updateAccount(update: AccountFormSchema) {
     const isValidForm = Object.values(update).every((value) => !!value);
     if (!isValidForm)
       throw new Error('The submitted form for updating an account is invalid.', {
@@ -101,6 +101,38 @@ export class AccountsService extends Service {
       throw new Error('The result of AccountsRepository.updateAccount() method is null.');
 
     return await this.accountsRepository.getAccountById(result.id);
+  }
+
+  public async archiveAccount(accountId: string) {
+    const result = await this.accountsRepository.updateAccount({
+      id: accountId,
+      isArchive: true,
+    });
+
+    if (!result)
+      throw new Error('The result of AccountsRepository.updateAccount() method is null.');
+
+    return await this.accountsRepository.getAccountById(result.id);
+  }
+
+  public async reactivateAccount(accountId: string) {
+    const result = await this.accountsRepository.updateAccount({
+      id: accountId,
+      isArchive: false,
+    });
+
+    if (!result)
+      throw new Error('The result of AccountsRepository.updateAccount() method is null.');
+
+    return await this.accountsRepository.getAccountById(result.id);
+  }
+
+  public async deleteAccount(accountId: string) {
+    const result = await this.accountsRepository.deleteAccount(accountId);
+    if (!result)
+      throw new Error('The result of AccountsRepository.deleteAccount() method is null.');
+
+    return result;
   }
 
   public async getAcountsByCountry(groupType: AccountGroupType): Promise<GroupAccountsByCountry> {

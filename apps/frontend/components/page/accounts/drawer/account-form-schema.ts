@@ -1,7 +1,7 @@
 import { accounts } from '@/db/drizzle/schema';
 import { z } from 'zod';
 
-export const accountForm = z.object({
+export const accountFormSchema = z.object({
   accountId: z.string().nullable(),
   accountGroupId: z.coerce.string().min(1),
   accountName: z
@@ -16,4 +16,4 @@ export const accountForm = z.object({
   icon: z.string().nullish(),
 });
 
-export type AccountForm = z.infer<typeof accountForm>;
+export type AccountFormSchema = z.infer<typeof accountFormSchema>;

@@ -11,7 +11,8 @@ import {
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
 import type { AccountSelect } from '@/db/drizzle/types';
-import { useAccountDrawerContext } from './add-drawer/drawer-context';
+import { cn } from '@/lib/utils';
+import { useAccountDrawerContext } from './drawer/drawer-context';
 
 type AccountProps = {
   account: AccountSelect<{ balance: true; currency: true; country: true }>;
@@ -19,7 +20,7 @@ type AccountProps = {
 
 export const Account = ({ account }: AccountProps) => {
   const { currencies, defaultCurrency } = useGlobalContext();
-  const { setOpen, setFormValues, setMode } = useAccountDrawerContext();
+  const { setOpen, setMode, setFormValues, setAccount } = useAccountDrawerContext();
   const { fxRates } = useAccountsContext();
 
   const currency = currencies.find((c) => c.id === account.currencyId);
@@ -51,12 +52,40 @@ export const Account = ({ account }: AccountProps) => {
     setOpen(true);
   }
 
+  function handleArchive() {
+    setMode('archive');
+    setAccount(account);
+    setOpen(true);
+  }
+
+  function handleReactivate() {
+    setMode('reactivate');
+    setAccount(account);
+    setOpen(true);
+  }
+
+  function handleDelete() {
+    setMode('delete');
+    setAccount(account);
+    setOpen(true);
+  }
+
   return (
     <ContextMenu>
       <ContextMenuTrigger>
         <div className="flex flex-row items-center gap-2 select-none">
-          <AccountIconEmojiOnly iconValue={account.icon} />
-          <p className="grow text-base break-keep">{account.name}</p>
+          <AccountIconEmojiOnly
+            iconValue={account.icon}
+            className={account.isArchive ? 'text-muted-foreground grayscale' : ''}
+          />
+          <p
+            className={cn(
+              'grow text-base break-keep',
+              account.isArchive ? 'text-muted-foreground' : '',
+            )}
+          >
+            {account.name}
+          </p>
           <div className="text-right">
             <p className="min-w-[30px] font-semibold text-sky-600">
               {`${currency?.symbol ?? ''} ${accountBalance.formatted}`}
@@ -74,8 +103,14 @@ export const Account = ({ account }: AccountProps) => {
         <ContextMenuSeparator />
         <ContextMenuItem onClick={handleEdit}>Edit</ContextMenuItem>
         <ContextMenuItem>Change order</ContextMenuItem>
-        <ContextMenuItem>Archieve</ContextMenuItem>
-        <ContextMenuItem>Delete</ContextMenuItem>
+        {account.isArchive ? (
+          <ContextMenuItem onClick={handleReactivate}>Reactivate</ContextMenuItem>
+        ) : (
+          <ContextMenuItem onClick={handleArchive}>Archive</ContextMenuItem>
+        )}
+        <ContextMenuItem onClick={handleDelete} variant="destructive">
+          Delete
+        </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
   );

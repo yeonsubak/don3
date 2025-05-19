@@ -7,7 +7,7 @@ import { Plus } from '@phosphor-icons/react';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { AccountGroup } from './account-group';
-import { useAccountDrawerContext } from './add-drawer/drawer-context';
+import { useAccountDrawerContext } from './drawer/drawer-context';
 import { CountrySection } from './country-section';
 
 type AccountGroupTabProps = {
