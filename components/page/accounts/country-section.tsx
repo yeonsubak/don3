@@ -3,7 +3,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { cn } from '@/lib/utils';
 import { ChevronsUpDown } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { AddAccountButton } from './add-drawer';
+import { AddAccountButton } from './drawer';
 
 type CountryLabelProps = { countryCode: string; className?: string };
 export const CountryLabel = ({ countryCode, className }: CountryLabelProps) => {

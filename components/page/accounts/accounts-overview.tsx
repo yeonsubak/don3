@@ -1,14 +1,14 @@
 'use client';
 
 import { AccountGroupTab } from '@/components/page/accounts/account-group-tab';
-import { AddAccountDrawer } from '@/components/page/accounts/add-drawer';
-import { useAccountDrawerContext } from '@/components/page/accounts/add-drawer/drawer-context';
+import { AccountDrawer } from '@/components/page/accounts/drawer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { accountGroupTypeEnum } from '@/db/drizzle/schema';
 import type { AccountGroupType } from '@/db/drizzle/types';
 import { cn } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
 import type React from 'react';
+import { useAccountDrawerContext } from './drawer/drawer-context';
 
 export const AccountsOverview: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ className }) => {
   const accountGroupTypes = accountGroupTypeEnum.enumValues;
@@ -44,7 +44,7 @@ export const AccountsOverview: React.FC<React.HTMLAttributes<HTMLDivElement>> = 
           <div>Display records here</div>
         </div> */}
       </div>
-      <AddAccountDrawer />
+      <AccountDrawer />
     </>
   );
 };

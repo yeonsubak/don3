@@ -43,7 +43,7 @@ export class AccountsRepository extends Repository {
     return result.at(0);
   }
 
-  public async updateAccount(update: AccountInsert) {
+  public async updateAccount(update: Partial<AccountInsert>) {
     const result = await this.db
       .update(accounts)
       .set({
@@ -55,6 +55,20 @@ export class AccountsRepository extends Repository {
     return result.at(0);
   }
 
+  public async archiveAccount(accountId: string) {
+    const result = await this.db
+      .update(accounts)
+      .set({ isArchive: true })
+      .where(eq(accounts.id, accountId))
+      .returning();
+    return result.at(0);
+  }
+
+  public async deleteAccount(accountId: string) {
+    const result = await this.db.delete(accounts).where(eq(accounts.id, accountId)).returning();
+    return result.at(0);
+  }
+
   public async getAccountGroup(_id: string) {
     return this.db.query.accountGroups.findFirst({
       where: ({ id }, { eq }) => eq(id, _id),
@@ -62,8 +76,9 @@ export class AccountsRepository extends Repository {
         childGroups: true,
         accounts: {
           with: {
-            country: true,
             currency: true,
+            country: true,
+            group: true,
             balance: true,
           },
         },
@@ -101,8 +116,9 @@ export class AccountsRepository extends Repository {
         childGroups: true,
         accounts: {
           with: {
-            country: true,
             currency: true,
+            country: true,
+            group: true,
             balance: true,
           },
         },

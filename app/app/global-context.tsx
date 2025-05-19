@@ -26,6 +26,7 @@ type GlobalContext = {
   isMultiCountry: boolean;
   countriesInUse: CountrySelect[];
   currenciesInUse: CurrencySelect[];
+  accounts: AccountSelectAll[];
 
   defaultCountry: CountrySelect;
   setDefaultCountry: Dispatch<SetStateAction<CountrySelect>>;
@@ -35,9 +36,6 @@ type GlobalContext = {
 
   defaultLanguage: string;
   setDefaultLanguage: Dispatch<SetStateAction<string>>;
-
-  accounts: AccountSelectAll[];
-  setAccounts: Dispatch<SetStateAction<AccountSelectAll[]>>;
 
   accountGroups: AccountGroupSelectAll[];
   setAccountGroups: Dispatch<SetStateAction<AccountGroupSelectAll[]>>;
@@ -54,13 +52,7 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
   ) as CountrySelect;
 
   const {
-    data: {
-      fetchedDefaultCurrency,
-      fetchedCountries,
-      fetchedCurrencies,
-      fetchedAccounts,
-      fetchedAccountGroups,
-    },
+    data: { fetchedDefaultCurrency, fetchedCountries, fetchedCurrencies, fetchedAccountGroups },
     isPending,
     isError,
     error,
@@ -69,7 +61,6 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
       QUERIES.config.defaultCurrency(),
       QUERIES.config.countries(),
       QUERIES.config.currencies(),
-      QUERIES.accounts.allAccounts(),
       QUERIES.accounts.allAccountGroups(),
     ],
     combine: (results) => ({
@@ -77,8 +68,7 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
         fetchedDefaultCurrency: results[0].data ?? currencyFallback,
         fetchedCountries: results[1].data,
         fetchedCurrencies: results[2].data,
-        fetchedAccounts: results[3].data,
-        fetchedAccountGroups: results[4].data,
+        fetchedAccountGroups: results[3].data,
       },
       isPending: results.some((result) => result.isPending),
       isError: results.some((result) => result.isError),
@@ -91,8 +81,12 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
   const [defaultLanguage, setDefaultLanguage] = useState<string>('en');
   const [countries, setCountries] = useState<CountrySelect<{ defaultCurrency: true }>[]>([]);
   const [currencies, setCurrencies] = useState<CurrencySelect[]>([]);
-  const [accounts, setAccounts] = useState<AccountSelectAll[]>([]);
   const [accountGroups, setAccountGroups] = useState<AccountGroupSelectAll[]>([]);
+
+  const accounts = useMemo(
+    () => accountGroups.flatMap((group) => group.accounts),
+    [accountGroups],
+  ) as AccountSelectAll[];
 
   const countriesInUse = useMemo(() => {
     const countries = accounts.map((account) => account.country);
@@ -111,15 +105,8 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
     setDefaultCurrency(fetchedDefaultCurrency);
     setCountries(fetchedCountries ?? []);
     setCurrencies(fetchedCurrencies ?? []);
-    setAccounts(fetchedAccounts ?? []);
     setAccountGroups(fetchedAccountGroups ?? []);
-  }, [
-    fetchedCountries,
-    fetchedDefaultCurrency,
-    fetchedCurrencies,
-    fetchedAccounts,
-    fetchedAccountGroups,
-  ]);
+  }, [fetchedCountries, fetchedDefaultCurrency, fetchedCurrencies, fetchedAccountGroups]);
 
   if (isPending) {
     return <></>;
@@ -144,7 +131,6 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
         countries,
         currencies,
         accounts,
-        setAccounts,
         accountGroups,
         setAccountGroups,
       }}

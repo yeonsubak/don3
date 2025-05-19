@@ -35,7 +35,7 @@ import { CountryCombobox } from '../../../compositions/country-combobox';
 import { CurrencyCombobox } from '../../../compositions/currency-combobox';
 import { AddAccountGroupForm } from '../../groups/add-account-group-form';
 import { AccountTypeToggle } from '../account-type-toggle';
-import { accountForm, type AccountForm } from '../form-schema';
+import { accountFormSchema, type AccountFormSchema } from './account-form-schema';
 import { useAccountDrawerContext } from './drawer-context';
 
 function mapAccountGroupsToComboboxItems(
@@ -51,10 +51,10 @@ function mapAccountGroupsToComboboxItems(
     }));
 }
 
-export const ManageAccountCard = () => {
+export const AccountForm = () => {
   const {
-    setAccounts,
     accountGroups,
+    setAccountGroups,
     currencies,
     currenciesInUse,
     countries,
@@ -63,7 +63,7 @@ export const ManageAccountCard = () => {
     defaultCurrency,
   } = useGlobalContext();
 
-  const { selectedTab, formValues, setOpen, mode } = useAccountDrawerContext();
+  const { setOpen, mode, selectedTab, formValues } = useAccountDrawerContext();
 
   const isMobile = useIsMobile();
   const queryClient = useQueryClient();
@@ -76,8 +76,8 @@ export const ManageAccountCard = () => {
 
   const CANCEL_BUTTON_LABEL = 'Cancel';
 
-  const form = useForm<AccountForm>({
-    resolver: zodResolver(accountForm),
+  const form = useForm<AccountFormSchema>({
+    resolver: zodResolver(accountFormSchema),
     defaultValues:
       mode === 'add'
         ? {
@@ -100,7 +100,7 @@ export const ManageAccountCard = () => {
           },
   });
 
-  async function onSubmit(form: AccountForm) {
+  async function onSubmit(form: AccountFormSchema) {
     setIsProcessing(true);
     try {
       const accountsService = await getAccountsService();
@@ -109,7 +109,9 @@ export const ManageAccountCard = () => {
           ? await accountsService.insertAccount(form)
           : await accountsService.updateAccount(form);
 
-      setAccounts((prev) => [...prev, result]);
+      const refreshedAccountGroups = await accountsService.getAllAccountGroups();
+      setAccountGroups(refreshedAccountGroups);
+
       const query = QUERIES.accounts.accountGroupsByCountry(selectedTab);
       const newData = await accountsService.getAcountsByCountry(selectedTab);
       queryClient.setQueryData(query.queryKey, newData);
