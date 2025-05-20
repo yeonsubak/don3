@@ -7,7 +7,9 @@ import type {
   AccountGroupSelectAll,
   AccountGroupType,
   AccountSelectAll,
+  AccountSelectAllTx,
 } from '@/db/drizzle/types';
+import type { TransactionRepository } from '@/repositories/transaction-repository';
 import { AccountsRepository } from '../repositories/accounts-repository';
 import type { ConfigRepository } from '../repositories/config-repository';
 import { Service } from './abstract-service';
@@ -15,11 +17,17 @@ import { Service } from './abstract-service';
 export class AccountsService extends Service {
   private accountsRepository: AccountsRepository;
   private configRepository: ConfigRepository;
+  private transactionRepository: TransactionRepository;
 
-  constructor(accountsRepository: AccountsRepository, configRepository: ConfigRepository) {
+  constructor(
+    accountsRepository: AccountsRepository,
+    configRepository: ConfigRepository,
+    transactionRepository: TransactionRepository,
+  ) {
     super();
     this.accountsRepository = accountsRepository;
     this.configRepository = configRepository;
+    this.transactionRepository = transactionRepository;
   }
 
   public async getAllAccounts() {
@@ -60,7 +68,8 @@ export class AccountsService extends Service {
           balance: 0,
         });
 
-        if (!insertedAccountBalance) throw new Error('Insert account_balance failed');
+        if (!insertedAccountBalance)
+          throw new Error('The result of AccountsRepository.insertAccountBalance() method is null');
 
         return await accountsRepoWithTx.getAccountById(insertedAccount.id);
       } catch (err) {
@@ -128,6 +137,16 @@ export class AccountsService extends Service {
   }
 
   public async deleteAccount(accountId: string) {
+    const targetAccount = (await this.accountsRepository.getAccountById(
+      accountId,
+      true,
+    )) as AccountSelectAllTx;
+    const journalEntryIds = targetAccount?.transactions?.flatMap((tx) => tx.journalEntryId);
+
+    if (journalEntryIds) {
+      await this.transactionRepository.deleteJournalEntries(journalEntryIds);
+    }
+
     const result = await this.accountsRepository.deleteAccount(accountId);
     if (!result)
       throw new Error('The result of AccountsRepository.deleteAccount() method is null.');
@@ -135,7 +154,10 @@ export class AccountsService extends Service {
     return result;
   }
 
-  public async getAcountsByCountry(groupType: AccountGroupType): Promise<GroupAccountsByCountry> {
+  public async getAcountsByCountry(
+    groupType: AccountGroupType,
+    includeArchived: boolean,
+  ): Promise<GroupAccountsByCountry> {
     const accountGroups = await this.accountsRepository.getAccountGroupsByType(groupType);
     const groupedByCountry: GroupAccountsByCountry = {};
 
@@ -149,7 +171,10 @@ export class AccountsService extends Service {
 
         groupedByCountry[countryCode].push({
           ...group,
-          accounts: group.accounts.filter((account) => account.country.code === countryCode),
+          accounts: group.accounts.filter(
+            (account) =>
+              (includeArchived || !account.isArchive) && account.country.code === countryCode,
+          ),
         });
       });
     });

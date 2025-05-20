@@ -27,10 +27,11 @@ export const QUERIES = {
       }),
   },
   accounts: {
-    accountGroupsByCountry: (groupType: AccountGroupType) =>
+    accountGroupsByCountry: (groupType: AccountGroupType, includeArchived: boolean) =>
       queryOptions({
         queryKey: ['getAccountsByCountry', groupType],
-        queryFn: async () => (await getAccountsService()).getAcountsByCountry(groupType),
+        queryFn: async () =>
+          (await getAccountsService()).getAcountsByCountry(groupType, includeArchived),
       }),
     allAccounts: () =>
       queryOptions({

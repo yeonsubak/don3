@@ -6,6 +6,7 @@ import type {
   AccountGroupType,
   AccountInsert,
   AccountSelectAll,
+  AccountSelectAllTx,
 } from '@/db/drizzle/types';
 import { eq } from 'drizzle-orm';
 import { Repository } from './abstract-repository';
@@ -22,8 +23,24 @@ export class AccountsRepository extends Repository {
     });
   }
 
-  public async getAccountById(id: string): Promise<AccountSelectAll> {
-    const result = await this.db.query.accounts.findFirst({
+  public async getAccountById(
+    id: string,
+    includeTransactions: boolean = false,
+  ): Promise<AccountSelectAll | AccountSelectAllTx | undefined> {
+    if (includeTransactions) {
+      return await this.db.query.accounts.findFirst({
+        where: (accounts, { eq }) => eq(accounts.id, id),
+        with: {
+          currency: true,
+          country: true,
+          group: true,
+          balance: true,
+          transactions: true,
+        },
+      });
+    }
+
+    return await this.db.query.accounts.findFirst({
       where: (accounts, { eq }) => eq(accounts.id, id),
       with: {
         currency: true,
@@ -32,10 +49,6 @@ export class AccountsRepository extends Repository {
         balance: true,
       },
     });
-
-    if (!result)
-      throw new Error('The result of AccountsRepository.getAccountById() method is null.');
-    return result;
   }
 
   public async insertAccount(insert: AccountInsert) {

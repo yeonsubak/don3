@@ -57,8 +57,8 @@ export const IncomeForm = ({ footer, onSuccess }: TxFormProps) => {
     error,
   } = useQueries({
     queries: [
-      QUERIES.accounts.accountGroupsByCountry('asset'),
-      QUERIES.accounts.accountGroupsByCountry('income'),
+      QUERIES.accounts.accountGroupsByCountry('asset', false),
+      QUERIES.accounts.accountGroupsByCountry('income', false),
     ],
     combine: (results) => ({
       data: {

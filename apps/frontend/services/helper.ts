@@ -10,7 +10,8 @@ import { TransactionService } from './transaction-service';
 export const getAccountsService = async () => {
   const accountsRepository = await getAccountsRepository();
   const configRepository = await getConfigRepository();
-  return new AccountsService(accountsRepository, configRepository);
+  const TransactionRepository = await getTransactionRepository();
+  return new AccountsService(accountsRepository, configRepository, TransactionRepository);
 };
 
 export const getConfigService = async () => {
