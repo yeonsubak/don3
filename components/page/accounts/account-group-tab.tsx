@@ -21,7 +21,7 @@ export const AccountGroupTab = ({ tabValue }: AccountGroupTabProps) => {
     data: fetchedAccountGroupsByCountry,
     isError,
     error,
-  } = useQuery(QUERIES.accounts.accountGroupsByCountry(tabValue));
+  } = useQuery(QUERIES.accounts.accountGroupsByCountry(tabValue, true));
 
   const accountGroupsByCountry = useMemo(
     () => fetchedAccountGroupsByCountry ?? [],

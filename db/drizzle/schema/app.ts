@@ -49,7 +49,7 @@ export const accounts = appSchema.table(
     index('accounts_idx_account_group_id').on(t.accountGroupId),
   ],
 );
-export const accountsRelations = relations(accounts, ({ one }) => ({
+export const accountsRelations = relations(accounts, ({ one, many }) => ({
   group: one(accountGroups, {
     fields: [accounts.accountGroupId],
     references: [accountGroups.id],
@@ -66,6 +66,7 @@ export const accountsRelations = relations(accounts, ({ one }) => ({
     fields: [accounts.id],
     references: [accountBalances.accountId],
   }),
+  transactions: many(transactions),
 }));
 
 export const accountBalances = appSchema.table(

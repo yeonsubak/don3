@@ -13,6 +13,7 @@ import {
 import type { AccountSelect } from '@/db/drizzle/types';
 import { cn } from '@/lib/utils';
 import { useAccountDrawerContext } from './drawer/drawer-context';
+import { toast } from 'sonner';
 
 type AccountProps = {
   account: AccountSelect<{ balance: true; currency: true; country: true }>;
@@ -70,6 +71,12 @@ export const Account = ({ account }: AccountProps) => {
     setOpen(true);
   }
 
+  function handleModifyOrder() {
+    toast('Modify order will be available in the future. Stay tuned!', {
+      position: 'top-center',
+    });
+  }
+
   return (
     <ContextMenu>
       <ContextMenuTrigger>
@@ -102,7 +109,7 @@ export const Account = ({ account }: AccountProps) => {
         <ContextMenuLabel>{account.name}</ContextMenuLabel>
         <ContextMenuSeparator />
         <ContextMenuItem onClick={handleEdit}>Edit</ContextMenuItem>
-        <ContextMenuItem>Change order</ContextMenuItem>
+        <ContextMenuItem onClick={handleModifyOrder}>Modify order</ContextMenuItem>
         {account.isArchive ? (
           <ContextMenuItem onClick={handleReactivate}>Reactivate</ContextMenuItem>
         ) : (

@@ -43,6 +43,13 @@ export type AccountSelectAll = AccountSelect<{
   group: true;
   balance: true;
 }>;
+export type AccountSelectAllTx = AccountSelect<{
+  country: true;
+  currency: true;
+  group: true;
+  balance: true;
+  transactions: true;
+}>;
 
 export type AccountBalanceSelect = typeof schema.accountBalances.$inferSelect;
 export type AccountBalanceInsert = typeof schema.accountBalances.$inferInsert;

@@ -1,16 +1,11 @@
-import type {
-  ExpenseTxForm,
-  FundTransferTxForm,
-  IncomeTxForm,
-} from '@/components/page/transactions/add-drawer/forms/form-schema';
 import { journalEntries, journalEntryFxRates, transactions } from '@/db/drizzle/schema';
 import type {
   JournalEntryFxRatesInsert,
+  JournalEntryInsert,
   JournalEntryType,
   TransactionInsert,
 } from '@/db/drizzle/types';
-import { and, between, inArray } from 'drizzle-orm';
-import { DateTime } from 'luxon';
+import { and, between, eq, inArray } from 'drizzle-orm';
 import { Repository } from './abstract-repository';
 
 export class TransactionRepository extends Repository {
@@ -52,35 +47,28 @@ export class TransactionRepository extends Repository {
     });
   }
 
-  public async insertJournalEntry(
-    currencyId: string,
-    amount: number,
-    form: IncomeTxForm | ExpenseTxForm | FundTransferTxForm,
-  ) {
-    const { journalEntryType, date, time, title, description } = form;
-    const systemTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const datetime = DateTime.fromJSDate(date, { zone: systemTimezone });
-    datetime.set({ hour: time.hour, minute: time.minute, second: 0, millisecond: 0 });
+  public async insertJournalEntry(insert: JournalEntryInsert) {
+    return (await this.db.insert(journalEntries).values(insert).returning()).at(0);
+  }
+
+  public async deleteJournalEntries(journalEntryId: string | string[]) {
+    if (Array.isArray(journalEntryId)) {
+      return await this.db
+        .delete(journalEntries)
+        .where(inArray(journalEntries.id, journalEntryId))
+        .returning();
+    }
+
     return (
-      await this.db
-        .insert(journalEntries)
-        .values({
-          type: journalEntryType,
-          date: datetime.toJSDate(),
-          title,
-          description,
-          currencyId,
-          amount: amount,
-        })
-        .returning()
+      await this.db.delete(journalEntries).where(eq(journalEntries.id, journalEntryId)).returning()
     ).at(0);
   }
 
   public async insertJournalEntryFxRate(insert: JournalEntryFxRatesInsert) {
-    return await this.db.insert(journalEntryFxRates).values(insert);
+    return (await this.db.insert(journalEntryFxRates).values(insert).returning()).at(0);
   }
 
   public async insertTransaction(insertObj: TransactionInsert) {
-    await this.db.insert(transactions).values(insertObj);
+    return (await this.db.insert(transactions).values(insertObj).returning()).at(0);
   }
 }

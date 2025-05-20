@@ -93,6 +93,10 @@ export class TransactionService extends Service {
       fxAmount,
       fxRate,
       amount,
+      date,
+      description,
+      time,
+      title,
     } = form;
 
     // Validate the data from the form
@@ -112,11 +116,15 @@ export class TransactionService extends Service {
       try {
         const transactionRepoWithTx = new TransactionRepository(tx);
 
-        const journalEntry = await transactionRepoWithTx.insertJournalEntry(
-          baseCurrency.id,
-          parsedAmount,
-          form,
-        );
+        const journalEntry = await transactionRepoWithTx.insertJournalEntry({
+          type: journalEntryType,
+          date,
+          title,
+          description,
+          currencyId: baseCurrency.id,
+          amount: parsedAmount,
+        });
+
         if (!journalEntry) throw new Error('Insert to journal Entry failed');
 
         if (fxRate) {

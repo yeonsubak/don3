@@ -37,8 +37,8 @@ export const ArchiveAlert = () => {
       const refreshedAccountGroups = await accountsService.getAllAccountGroups();
       setAccountGroups(refreshedAccountGroups);
 
-      const query = QUERIES.accounts.accountGroupsByCountry(selectedTab);
-      const newData = await accountsService.getAcountsByCountry(selectedTab);
+      const query = QUERIES.accounts.accountGroupsByCountry(selectedTab, true);
+      const newData = await accountsService.getAcountsByCountry(selectedTab, true);
       queryClient.setQueryData(query.queryKey, newData);
     } catch (err) {
       console.error(err);

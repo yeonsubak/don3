@@ -2,27 +2,36 @@ import { useGlobalContext } from '@/app/app/global-context';
 import { useIsMobile } from '@/components/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { DialogClose, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { SheetClose, SheetFooter } from '@/components/ui/sheet';
+import { QUERIES } from '@/lib/tanstack-queries';
 import { cn } from '@/lib/utils';
 import { getAccountsService } from '@/services/helper';
-import { LoaderCircle } from 'lucide-react';
-import { useState, type ComponentProps } from 'react';
-import { useAccountDrawerContext } from './drawer-context';
 import { useQueryClient } from '@tanstack/react-query';
-import { QUERIES } from '@/lib/tanstack-queries';
+import { LoaderCircle } from 'lucide-react';
+import { useMemo, useState, type ComponentProps } from 'react';
+import { useAccountDrawerContext } from './drawer-context';
 
-export const ReactivateAlert = () => {
+export const DeleteAlert = () => {
   const { setAccountGroups } = useGlobalContext();
   const { account, setOpen, selectedTab } = useAccountDrawerContext();
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
+
+  const [confirmText, setConfirmText] = useState<string>('');
+  const isDeleteReady = useMemo(() => confirmText === account?.name, [confirmText, account?.name]);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
   const CANCEL_BUTTON_LABEL = 'Cancel';
 
-  const SaveButton = ({ ...props }: ComponentProps<typeof Button>) => (
-    <Button type="button" variant="default" disabled={isProcessing} {...props}>
-      {isProcessing ? <LoaderCircle className={cn('h-4 w-4 animate-spin')} /> : <span>Save</span>}
+  const DeleteButton = ({ ...props }: ComponentProps<typeof Button>) => (
+    <Button
+      type="button"
+      variant="destructive"
+      disabled={!isDeleteReady || isProcessing}
+      {...props}
+    >
+      {isProcessing ? <LoaderCircle className={cn('h-4 w-4 animate-spin')} /> : <span>Delete</span>}
     </Button>
   );
 
@@ -32,7 +41,7 @@ export const ReactivateAlert = () => {
       if (!account) throw new Error('The account object is undefined');
 
       const accountsService = await getAccountsService();
-      await accountsService.reactivateAccount(account.id);
+      await accountsService.deleteAccount(account.id);
 
       const refreshedAccountGroups = await accountsService.getAllAccountGroups();
       setAccountGroups(refreshedAccountGroups);
@@ -51,8 +60,8 @@ export const ReactivateAlert = () => {
   return (
     <>
       <div className={cn('break-keep', isMobile ? 'px-4 py-2' : '')}>
-        <p className="text-pretty">
-          Are you sure you want to reactivate the account{' '}
+        <p className="mb-2 text-pretty">
+          Are you sure you want to delete the account{' '}
           <span className="font-bold">
             {'"'}
             {account?.name}
@@ -60,17 +69,35 @@ export const ReactivateAlert = () => {
           </span>
           ?
         </p>
+        <p className="mb-2 text-pretty">
+          All transactions and records associated with the account will be{' '}
+          <span className="text-destructive font-bold">
+            permanently deleted and cannot be restored.
+          </span>
+        </p>
+        <div>
+          <p className="mb-3 text-pretty">
+            To proceed deleting the account, please enter the name of the account, then click
+            {" '"}Delete{"'"} button.
+          </p>
+          <Input
+            type="text"
+            placeholder={account?.name}
+            value={confirmText}
+            onChange={(e) => setConfirmText(e.target.value)}
+          />
+        </div>
       </div>
       {isMobile ? (
         <SheetFooter>
-          <SaveButton onClick={handleSubmit} />
+          <DeleteButton onClick={handleSubmit} />
           <SheetClose asChild>
             <Button variant="outline">{CANCEL_BUTTON_LABEL}</Button>
           </SheetClose>
         </SheetFooter>
       ) : (
         <DialogFooter className="mt-4">
-          <SaveButton className="w-20" onClick={handleSubmit} />
+          <DeleteButton className="w-20" onClick={handleSubmit} />
           <DialogClose asChild>
             <Button variant="outline">{CANCEL_BUTTON_LABEL}</Button>
           </DialogClose>
