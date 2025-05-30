@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 import { ChevronLeft, ChevronRight, LoaderCircle } from 'lucide-react';
 import React, { useCallback, useRef, useState } from 'react';
 import { AccountsOverview } from '../../accounts/accounts-overview';
-import { TransactionFormTab } from '../../transactions/add-drawer/transaction-form-tab';
+import { TransactionFormTab } from '../../transactions/drawer/transaction-form-tab';
 import { CompletionStep } from './steps/completion-step';
 import { DefaultValueStep } from './steps/default-value-step';
 import { Step, type StepProps } from './steps/step';

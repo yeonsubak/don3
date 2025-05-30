@@ -5,8 +5,9 @@ import type {
   ExpenseTxForm,
   FundTransferTxForm,
   IncomeTxForm,
-} from '@/components/page/transactions/add-drawer/forms/form-schema';
+} from '@/components/page/transactions/drawer/forms/form-schema';
 import type { CurrencySelect, JournalEntryType, TransactionInsert } from '@/db/drizzle/types';
+import { DateTime } from 'luxon';
 import { AccountsRepository } from '../repositories/accounts-repository';
 import { TransactionRepository } from '../repositories/transaction-repository';
 import { Service } from './abstract-service';
@@ -116,9 +117,15 @@ export class TransactionService extends Service {
       try {
         const transactionRepoWithTx = new TransactionRepository(tx);
 
+        const dateTime = DateTime.fromJSDate(date).set({
+          hour: time.hour,
+          minute: time.minute,
+          second: 0,
+        });
+
         const journalEntry = await transactionRepoWithTx.insertJournalEntry({
           type: journalEntryType,
-          date,
+          date: dateTime.toJSDate(),
           title,
           description,
           currencyId: baseCurrency.id,
@@ -191,5 +198,91 @@ export class TransactionService extends Service {
     return await this.transactionRepository.getJournalEntryById(entryId ?? '');
   }
 
-  public async updateBalance() {}
+  public async updateTransaction(form: IncomeTxForm | ExpenseTxForm | FundTransferTxForm) {
+    const {
+      id,
+      debitAccountId,
+      creditAccountId,
+      currencyCode,
+      journalEntryType,
+      fxAmount,
+      fxRate,
+      amount,
+      date,
+      description,
+      time,
+      title,
+    } = form;
+
+    if (!form.id) throw new Error('journal_entry_id is null.');
+
+    const debitAccount = await this.accountsRepository.getAccountById(debitAccountId);
+    if (!debitAccount) throw new Error('Invalid debit account');
+
+    const baseCurrency = debitAccount.currency;
+    const formCurrency = await this.configService.getCurrencyByCode(currencyCode);
+    if (!formCurrency) throw new Error('Failed to fetch currency');
+
+    const parsedAmount = parseNumber(fxRate ? fxAmount : amount, baseCurrency.isoDigits);
+    if (!parsedAmount) throw new Error('Invalid amount');
+
+    const journalEntry = await this.transactionRepository.getJournalEntryById(form.id);
+    if (!journalEntry) throw new Error('journal_entry is not found');
+
+    await this.transactionRepository.withTx(async (tx) => {
+      try {
+        const transactionRepoWithTx = new TransactionRepository(tx);
+
+        if (journalEntry?.fxRate) {
+          const parsedFxRate = parseNumber(fxRate, 10);
+          if (!parsedFxRate) throw new Error('Invalid FxRate');
+
+          await transactionRepoWithTx.updateJournalEntryFxRate({
+            id: journalEntry.fxRate.id,
+            journalEntryId: journalEntry.id,
+            baseCurrencyId: debitAccount.currencyId,
+            targetCurrencyId: formCurrency.id,
+            rate: parsedFxRate,
+            updateAt: new Date(),
+          });
+        }
+
+        const dateTime = DateTime.fromJSDate(date).set({
+          hour: time.hour,
+          minute: time.minute,
+          second: 0,
+        });
+
+        await Promise.all([
+          transactionRepoWithTx.updateJournalEntry({
+            id: id!,
+            amount: parsedAmount,
+            date: dateTime.toJSDate(),
+            currencyId: baseCurrency.id,
+            type: journalEntryType,
+            title: title,
+            description: description,
+            updateAt: new Date(),
+          }),
+          transactionRepoWithTx.updateTransaction({
+            type: 'debit',
+            journalEntryId: id!,
+            accountId: debitAccountId,
+            amount: parsedAmount,
+          }),
+          transactionRepoWithTx.updateTransaction({
+            type: 'credit',
+            journalEntryId: id!,
+            accountId: creditAccountId,
+            amount: parsedAmount,
+          }),
+        ]);
+      } catch (err) {
+        console.error(err);
+        tx.rollback();
+      }
+    });
+
+    return await this.transactionRepository.getJournalEntryById(journalEntry.id);
+  }
 }

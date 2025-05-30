@@ -1,5 +1,6 @@
 'use client';
 
+import type { JournalEntryType } from '@/db/drizzle/types';
 import {
   createContext,
   useCallback,
@@ -21,18 +22,31 @@ type SharedForm = Partial<z.infer<typeof baseTxForm>> & {
   countryCode?: string;
 };
 
-export type TransactionDrawerContext = {
+type TransactionDrawerContext = {
   open: boolean;
   setOpen: Dispatch<SetStateAction<boolean>>;
   sharedFormRef: RefObject<SharedForm | undefined>;
   setSharedFormRef: (form: SharedForm | undefined) => void;
+  selectedTab: JournalEntryType;
+  setSelectedTab: Dispatch<SetStateAction<JournalEntryType>>;
+  mode: 'add' | 'edit';
+  setMode: Dispatch<SetStateAction<'add' | 'edit'>>;
+  isProcessing: boolean;
+  setIsProcessing: Dispatch<SetStateAction<boolean>>;
 };
-export const TransactionDrawerContext = createContext<TransactionDrawerContext | null>(null);
+
+const TransactionDrawerContext = createContext<TransactionDrawerContext | null>(null);
 
 export const TransactionDrawerContextProvider = ({ children }: { children: ReactNode }) => {
   const [open, setOpen] = useState(false);
-  const sharedFormRef = useRef<SharedForm | undefined>(undefined);
 
+  const [selectedTab, setSelectedTab] = useState<JournalEntryType>('expense');
+
+  const [mode, setMode] = useState<'add' | 'edit'>('add');
+
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+
+  const sharedFormRef = useRef<SharedForm | undefined>(undefined);
   const setSharedFormRef = useCallback((form: SharedForm | undefined) => {
     sharedFormRef.current = form;
   }, []);
@@ -40,6 +54,7 @@ export const TransactionDrawerContextProvider = ({ children }: { children: React
   useEffect(() => {
     if (!open) {
       setSharedFormRef(undefined);
+      setMode('add');
     }
   }, [open, setSharedFormRef]);
 
@@ -50,6 +65,12 @@ export const TransactionDrawerContextProvider = ({ children }: { children: React
         setOpen,
         sharedFormRef,
         setSharedFormRef,
+        selectedTab,
+        setSelectedTab,
+        mode,
+        setMode,
+        isProcessing,
+        setIsProcessing,
       }}
     >
       {children}

@@ -16,6 +16,29 @@
       "transfer": "Transfer"
     }
   },
+  "TransactionRecord": {
+    "TransactionDrawer": {
+      "titleAdd": "Add a record",
+      "titleEdit": "Edit the record",
+      "cancelBtn": "Cancel",
+      "saveBtn": "Save",
+      "triggerBtn": "Add",
+      "editBtn": "Edit",
+      "deleteBtn": "Delete"
+    },
+    "TransactionDetails": {
+      "labels": {
+        "date": "Date",
+        "type": "Type",
+        "debitAccount": "Debit Account",
+        "creditAccount": "Credit Account",
+        "description": "Description",
+        "baseCurrency": "Base Currency",
+        "targetCurrency": "Target Currency",
+        "fxRate": "Exchange Rate"
+      }
+    }
+  },
   "countryCode": {
     "AFG": "Afghanistan",
     "ALB": "Albania",

@@ -25,7 +25,7 @@ export const TimeSelector = ({ field, zForm, placeholder = 'Pick a time' }: Time
 
   const setValue = (open: boolean) => {
     if (!open) {
-      zForm.setValue(field.name, time);
+      field.onChange(time);
       setIsValueEmpty(time.hour.length < 1 || time.minute.length < 1);
     }
   };

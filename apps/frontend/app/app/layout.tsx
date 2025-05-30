@@ -38,7 +38,7 @@ function SideBar({ children }: Readonly<{ children: React.ReactNode }>) {
           <Breadcrumb pathname={pathname} className="text-lg" />
           {/* <DarkModeToggle className="ml-auto" /> */}
         </header>
-        <main className="h-full w-full px-6 py-4">{children}</main>
+        <main className="h-full w-full p-4">{children}</main>
         <Toaster className="z-99999 text-pretty" expand={true} />
       </SidebarInset>
     </SidebarProvider>

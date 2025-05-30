@@ -51,6 +51,16 @@ export class TransactionRepository extends Repository {
     return (await this.db.insert(journalEntries).values(insert).returning()).at(0);
   }
 
+  public async updateJournalEntry(updateObj: JournalEntryInsert) {
+    return (
+      await this.db
+        .update(journalEntries)
+        .set({ ...updateObj, id: undefined })
+        .where(eq(journalEntries.id, updateObj.id!))
+        .returning()
+    ).at(0);
+  }
+
   public async deleteJournalEntries(journalEntryId: string | string[]) {
     if (Array.isArray(journalEntryId)) {
       return await this.db
@@ -68,7 +78,27 @@ export class TransactionRepository extends Repository {
     return (await this.db.insert(journalEntryFxRates).values(insert).returning()).at(0);
   }
 
+  public async updateJournalEntryFxRate(updateObj: JournalEntryFxRatesInsert) {
+    return (
+      await this.db
+        .update(journalEntryFxRates)
+        .set({ ...updateObj, id: undefined })
+        .where(eq(journalEntryFxRates.id, updateObj.id!))
+        .returning()
+    ).at(0);
+  }
+
   public async insertTransaction(insertObj: TransactionInsert) {
     return (await this.db.insert(transactions).values(insertObj).returning()).at(0);
+  }
+
+  public async updateTransaction(updateObj: TransactionInsert) {
+    return (
+      await this.db
+        .update(transactions)
+        .set({ ...updateObj, id: undefined })
+        .where(eq(transactions.id, updateObj.id!))
+        .returning()
+    ).at(0);
   }
 }
