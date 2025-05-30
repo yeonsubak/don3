@@ -285,4 +285,8 @@ export class TransactionService extends Service {
 
     return await this.transactionRepository.getJournalEntryById(journalEntry.id);
   }
+
+  public async deleteTransaction(journalEntryId: string) {
+    return await this.transactionRepository.deleteJournalEntries(journalEntryId);
+  }
 }
