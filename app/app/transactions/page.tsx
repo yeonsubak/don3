@@ -1,7 +1,6 @@
 'use client';
 
-import { AddTransactionDrawer } from '@/components/page/transactions/add-drawer';
-import { TransactionDrawerContextProvider } from '@/components/page/transactions/add-drawer/drawer-context';
+import { TransactionDrawer } from '@/components/page/transactions/drawer';
 import { TransactionCalendar } from '@/components/page/transactions/transaction-calendar';
 import { TransactionRecord } from '@/components/page/transactions/transaction-record';
 import { TransactionSummary } from '@/components/page/transactions/transaction-summary';
@@ -11,9 +10,7 @@ export default function TransactionPage() {
     <div className="flex max-w-6xl flex-col gap-6">
       <TransactionCalendar />
       <TransactionSummary>
-        <TransactionDrawerContextProvider>
-          <AddTransactionDrawer />
-        </TransactionDrawerContextProvider>
+        <TransactionDrawer />
       </TransactionSummary>
       <div className="mb-2"></div>
 

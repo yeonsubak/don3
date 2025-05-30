@@ -18,6 +18,7 @@ const fxRateErrorMsg = {
 
 export const baseTxForm = z
   .object({
+    id: z.string().nullable(),
     date: z.coerce.date(),
     time: z.object({
       hour: z.coerce.number().gte(0).lte(23),

@@ -1,7 +1,7 @@
 import { AccountsContextProvider } from '@/app/app/accounts/accounts-context';
 import { GlobalContextProvider } from '@/app/app/global-context';
 import { AccountDrawerContextProvider } from '@/components/page/accounts/drawer/drawer-context';
-import { TransactionDrawerContextProvider } from '@/components/page/transactions/add-drawer/drawer-context';
+import { TransactionDrawerContextProvider } from '@/components/page/transactions/drawer/drawer-context';
 import { TransactionContextProvider } from '@/components/page/transactions/transaction-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';

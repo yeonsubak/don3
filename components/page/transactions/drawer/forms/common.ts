@@ -3,10 +3,10 @@ import type { ComboboxItem } from '@/components/primitives/combobox';
 import type { AccountSelect, JournalEntrySelect } from '@/db/drizzle/types';
 import type { ReactNode } from 'react';
 import type { FieldValue, FieldValues, UseFormReturn } from 'react-hook-form';
+import type { ExpenseTxForm, FundTransferTxForm, IncomeTxForm } from './form-schema';
 
 export interface TxFormProps {
-  footer: ReactNode;
-  onSuccess: (entry: JournalEntrySelect<{ currency: true; transactions: true }>) => Promise<void>;
+  onSubmit: (form: ExpenseTxForm | IncomeTxForm | FundTransferTxForm) => Promise<void>;
 }
 
 export type Form = UseFormReturn<FieldValue<FieldValues>>;

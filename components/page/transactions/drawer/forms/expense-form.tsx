@@ -1,7 +1,6 @@
 import { useGlobalContext } from '@/app/app/global-context';
 import { Form } from '@/components/ui/form';
 import { QUERIES } from '@/lib/tanstack-queries';
-import { getTransactionService } from '@/services/helper';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueries } from '@tanstack/react-query';
 import { DateTime } from 'luxon';
@@ -16,20 +15,24 @@ import { DescriptionField } from '../fields/description-field';
 import { TimeField } from '../fields/time-field';
 import { TitleField } from '../fields/title-field';
 import { mapAccounts, type AccountComboItem, type TxFormProps } from './common';
+import { TransactionDrawerFooter } from './footer';
 import { expenseTxForm, type ExpenseTxForm } from './form-schema';
 
-export const ExpenseForm = ({ footer, onSuccess }: TxFormProps) => {
+export const ExpenseForm = ({ onSubmit }: TxFormProps) => {
   const { defaultCurrency, defaultCountry } = useGlobalContext();
   const {
-    open,
     sharedFormRef: { current: sharedForm },
     setSharedFormRef: setSharedForm,
   } = useTransactionDrawerContext();
+
+  const [paidByAccounts, setPaidByAccounts] = useState<AccountComboItem[]>([]);
+  const [categoryAccounts, setCategoryAccounts] = useState<AccountComboItem[]>([]);
 
   const curDate = DateTime.now();
   const form = useForm<ExpenseTxForm>({
     resolver: zodResolver(expenseTxForm),
     defaultValues: {
+      id: sharedForm?.id ?? '',
       date: sharedForm?.date ?? curDate.toJSDate(),
       time: sharedForm?.time ?? { hour: curDate.get('hour'), minute: curDate.get('minute') },
       journalEntryType: 'expense',
@@ -40,7 +43,7 @@ export const ExpenseForm = ({ footer, onSuccess }: TxFormProps) => {
       title: sharedForm?.title ?? '',
       description: sharedForm?.description ?? '',
       debitAccountId: sharedForm?.debitAccountId ?? '',
-      creditAccountId: '',
+      creditAccountId: sharedForm?.creditAccountId ?? '',
       countryCode: sharedForm?.countryCode ?? defaultCountry?.code ?? 'USA',
       isFx: sharedForm?.isFx ?? false,
     },
@@ -74,9 +77,6 @@ export const ExpenseForm = ({ footer, onSuccess }: TxFormProps) => {
     }),
   });
 
-  const [paidByAccounts, setPaidByAccounts] = useState<AccountComboItem[]>([]);
-  const [categoryAccounts, setCategoryAccounts] = useState<AccountComboItem[]>([]);
-
   const countryCodeWatch = useWatch({ control: form.control, name: 'countryCode' });
   useEffect(() => {
     if (assetGroupsByCountry && liabilityGroupsByCountry) {
@@ -91,16 +91,6 @@ export const ExpenseForm = ({ footer, onSuccess }: TxFormProps) => {
       setCategoryAccounts(expenses);
     }
   }, [countryCodeWatch, expenseGroupsByCountry]);
-
-  const onSubmit = async (form: ExpenseTxForm) => {
-    const transactionService = await getTransactionService();
-    if (!transactionService) throw new Error('TransactionService must be initialized first');
-
-    const insertedEntry = await transactionService.insertTransaction(form);
-    if (!insertedEntry) throw new Error('Error ocurred while on inserting the transaction.');
-
-    await onSuccess(insertedEntry);
-  };
 
   if (isError) return error.map((e) => <p key={e?.name}>Error: ${e?.message}</p>);
 
@@ -136,7 +126,7 @@ export const ExpenseForm = ({ footer, onSuccess }: TxFormProps) => {
         />
         <TitleField zForm={form} />
         <DescriptionField zForm={form} />
-        {footer}
+        <TransactionDrawerFooter zForm={form} />
       </form>
     </Form>
   );

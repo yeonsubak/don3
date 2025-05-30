@@ -25,18 +25,6 @@ export const AccountField = ({ label, fieldName, zForm, accountItems }: AccountF
     name: 'journalEntryType',
   });
 
-  const defaultOnSelectFn = (currentValue: string) => {
-    if (journalEntryType === 'transfer') {
-      return;
-    }
-
-    const flat = flattenComboboxItems(accountItems) as ComboboxItem<AccountSelectAll>[];
-    const debitAccount = flat.find((account) => account.value === currentValue)?.data;
-    if (debitAccount) {
-      zForm.setValue('currencyCode', debitAccount.currency.code);
-    }
-  };
-
   return (
     <FormField
       control={zForm.control}
@@ -49,7 +37,19 @@ export const AccountField = ({ label, fieldName, zForm, accountItems }: AccountF
               <Combobox
                 items={accountItems}
                 field={field}
-                onSelectFn={defaultOnSelectFn}
+                onSelectFn={(currentValue) => {
+                  if (journalEntryType === 'transfer') {
+                    return;
+                  }
+
+                  const flat = flattenComboboxItems(
+                    accountItems,
+                  ) as ComboboxItem<AccountSelectAll>[];
+                  const debitAccount = flat.find((account) => account.value === currentValue)?.data;
+                  if (debitAccount) {
+                    field.onChange(debitAccount.currency.code);
+                  }
+                }}
                 popoverContentClass="w-fit"
                 buttonLabelRenderFn={() => {
                   const items = flattenComboboxItems(
