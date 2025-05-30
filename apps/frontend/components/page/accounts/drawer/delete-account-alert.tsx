@@ -12,7 +12,7 @@ import { LoaderCircle } from 'lucide-react';
 import { useMemo, useState, type ComponentProps } from 'react';
 import { useAccountDrawerContext } from './drawer-context';
 
-export const DeleteAlert = () => {
+export const DeleteAccountAlert = () => {
   const { setAccountGroups } = useGlobalContext();
   const { account, setOpen, selectedTab } = useAccountDrawerContext();
   const queryClient = useQueryClient();
