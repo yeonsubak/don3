@@ -16,7 +16,7 @@ import { AccountForm } from './account-form';
 import { ArchiveAlert } from './archive-alert';
 import { useAccountDrawerContext } from './drawer-context';
 import { ReactivateAlert } from './reactivate-alert';
-import { DeleteAlert } from './delete-alert';
+import { DeleteAccountAlert } from './delete-account-alert';
 
 export const AddAccountButton = ({ countryCode }: { countryCode: string }) => {
   const { setOpen } = useAccountDrawerContext();
@@ -42,7 +42,7 @@ const DrawerContent = () => {
 
   switch (mode) {
     case 'delete':
-      return <DeleteAlert />;
+      return <DeleteAccountAlert />;
     case 'archive':
       return <ArchiveAlert />;
     case 'reactivate':
