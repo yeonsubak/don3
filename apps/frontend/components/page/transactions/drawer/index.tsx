@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useTranslations } from 'next-intl';
+import { DeleteTransactionAlert } from './delete-transaction-alert';
 import { useTransactionDrawerContext } from './drawer-context';
 import { TransactionFormTab } from './transaction-form-tab';
 
@@ -20,11 +21,16 @@ export const TransactionDrawer = () => {
   const isMobile = useIsMobile();
   const t = useTranslations('TransactionRecord.TransactionDrawer');
 
-  const SaveButton = () => (
-    <Button type="submit" variant="default" disableOnProcess>
-      {t('saveBtn')}
-    </Button>
-  );
+  function getTitleByMode() {
+    switch (mode) {
+      case 'add':
+        return t('titleAdd');
+      case 'edit':
+        return t('titleEdit');
+      case 'delete':
+        return t('titleDelete');
+    }
+  }
 
   if (isMobile) {
     return (
@@ -36,11 +42,9 @@ export const TransactionDrawer = () => {
         </SheetTrigger>
         <SheetContent side="bottom" closeBtnOnHeader={false} className="gap-1">
           <SheetHeader>
-            <SheetTitle className="text-xl">
-              {mode === 'add' ? t('titleAdd') : t('titleEdit')}
-            </SheetTitle>
+            <SheetTitle className="text-xl">{getTitleByMode()}</SheetTitle>
           </SheetHeader>
-          <TransactionFormTab />
+          {mode === 'delete' ? <DeleteTransactionAlert /> : <TransactionFormTab />}
         </SheetContent>
       </Sheet>
     );
@@ -55,10 +59,10 @@ export const TransactionDrawer = () => {
       </DialogTrigger>
       <DialogContent className="max-w-[540px]">
         <DialogHeader>
-          <DialogTitle>{mode === 'add' ? t('titleAdd') : t('titleEdit')}</DialogTitle>
+          <DialogTitle>{getTitleByMode()}</DialogTitle>
           <DialogDescription></DialogDescription>
         </DialogHeader>
-        <TransactionFormTab />
+        {mode === 'delete' ? <DeleteTransactionAlert /> : <TransactionFormTab />}
       </DialogContent>
     </Dialog>
   );

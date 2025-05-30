@@ -15,12 +15,15 @@ import {
 } from 'react';
 import type { z } from 'zod';
 import type { baseTxForm } from './forms/form-schema';
+import type { TransactionItem } from '../transaction-record';
 
 type SharedForm = Partial<z.infer<typeof baseTxForm>> & {
   debitAccountId?: string;
   creditAccountId?: string;
   countryCode?: string;
 };
+
+type DrawerMode = 'add' | 'edit' | 'delete';
 
 type TransactionDrawerContext = {
   open: boolean;
@@ -29,10 +32,12 @@ type TransactionDrawerContext = {
   setSharedFormRef: (form: SharedForm | undefined) => void;
   selectedTab: JournalEntryType;
   setSelectedTab: Dispatch<SetStateAction<JournalEntryType>>;
-  mode: 'add' | 'edit';
-  setMode: Dispatch<SetStateAction<'add' | 'edit'>>;
+  mode: DrawerMode;
+  setMode: Dispatch<SetStateAction<DrawerMode>>;
   isProcessing: boolean;
   setIsProcessing: Dispatch<SetStateAction<boolean>>;
+  record: TransactionItem | undefined;
+  setRecord: Dispatch<SetStateAction<TransactionItem | undefined>>;
 };
 
 const TransactionDrawerContext = createContext<TransactionDrawerContext | null>(null);
@@ -42,7 +47,7 @@ export const TransactionDrawerContextProvider = ({ children }: { children: React
 
   const [selectedTab, setSelectedTab] = useState<JournalEntryType>('expense');
 
-  const [mode, setMode] = useState<'add' | 'edit'>('add');
+  const [mode, setMode] = useState<DrawerMode>('add');
 
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
@@ -51,9 +56,12 @@ export const TransactionDrawerContextProvider = ({ children }: { children: React
     sharedFormRef.current = form;
   }, []);
 
+  const [record, setRecord] = useState<TransactionItem | undefined>(undefined);
+
   useEffect(() => {
     if (!open) {
       setSharedFormRef(undefined);
+      setRecord(undefined);
       setMode('add');
     }
   }, [open, setSharedFormRef]);
@@ -71,6 +79,8 @@ export const TransactionDrawerContextProvider = ({ children }: { children: React
         setMode,
         isProcessing,
         setIsProcessing,
+        record,
+        setRecord,
       }}
     >
       {children}

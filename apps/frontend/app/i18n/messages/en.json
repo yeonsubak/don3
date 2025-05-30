@@ -20,6 +20,7 @@
     "TransactionDrawer": {
       "titleAdd": "Add a record",
       "titleEdit": "Edit the record",
+      "titleDelete": "Delete the record",
       "cancelBtn": "Cancel",
       "saveBtn": "Save",
       "triggerBtn": "Add",
