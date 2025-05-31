@@ -21,7 +21,7 @@ export const CountryField = ({ zForm }: { zForm: ZForm }) => {
               field={field}
               onSelectFn={(currentValue) => {
                 const currencyCode = defaultCurrency?.code ?? 'USD';
-                zForm?.setValue('currencyCode', currencyCode);
+                field.onChange(currencyCode);
               }}
             />
           </FormControl>

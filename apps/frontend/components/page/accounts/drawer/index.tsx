@@ -14,9 +14,9 @@ import { Plus } from '@phosphor-icons/react';
 import { useMemo } from 'react';
 import { AccountForm } from './account-form';
 import { ArchiveAlert } from './archive-alert';
+import { DeleteAccountAlert } from './delete-account-alert';
 import { useAccountDrawerContext } from './drawer-context';
 import { ReactivateAlert } from './reactivate-alert';
-import { DeleteAccountAlert } from './delete-account-alert';
 
 export const AddAccountButton = ({ countryCode }: { countryCode: string }) => {
   const { setOpen } = useAccountDrawerContext();
@@ -53,7 +53,7 @@ const DrawerContent = () => {
 };
 
 export const AccountDrawer = () => {
-  const { open, setOpen, mode, setMode, setFormValues, setAccount } = useAccountDrawerContext();
+  const { open, setOpen, mode } = useAccountDrawerContext();
   const isMobile = useIsMobile();
 
   const modalTitle = useMemo(() => {
@@ -73,19 +73,9 @@ export const AccountDrawer = () => {
     }
   }, [mode]);
 
-  function handleOpenChange(open: boolean) {
-    if (!open) {
-      // Reset the form and mode on close
-      setFormValues(undefined);
-      setAccount(undefined);
-      setMode('add');
-    }
-    setOpen(open);
-  }
-
   if (isMobile) {
     return (
-      <Sheet open={open} onOpenChange={handleOpenChange}>
+      <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="bottom" closeBtnOnHeader={false} className="gap-1">
           <SheetHeader>
             <SheetTitle className="text-xl">{modalTitle}</SheetTitle>
@@ -97,7 +87,7 @@ export const AccountDrawer = () => {
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="max-w-[540px]">
         <DialogHeader>
           <DialogTitle>{modalTitle}</DialogTitle>

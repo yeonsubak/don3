@@ -4,6 +4,7 @@ import type { AccountGroupType, AccountSelect } from '@/db/drizzle/types';
 import {
   createContext,
   useContext,
+  useEffect,
   useState,
   type Dispatch,
   type ReactNode,
@@ -26,6 +27,9 @@ type AccountDrawerContextProps = {
 
   account: AccountSelect | undefined;
   setAccount: Dispatch<SetStateAction<AccountSelect | undefined>>;
+
+  isProcessing: boolean;
+  setIsProcessing: Dispatch<SetStateAction<boolean>>;
 };
 
 const AccountDrawerContext = createContext<AccountDrawerContextProps | null>(null);
@@ -38,6 +42,17 @@ export const AccountDrawerContextProvider = ({ children }: { children: ReactNode
   const [formValues, setFormValues] = useState<Partial<AccountFormSchema> | undefined>(undefined);
 
   const [account, setAccount] = useState<AccountSelect | undefined>(undefined);
+
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!open) {
+      setFormValues(undefined);
+      setAccount(undefined);
+      setIsProcessing(false);
+      setMode('add');
+    }
+  }, [open, setIsProcessing, setMode, setFormValues, setAccount]);
 
   return (
     <AccountDrawerContext.Provider
@@ -54,6 +69,9 @@ export const AccountDrawerContextProvider = ({ children }: { children: ReactNode
 
         account,
         setAccount,
+
+        isProcessing,
+        setIsProcessing,
       }}
     >
       {children}

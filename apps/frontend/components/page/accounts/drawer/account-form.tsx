@@ -29,8 +29,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus } from '@phosphor-icons/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { LoaderCircle } from 'lucide-react';
-import { useMemo, useState, type ComponentProps } from 'react';
-import { useForm } from 'react-hook-form';
+import { useEffect, useMemo, useState, type ComponentProps } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
 import { CountryCombobox } from '../../../compositions/country-combobox';
 import { CurrencyCombobox } from '../../../compositions/currency-combobox';
 import { AddAccountGroupForm } from '../../groups/add-account-group-form';
@@ -63,12 +63,12 @@ export const AccountForm = () => {
     defaultCurrency,
   } = useGlobalContext();
 
-  const { setOpen, mode, selectedTab, formValues } = useAccountDrawerContext();
+  const { setOpen, mode, selectedTab, formValues, isProcessing, setIsProcessing } =
+    useAccountDrawerContext();
 
   const isMobile = useIsMobile();
   const queryClient = useQueryClient();
   const [openGroup, setOpenGroup] = useState<boolean>(false);
-  const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const accountGroupComboItems = useMemo(
     () => mapAccountGroupsToComboboxItems(accountGroups, selectedTab),
     [accountGroups, selectedTab],
@@ -100,13 +100,22 @@ export const AccountForm = () => {
           },
   });
 
+  const countryCodeWatch = useWatch({ control: form.control, name: 'countryCode' });
+  useEffect(() => {
+    const country = countries.find((country) => country.code === countryCodeWatch);
+    const defaultCurrency = currencies.find(
+      (currency) => currency.id === country?.defaultCurrencyId,
+    );
+    form.setValue('currencyCode', defaultCurrency?.code ?? 'USD');
+  }, [countryCodeWatch, countries, currencies, form]);
+
   async function onSubmit(form: AccountFormSchema) {
     setIsProcessing(true);
     try {
       const accountsService = await getAccountsService();
       const result =
         mode === 'add'
-          ? await accountsService.insertAccount(form)
+          ? await accountsService.insertAccount(form, selectedTab)
           : await accountsService.updateAccount(form);
 
       const refreshedAccountGroups = await accountsService.getAllAccountGroups();
@@ -118,7 +127,6 @@ export const AccountForm = () => {
     } catch (err) {
       console.error(err);
     } finally {
-      setIsProcessing(false);
       setOpen(false);
     }
   }

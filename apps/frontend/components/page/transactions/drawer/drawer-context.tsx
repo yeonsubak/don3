@@ -14,8 +14,8 @@ import {
   type SetStateAction,
 } from 'react';
 import type { z } from 'zod';
-import type { baseTxForm } from './forms/form-schema';
 import type { TransactionItem } from '../transaction-record';
+import type { baseTxForm } from './forms/form-schema';
 
 type SharedForm = Partial<z.infer<typeof baseTxForm>> & {
   debitAccountId?: string;
@@ -62,6 +62,8 @@ export const TransactionDrawerContextProvider = ({ children }: { children: React
     if (!open) {
       setSharedFormRef(undefined);
       setRecord(undefined);
+      setIsProcessing(false);
+      setSelectedTab('expense');
       setMode('add');
     }
   }, [open, setSharedFormRef]);

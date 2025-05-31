@@ -12,8 +12,8 @@ import {
 } from '@/components/ui/context-menu';
 import type { AccountSelect } from '@/db/drizzle/types';
 import { cn } from '@/lib/utils';
-import { useAccountDrawerContext } from './drawer/drawer-context';
 import { toast } from 'sonner';
+import { useAccountDrawerContext } from './drawer/drawer-context';
 
 type AccountProps = {
   account: AccountSelect<{ balance: true; currency: true; country: true }>;
@@ -36,7 +36,7 @@ export const Account = ({ account }: AccountProps) => {
       : undefined;
 
   const convertedBalance = fxRate?.rate
-    ? parseMoney(`${accountBalance.value * Number(fxRate.rate)}`, defaultCurrency, false, true)
+    ? parseMoney(accountBalance.value * Number(fxRate.rate), defaultCurrency, false, true)
     : null;
 
   function handleEdit() {

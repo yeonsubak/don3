@@ -8,15 +8,15 @@ import { cn } from '@/lib/utils';
 import { getAccountsService } from '@/services/helper';
 import { useQueryClient } from '@tanstack/react-query';
 import { LoaderCircle } from 'lucide-react';
-import { useState, type ComponentProps } from 'react';
+import { type ComponentProps } from 'react';
 import { useAccountDrawerContext } from './drawer-context';
 
 export const ArchiveAlert = () => {
   const { setAccountGroups } = useGlobalContext();
-  const { account, setOpen, selectedTab } = useAccountDrawerContext();
+  const { account, selectedTab, isProcessing, setIsProcessing, setOpen } =
+    useAccountDrawerContext();
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
-  const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
   const CANCEL_BUTTON_LABEL = 'Cancel';
 
@@ -43,7 +43,6 @@ export const ArchiveAlert = () => {
     } catch (err) {
       console.error(err);
     } finally {
-      setIsProcessing(false);
       setOpen(false);
     }
   }

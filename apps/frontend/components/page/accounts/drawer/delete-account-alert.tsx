@@ -14,13 +14,13 @@ import { useAccountDrawerContext } from './drawer-context';
 
 export const DeleteAccountAlert = () => {
   const { setAccountGroups } = useGlobalContext();
-  const { account, setOpen, selectedTab } = useAccountDrawerContext();
+  const { account, selectedTab, isProcessing, setIsProcessing, setOpen } =
+    useAccountDrawerContext();
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
 
   const [confirmText, setConfirmText] = useState<string>('');
   const isDeleteReady = useMemo(() => confirmText === account?.name, [confirmText, account?.name]);
-  const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
   const CANCEL_BUTTON_LABEL = 'Cancel';
 
@@ -52,7 +52,6 @@ export const DeleteAccountAlert = () => {
     } catch (err) {
       console.error(err);
     } finally {
-      setIsProcessing(false);
       setOpen(false);
     }
   }
