@@ -1,7 +1,7 @@
 'use client';
 
 import type { UserConfigKey } from '@/db/drizzle/schema';
-import type { CurrencySelect, ForexInsert, ForexSelect } from '@/db/drizzle/types';
+import type { CountrySelect, CurrencySelect, ForexInsert, ForexSelect } from '@/db/drizzle/types';
 import { DateTime } from 'luxon';
 import type { FetchFxRate } from '../app/api/get-latest-fx-rate/route';
 import { ConfigRepository } from '../repositories/config-repository';
@@ -34,6 +34,10 @@ export class ConfigService extends Service {
 
   public async getCountriesByCode(countryCodes: string[]) {
     return await this.configRepository.getCountriesByCode(countryCodes);
+  }
+
+  public async getCountriesInUse(): Promise<CountrySelect[]> {
+    return this.configRepository.getContriesInUse();
   }
 
   public async getLatestFxRate(

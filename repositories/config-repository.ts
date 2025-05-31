@@ -1,5 +1,5 @@
-import { forex, information, type UserConfigKey } from '@/db/drizzle/schema';
-import type { CurrencySelect, ForexInsert } from '@/db/drizzle/types';
+import { accounts, forex, information, type UserConfigKey } from '@/db/drizzle/schema';
+import type { CountrySelect, CurrencySelect, ForexInsert } from '@/db/drizzle/types';
 import { and, between, desc, eq, inArray } from 'drizzle-orm';
 import { DateTime } from 'luxon';
 import { Repository } from './abstract-repository';
@@ -23,15 +23,28 @@ export class ConfigRepository extends Repository {
     });
   }
 
-  public async getCountryByCode(countryCodes: string) {
+  public async getCountryByCode(countryCode: string) {
     return await this.db.query.countries.findFirst({
-      where: ({ code }, { eq }) => eq(code, countryCodes),
+      where: ({ code }, { eq }) => eq(code, countryCode),
     });
   }
 
   public async getCountriesByCode(countryCodes: string[]) {
     return await this.db.query.countries.findMany({
       where: ({ code }, { inArray }) => inArray(code, countryCodes),
+    });
+  }
+
+  public async getContriesInUse(): Promise<CountrySelect[]> {
+    const countryIds = await this.db
+      .selectDistinctOn([accounts.countryId], { countryId: accounts.countryId })
+      .from(accounts);
+    return await this.db.query.countries.findMany({
+      where: ({ id }, { inArray }) =>
+        inArray(
+          id,
+          countryIds.flatMap((row) => row.countryId),
+        ),
     });
   }
 

@@ -51,6 +51,12 @@ export class AccountsRepository extends Repository {
     });
   }
 
+  public async getAccountsByCountryId(id: string) {
+    return await this.db.query.accounts.findMany({
+      where: ({ countryId }, { eq }) => eq(countryId, id),
+    });
+  }
+
   public async insertAccount(insert: AccountInsert) {
     const result = await this.db.insert(accounts).values(insert).returning();
     return result.at(0);
@@ -100,15 +106,16 @@ export class AccountsRepository extends Repository {
   }
 
   public async getAccountGroupsByType(
-    groupType: AccountGroupType,
+    groupTypes: AccountGroupType[],
     includeHidden: boolean = false,
     isFlatten: boolean = true,
+    withGroup: boolean = true,
   ) {
-    return await this.db.query.accountGroups.findMany({
-      where: ({ parentGroupId, type, isHidden }, { and, eq, isNull }) =>
+    const resultWithGroup = this.db.query.accountGroups.findMany({
+      where: ({ parentGroupId, type, isHidden }, { and, eq, isNull, inArray }) =>
         isFlatten
-          ? and(eq(isHidden, includeHidden), eq(type, groupType), isNull(parentGroupId))
-          : and(eq(isHidden, includeHidden), eq(type, groupType)),
+          ? and(eq(isHidden, includeHidden), inArray(type, groupTypes), isNull(parentGroupId))
+          : and(eq(isHidden, includeHidden), inArray(type, groupTypes)),
       with: {
         childGroups: true,
         accounts: {
@@ -120,6 +127,15 @@ export class AccountsRepository extends Repository {
         },
       },
     });
+
+    return withGroup
+      ? resultWithGroup
+      : (this.db.query.accountGroups.findMany({
+          where: ({ parentGroupId, type, isHidden }, { and, eq, isNull, inArray }) =>
+            isFlatten
+              ? and(eq(isHidden, includeHidden), inArray(type, groupTypes), isNull(parentGroupId))
+              : and(eq(isHidden, includeHidden), inArray(type, groupTypes)),
+        }) as typeof resultWithGroup);
   }
 
   public async getAllAccountGroups() {
@@ -142,6 +158,20 @@ export class AccountsRepository extends Repository {
   public async insertAccountGroup(form: AccountGroupInsert) {
     return await this.db.insert(accountGroups).values(form).returning();
   }
+
+  // public async getBalancesByType(_type: AccountGroupType) {
+  //   if (_type === 'asset' || _type === 'liability') {
+  //     const accounts = await this.db.query.accounts.findMany({
+  //       where: ({type}, {eq}) => eq(type, _type)
+  //     });
+
+  //     return await this.db.query.incomeLiabilityBalances.findMany({
+  //       where: ({}, {}) =>
+  //     })
+  //   }
+
+  //   return await this.db.query.
+  // }
 
   public async getAccountBalance(targetAccountId: string) {
     return await this.db.query.assetLiabilityBalances.findFirst({
