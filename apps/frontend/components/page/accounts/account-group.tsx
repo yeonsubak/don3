@@ -37,15 +37,13 @@ export const AccountGroup = ({ accountGroup }: AccountGroupProps) => {
       <Card>
         <CardHeader className="px-6 py-4">
           <CardTitle className="flex flex-col">
-            <div className="flex flex-row items-center justify-between">
-              <h3 className="text-lg font-semibold">{accountGroup?.name ?? 'None'}</h3>
-              <CollapsibleTrigger asChild>
-                <Button variant="ghost" size="sm">
-                  <ChevronsUpDown className="h-4 w-4" />
-                  <span className="sr-only">Toggle the {accountGroup?.name ?? 'None'} group</span>
-                </Button>
-              </CollapsibleTrigger>
-            </div>
+            <CollapsibleTrigger className="cursor-pointer" asChild>
+              <div className="flex flex-row items-center justify-between">
+                <h3 className="text-lg font-semibold">{accountGroup?.name ?? 'None'}</h3>
+                <span className="sr-only">Toggle the {accountGroup?.name ?? 'None'} group</span>
+                <ChevronsUpDown className="h-4 w-4" />
+              </div>
+            </CollapsibleTrigger>
           </CardTitle>
         </CardHeader>
         <CollapsibleContent>
