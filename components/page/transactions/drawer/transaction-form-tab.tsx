@@ -48,7 +48,6 @@ export const TransactionFormTab = () => {
     } catch (err) {
       console.error(err);
     } finally {
-      setIsProcessing(false);
       setOpen(false);
     }
   }

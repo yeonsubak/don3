@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { getTransactionService } from '@/services/helper';
 import { LoaderCircle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useState, type ComponentProps } from 'react';
+import { type ComponentProps } from 'react';
 import { toast } from 'sonner';
 import { useTransactionContext } from '../transaction-context';
 import { TransactionItemMobile } from '../transaction-item-mobile';
@@ -14,11 +14,10 @@ import { useTransactionDrawerContext } from './drawer-context';
 
 export const DeleteTransactionAlert = () => {
   const isMobile = useIsMobile();
-  const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const {
     calendarDateState: [dates, setDates],
   } = useTransactionContext();
-  const { setOpen, record } = useTransactionDrawerContext();
+  const { setOpen, record, isProcessing, setIsProcessing } = useTransactionDrawerContext();
   const t = useTranslations('Entry.Type');
 
   const DeleteButton = ({ ...props }: ComponentProps<typeof Button>) => (
@@ -46,7 +45,6 @@ export const DeleteTransactionAlert = () => {
     } catch (err) {
       console.error(err);
     } finally {
-      setIsProcessing(false);
       setOpen(false);
     }
   }

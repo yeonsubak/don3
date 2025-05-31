@@ -3,20 +3,20 @@ import { useIsMobile } from '@/components/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { DialogClose, DialogFooter } from '@/components/ui/dialog';
 import { SheetClose, SheetFooter } from '@/components/ui/sheet';
+import { QUERIES } from '@/lib/tanstack-queries';
 import { cn } from '@/lib/utils';
 import { getAccountsService } from '@/services/helper';
-import { LoaderCircle } from 'lucide-react';
-import { useState, type ComponentProps } from 'react';
-import { useAccountDrawerContext } from './drawer-context';
 import { useQueryClient } from '@tanstack/react-query';
-import { QUERIES } from '@/lib/tanstack-queries';
+import { LoaderCircle } from 'lucide-react';
+import { type ComponentProps } from 'react';
+import { useAccountDrawerContext } from './drawer-context';
 
 export const ReactivateAlert = () => {
   const { setAccountGroups } = useGlobalContext();
-  const { account, setOpen, selectedTab } = useAccountDrawerContext();
+  const { account, selectedTab, isProcessing, setIsProcessing, setOpen } =
+    useAccountDrawerContext();
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
-  const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
   const CANCEL_BUTTON_LABEL = 'Cancel';
 
@@ -43,7 +43,6 @@ export const ReactivateAlert = () => {
     } catch (err) {
       console.error(err);
     } finally {
-      setIsProcessing(false);
       setOpen(false);
     }
   }

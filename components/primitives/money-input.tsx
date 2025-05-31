@@ -10,7 +10,6 @@ import type {
   UseFormReturn,
 } from 'react-hook-form';
 import { parseMoney } from '../common-functions';
-import type { TailwindClass } from '../common-types';
 import { Input } from '../ui/input';
 
 type MoneyInputProps = {
@@ -40,8 +39,7 @@ export const MoneyInput = ({
 
   const handleChange = (input: string, onChangeCallback?: (parsedValue: string) => void) => {
     const money = parseMoney(input, currency);
-    if (onChange) onChange(money);
-
+    onChange?.(money);
     if (onChangeCallback) onChangeCallback(money.formatted);
   };
 
@@ -60,7 +58,7 @@ export const MoneyInput = ({
         {...restField}
         onChange={({ target }: ChangeEvent<HTMLInputElement>) => {
           handleChange(target.value, (parsedValue) => {
-            zForm!.setValue(name, parsedValue);
+            field.onChange(parsedValue);
           });
         }}
       />
