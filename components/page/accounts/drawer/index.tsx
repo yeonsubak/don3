@@ -11,14 +11,17 @@ import {
 } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Plus } from '@phosphor-icons/react';
-import { useMemo } from 'react';
+import { useMemo, type ComponentProps } from 'react';
 import { AccountForm } from './account-form';
 import { ArchiveAlert } from './archive-alert';
 import { DeleteAccountAlert } from './delete-account-alert';
 import { useAccountDrawerContext } from './drawer-context';
 import { ReactivateAlert } from './reactivate-alert';
 
-export const AddAccountButton = ({ countryCode }: { countryCode: string }) => {
+export const AddAccountButton = ({
+  countryCode,
+  ...props
+}: ComponentProps<typeof Button> & { countryCode: string }) => {
   const { setOpen } = useAccountDrawerContext();
   const { formValues, setFormValues } = useAccountDrawerContext();
 
@@ -31,7 +34,7 @@ export const AddAccountButton = ({ countryCode }: { countryCode: string }) => {
   };
 
   return (
-    <Button variant="outline" size="icon" onClick={handleClick}>
+    <Button variant="outline" size="icon" onClick={handleClick} {...props}>
       <Plus size={24} />
     </Button>
   );

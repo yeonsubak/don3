@@ -24,12 +24,12 @@ type CountrySectionProps = { countryCode: string; children: React.ReactNode };
 export const CountrySection = ({ countryCode, children }: CountrySectionProps) => {
   return (
     <Collapsible key={countryCode} defaultOpen>
-      <div className="flex flex-row items-center justify-between">
-        <CollapsibleTrigger className="flex flex-row items-center">
+      <div className="flex flex-row items-center">
+        <CollapsibleTrigger className="flex grow cursor-pointer flex-row items-center">
           <ChevronsUpDown className="h-4 w-4" />
-          <CountryLabel countryCode={countryCode} className="cursor-pointer px-2 py-4" />
+          <CountryLabel countryCode={countryCode} className="px-2 py-4" />
         </CollapsibleTrigger>
-        <AddAccountButton countryCode={countryCode} />
+        <AddAccountButton countryCode={countryCode} className="grow-0" />
       </div>
       <CollapsibleContent className="flex flex-col gap-2">{children}</CollapsibleContent>
     </Collapsible>
