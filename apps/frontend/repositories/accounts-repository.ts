@@ -1,4 +1,4 @@
-import { accountBalances, accountGroups, accounts } from '@/db/drizzle/schema';
+import { assetLiabilityBalances, accountGroups, accounts } from '@/db/drizzle/schema';
 import type {
   AccountBalanceInsert,
   AccountBalanceSelect,
@@ -144,7 +144,7 @@ export class AccountsRepository extends Repository {
   }
 
   public async getAccountBalance(targetAccountId: string) {
-    return await this.db.query.accountBalances.findFirst({
+    return await this.db.query.assetLiabilityBalances.findFirst({
       where: ({ accountId }, { eq }) => eq(accountId, targetAccountId),
     });
   }
@@ -153,7 +153,7 @@ export class AccountsRepository extends Repository {
     accountBalanceInsert: AccountBalanceInsert,
   ): Promise<AccountBalanceSelect> {
     const insertResult = await this.db
-      .insert(accountBalances)
+      .insert(assetLiabilityBalances)
       .values(accountBalanceInsert)
       .returning();
     const insertedBalance = insertResult.at(0);
@@ -171,12 +171,12 @@ export class AccountsRepository extends Repository {
     amount: number,
   ): Promise<AccountBalanceSelect> {
     const updatedAccountBalance: AccountBalanceSelect[] = await this.db
-      .update(accountBalances)
+      .update(assetLiabilityBalances)
       .set({
         balance: amount,
         updateAt: new Date(),
       })
-      .where(eq(accountBalances.id, accountBalanceId))
+      .where(eq(assetLiabilityBalances.id, accountBalanceId))
       .returning();
 
     return updatedAccountBalance.at(0)!;

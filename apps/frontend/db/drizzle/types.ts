@@ -51,8 +51,8 @@ export type AccountSelectAllTx = AccountSelect<{
   transactions: true;
 }>;
 
-export type AccountBalanceSelect = typeof schema.accountBalances.$inferSelect;
-export type AccountBalanceInsert = typeof schema.accountBalances.$inferInsert;
+export type AccountBalanceSelect = typeof schema.assetLiabilityBalances.$inferSelect;
+export type AccountBalanceInsert = typeof schema.assetLiabilityBalances.$inferInsert;
 
 export type AccountGroupType = (typeof schema.accountGroupTypeEnum.enumValues)[number];
 export type AccountGroupInsert = typeof schema.accountGroups.$inferInsert;

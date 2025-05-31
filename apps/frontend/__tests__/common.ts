@@ -4,7 +4,7 @@ import { DATASET_ACCOUNT_GROUPS } from '@/db/dataset/account-groups';
 import { DATASET_COUNTRY } from '@/db/dataset/country';
 import { DATASET_CURRENCY_FIAT } from '@/db/dataset/currency';
 import * as schema from '@/db/drizzle/schema';
-import { LATEST_CLEAN_VERSION } from '@/db/drizzle/version-table';
+import { LATEST_CLEAN_VERSION, SCHEMA_VERSION_TABLE } from '@/db/drizzle/version-table';
 import { MemoryFS, PGlite } from '@electric-sql/pglite';
 import { uuid_ossp } from '@electric-sql/pglite/contrib/uuid_ossp';
 import { live } from '@electric-sql/pglite/live';
@@ -27,10 +27,21 @@ export async function createInMemoryPGLiteDrizzle(): Promise<PgliteDrizzle> {
     casing: 'snake_case',
   });
 
-  const sql = await parseSQLFile(LATEST_CLEAN_VERSION.fileName);
+  const majorDDL = await parseSQLFile(LATEST_CLEAN_VERSION.fileName);
+  const minorDDLs: string[] = [];
+  let nextVersion = LATEST_CLEAN_VERSION.nextVersion;
+  while (nextVersion) {
+    const ddl = await parseSQLFile(SCHEMA_VERSION_TABLE[nextVersion].fileName);
+    minorDDLs.push(ddl);
+    nextVersion = SCHEMA_VERSION_TABLE[nextVersion].nextVersion;
+  }
+
   await pg.transaction(async (tx) => {
     try {
-      await tx.exec(sql);
+      await tx.exec(majorDDL);
+      for (const ddl of minorDDLs) {
+        await tx.exec(ddl);
+      }
     } catch (err) {
       console.error(err);
       await tx.rollback();

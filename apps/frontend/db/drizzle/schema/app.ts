@@ -62,15 +62,15 @@ export const accountsRelations = relations(accounts, ({ one, many }) => ({
     fields: [accounts.currencyId],
     references: [currencies.id],
   }),
-  balance: one(accountBalances, {
+  balance: one(assetLiabilityBalances, {
     fields: [accounts.id],
-    references: [accountBalances.accountId],
+    references: [assetLiabilityBalances.accountId],
   }),
   transactions: many(transactions),
 }));
 
-export const accountBalances = appSchema.table(
-  'account_balances',
+export const assetLiabilityBalances = appSchema.table(
+  'asset_liability_balances',
   {
     id: uuid().primaryKey().default(generateRandomUUID).notNull(),
     accountId: uuid()
@@ -84,8 +84,8 @@ export const accountBalances = appSchema.table(
     updateAt: timestamp({ withTimezone: true }),
   },
   (t) => [
-    index('account_balances_idx_account_id').on(t.accountId, t.id),
-    unique('account_balances_unq_account_id').on(t.accountId),
+    index('asset_liability_balances_idx_account_id').on(t.accountId, t.id),
+    unique('asset_liability_balances_unq_account_id').on(t.accountId),
   ],
 );
 
