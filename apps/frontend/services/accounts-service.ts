@@ -8,10 +8,12 @@ import type {
   AccountGroupType,
   AccountSelectAll,
   AccountSelectAllTx,
+  CountrySelect,
 } from '@/db/drizzle/types';
 import type { TransactionRepository } from '@/repositories/transaction-repository';
+import type { DateRange } from 'react-day-picker';
 import { AccountsRepository } from '../repositories/accounts-repository';
-import type { ConfigRepository } from '../repositories/config-repository';
+import { ConfigRepository } from '../repositories/config-repository';
 import { Service } from './abstract-service';
 
 export class AccountsService extends Service {
@@ -34,14 +36,17 @@ export class AccountsService extends Service {
     return await this.accountsRepository.getAllAccounts();
   }
 
-  public async insertAccount({
-    accountGroupId,
-    currencyCode,
-    countryCode,
-    accountType,
-    accountName,
-    icon,
-  }: AccountFormSchema): Promise<AccountSelectAll> {
+  public async insertAccount(
+    {
+      accountGroupId,
+      currencyCode,
+      countryCode,
+      accountType,
+      accountName,
+      icon,
+    }: AccountFormSchema,
+    groupType: AccountGroupType,
+  ): Promise<AccountSelectAll> {
     const currency = await this.configRepository.getCurrencyByCode(currencyCode);
     const country = await this.configRepository.getCountryByCode(countryCode);
 
@@ -51,7 +56,9 @@ export class AccountsService extends Service {
     const insertedAccount = await this.accountsRepository.withTx(async (tx) => {
       try {
         const accountsRepoWithTx = new AccountsRepository(tx);
+        const configRepoWithTx = new ConfigRepository(tx);
 
+        const countriesInUse = await configRepoWithTx.getContriesInUse();
         const insertedAccount = await accountsRepoWithTx.insertAccount({
           accountGroupId: accountGroupId,
           type: accountType,
@@ -63,13 +70,12 @@ export class AccountsService extends Service {
 
         if (!insertedAccount) throw new Error('Insert account failed');
 
-        const insertedAccountBalance = await accountsRepoWithTx.insertAccountBalance({
-          accountId: insertedAccount.id,
-          balance: 0,
-        });
-
-        if (!insertedAccountBalance)
-          throw new Error('The result of AccountsRepository.insertAccountBalance() method is null');
+        if (groupType === 'asset' || groupType === 'liability') {
+          await this.insertAccountBalance(insertedAccount.id, accountsRepoWithTx);
+          if (countriesInUse.findIndex((inUse) => inUse.id === country.id) === -1) {
+            await this.copyIncomeExpenseAccounts(country, accountsRepoWithTx, configRepoWithTx);
+          }
+        }
 
         return await accountsRepoWithTx.getAccountById(insertedAccount.id);
       } catch (err) {
@@ -158,7 +164,7 @@ export class AccountsService extends Service {
     groupType: AccountGroupType,
     includeArchived: boolean,
   ): Promise<GroupAccountsByCountry> {
-    const accountGroups = await this.accountsRepository.getAccountGroupsByType(groupType);
+    const accountGroups = await this.accountsRepository.getAccountGroupsByType([groupType]);
     const groupedByCountry: GroupAccountsByCountry = {};
 
     accountGroups.forEach((group) => {
@@ -205,6 +211,57 @@ export class AccountsService extends Service {
     }
 
     return this.getAccountGroup(result.id);
+  }
+
+  public async getBalanceByType(type: AccountGroupType, dates: DateRange) {
+    const { from, to } = dates;
+
+    // const balances = await this.accountsRepository.getAccountBalance(targetAccountId);
+  }
+
+  private async insertAccountBalance(accountId: string, accountsRepo?: AccountsRepository) {
+    const insertObj = { accountId, balance: 0 };
+
+    const insertedAccountBalance = accountsRepo
+      ? await accountsRepo.insertAccountBalance(insertObj)
+      : await this.accountsRepository.insertAccountBalance(insertObj);
+
+    if (!insertedAccountBalance)
+      throw new Error('The result of AccountsRepository.insertAccountBalance() method is null');
+  }
+
+  /**
+   * Copies existing income and expense accounts when a new country is added.
+   * This method reduces the need for manually recreating commonly used accounts, ensuring consistency across countries.
+   */
+  private async copyIncomeExpenseAccounts(
+    targetCountry: CountrySelect,
+    accountsRepoTx?: AccountsRepository,
+    configRepoTx?: ConfigRepository,
+  ) {
+    const accountsRepo = accountsRepoTx ? accountsRepoTx : this.accountsRepository;
+    const configRepo = configRepoTx ? configRepoTx : this.configRepository;
+
+    const defaultCountryCode = await configRepo.getUserConfig('defaultCountry');
+    if (!defaultCountryCode) throw new Error('Default country cannot be found in the database');
+
+    const defaultCountry = await configRepo.getCountryByCode(defaultCountryCode.value);
+    const accountGroups = await accountsRepo.getAccountGroupsByType(['income', 'expense'])!;
+    const groupIds = accountGroups.flatMap((group) => group.id);
+    const accounts = await accountsRepo.getAccountsByCountryId(defaultCountry!.id);
+
+    const targetAccounts = accounts.filter((account) => groupIds.includes(account.accountGroupId));
+
+    await Promise.all(
+      targetAccounts.map((account) =>
+        accountsRepo.insertAccount({
+          ...account,
+          id: undefined,
+          countryId: targetCountry.id,
+          currencyId: targetCountry.defaultCurrencyId!,
+        }),
+      ),
+    );
   }
 }
 
