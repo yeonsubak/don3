@@ -193,7 +193,7 @@ export class DBInitializer {
         case 'defaultCountry': {
           await this.db
             .insert(schema.information)
-            .values({ name: 'defaultCurrency', value: this.defaultCountry })
+            .values({ name: 'defaultCountry', value: this.defaultCountry })
             .onConflictDoNothing();
           break;
         }
