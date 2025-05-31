@@ -1,6 +1,5 @@
 import { createInMemoryPGLiteDrizzle } from '@/__tests__/common';
 import type { PgliteDrizzle } from '@/db';
-import { accounts } from '@/db/drizzle/schema';
 import type { AccountBalanceInsert, AccountBalanceSelect, AccountInsert } from '@/db/drizzle/types';
 import { AccountsRepository } from '@/repositories/accounts-repository';
 import { TransactionRepository } from '@/repositories/transaction-repository';

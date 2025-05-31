@@ -56,13 +56,20 @@ export const SCHEMA_VERSION_TABLE: Record<string, LocalVersion> = {
   '0.1.0': {
     version: '0.1.0',
     fileName: 'ver-0.1.0.sql',
+    nextVersion: '0.1.1',
     createAt: new Date('2025-05-14 18:00:55.265000+00'),
   },
-};
+  '0.1.1': {
+    version: '0.1.1',
+    fileName: 'ver-0.1.1.sql',
+    createAt: new Date('2025-05-30 09:57:55.413000+00'),
+  },
+} as const;
 
 export const LATEST_CLEAN_VERSION: LocalVersion = {
   version: '0.1.0',
   fileName: 'ver-0.1.0.sql',
+  nextVersion: '0.1.1',
   createAt: new Date('2025-05-14 18:00:55.265000+00'),
 };
 
