@@ -214,9 +214,31 @@ export class AccountsService extends Service {
   }
 
   public async getBalanceByType(type: AccountGroupType, dates: DateRange) {
-    const { from, to } = dates;
+    if (['asset', 'liability', 'uncategorized'].includes(type)) {
+      throw new Error(`The account group type ${type} should not use this method.`);
+    }
 
-    // const balances = await this.accountsRepository.getAccountBalance(targetAccountId);
+    const accountGroups = await this.accountsRepository.getAccountGroupsByType([type]);
+    const accountIds = accountGroups.flatMap((group) =>
+      group.accounts.flatMap((account) => account.id),
+    );
+    const balanceMap: Record<string, number> = Object.fromEntries(accountIds.map((id) => [id, 0]));
+
+    const entryType = type === 'expense' ? 'expense' : 'income';
+    const journalEntries = await this.transactionRepository.getJournalEntries(
+      [entryType],
+      dates,
+      true,
+    );
+    const transactions = journalEntries
+      .flatMap((entry) => entry.transactions)
+      .filter((tx) => tx.type === 'credit');
+
+    transactions.forEach((tx) => {
+      balanceMap[tx.accountId] += tx.amount;
+    });
+
+    return balanceMap;
   }
 
   private async insertAccountBalance(accountId: string, accountsRepo?: AccountsRepository) {

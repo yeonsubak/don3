@@ -14,7 +14,7 @@ import { FundTransferForm } from './forms/fund-transfer-form';
 import { IncomeForm } from './forms/income-form';
 
 export const TransactionFormTab = () => {
-  const { selectedTab, setSelectedTab, setOpen, mode, setIsProcessing } =
+  const { selectedTab, setSelectedTab, mode, setIsProcessing, onClose } =
     useTransactionDrawerContext();
   const {
     calendarDateState: [dates, setDates],
@@ -48,7 +48,7 @@ export const TransactionFormTab = () => {
     } catch (err) {
       console.error(err);
     } finally {
-      setOpen(false);
+      onClose();
     }
   }
 

@@ -5,7 +5,6 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useRef,
   useState,
   type Dispatch,
@@ -38,6 +37,7 @@ type TransactionDrawerContext = {
   setIsProcessing: Dispatch<SetStateAction<boolean>>;
   record: TransactionItem | undefined;
   setRecord: Dispatch<SetStateAction<TransactionItem | undefined>>;
+  onClose: () => void;
 };
 
 const TransactionDrawerContext = createContext<TransactionDrawerContext | null>(null);
@@ -58,15 +58,14 @@ export const TransactionDrawerContextProvider = ({ children }: { children: React
 
   const [record, setRecord] = useState<TransactionItem | undefined>(undefined);
 
-  useEffect(() => {
-    if (!open) {
-      setSharedFormRef(undefined);
-      setRecord(undefined);
-      setIsProcessing(false);
-      setSelectedTab('expense');
-      setMode('add');
-    }
-  }, [open, setSharedFormRef]);
+  const onClose = useCallback(() => {
+    setSharedFormRef(undefined);
+    setRecord(undefined);
+    setIsProcessing(false);
+    setSelectedTab('expense');
+    setMode('add');
+    setOpen(false);
+  }, [setSharedFormRef]);
 
   return (
     <TransactionDrawerContext.Provider
@@ -83,6 +82,7 @@ export const TransactionDrawerContextProvider = ({ children }: { children: React
         setIsProcessing,
         record,
         setRecord,
+        onClose,
       }}
     >
       {children}

@@ -19,11 +19,11 @@ export const QUERIES = {
         queryKey: ['defaultCurrency'],
         queryFn: async () => (await getConfigService()).getDefaultCurrency(),
       }),
-    latestFxRate: (baseCurrency: CurrencySelect, targetCurrencies: CurrencySelect[]) =>
+    latestFxRate: (baseCurrencies: CurrencySelect[], targetCurrencies: CurrencySelect[]) =>
       queryOptions({
         queryKey: ['getLatestFxRate'],
         queryFn: async () =>
-          (await getConfigService()).getLatestFxRate(baseCurrency, targetCurrencies),
+          (await getConfigService()).getLatestFxRate(baseCurrencies, targetCurrencies),
       }),
   },
   accounts: {

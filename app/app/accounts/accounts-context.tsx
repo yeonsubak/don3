@@ -1,22 +1,41 @@
 'use client';
 
+import { getFirstLastDayInMonth } from '@/components/common-functions';
 import type { ForexSelect } from '@/db/drizzle/types';
 import { QUERIES } from '@/lib/tanstack-queries';
 import { useQuery } from '@tanstack/react-query';
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type Dispatch,
+  type ReactNode,
+  type SetStateAction,
+} from 'react';
+import type { DateRange } from 'react-day-picker';
 import { useGlobalContext } from '../global-context';
 
-export type AccountsContextProps = {
+type AccountsContextProps = {
   fxRates: ForexSelect[];
+  calendarDate: DateRange | undefined;
+  setCalendarDate: Dispatch<SetStateAction<DateRange | undefined>>;
 };
-export const AccountsContext = createContext<AccountsContextProps | null>(null);
+
+const AccountsContext = createContext<AccountsContextProps | null>(null);
 
 export const AccountsContextProvider = ({ children }: { children: ReactNode }) => {
-  const { defaultCurrency, currenciesInUse } = useGlobalContext();
+  const { currenciesInUse } = useGlobalContext();
   const [fxRates, setFxRates] = useState<ForexSelect[]>([]);
 
+  const { firstDate, lastDate } = getFirstLastDayInMonth(new Date());
+  const [calendarDate, setCalendarDate] = useState<DateRange | undefined>({
+    from: firstDate,
+    to: lastDate,
+  });
+
   const { data: fetchedFxRate } = useQuery(
-    QUERIES.config.latestFxRate(defaultCurrency, currenciesInUse),
+    QUERIES.config.latestFxRate(currenciesInUse, currenciesInUse),
   );
   useEffect(() => {
     if (fetchedFxRate) {
@@ -28,6 +47,8 @@ export const AccountsContextProvider = ({ children }: { children: ReactNode }) =
     <AccountsContext.Provider
       value={{
         fxRates,
+        calendarDate,
+        setCalendarDate,
       }}
     >
       {children}

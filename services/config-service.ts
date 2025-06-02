@@ -41,54 +41,68 @@ export class ConfigService extends Service {
   }
 
   public async getLatestFxRate(
-    baseCurrency: CurrencySelect,
+    baseCurrencies: CurrencySelect[],
     targetCurrencies: CurrencySelect[],
   ): Promise<ForexSelect[]> {
-    targetCurrencies = targetCurrencies.filter((currency) => currency.id !== baseCurrency.id);
+    const fxRateResult: ForexSelect[] = [];
 
-    if (targetCurrencies.length === 0) {
-      return [];
-    }
+    const fetchFxRate = async (
+      baseCurrency: CurrencySelect,
+      targetCurrencies: CurrencySelect[],
+    ) => {
+      targetCurrencies = targetCurrencies.filter((currency) => currency.id !== baseCurrency.id);
 
-    const targetCurrencyCodes = targetCurrencies.map((currency) => currency.code);
-    const now = DateTime.now();
-    let fxRates = await this.configRepository.getLatestFxRate({
-      baseCurrency,
-      targetCurrencies,
-      timeRange: {
-        start: now.minus({ hours: 4 }),
-        end: now,
-      },
-    });
+      if (targetCurrencies.length === 0) {
+        return [];
+      }
 
-    if (
-      fxRates.length > 0 &&
-      fxRates.every((rate) => targetCurrencyCodes.includes(rate.targetCurrency))
-    ) {
-      return fxRates;
-    }
+      const targetCurrencyCodes = targetCurrencies.map((currency) => currency.code);
+      const now = DateTime.now();
+      let fxRates = await this.configRepository.getLatestFxRate({
+        baseCurrency,
+        targetCurrencies,
+        timeRange: {
+          start: now.minus({ hours: 4 }),
+          end: now,
+        },
+      });
 
-    const params = new URLSearchParams({
-      baseCurrency: baseCurrency.code,
-      targetCurrency: targetCurrencyCodes.join(','),
-    });
+      if (
+        fxRates.length > 0 &&
+        fxRates.every((rate) => targetCurrencyCodes.includes(rate.targetCurrency))
+      ) {
+        fxRateResult.push(...fxRates);
+        return;
+      }
 
-    const fetchedFxRates: FetchFxRate = await (
-      await fetch(`/api/get-latest-fx-rate?${params.toString()}`, { method: 'GET' })
-    ).json();
-
-    const fxRateInserts: ForexInsert[] = Object.entries(fetchedFxRates.rates).map(
-      ([key, value]) => ({
-        date: fetchedFxRates.date,
+      const params = new URLSearchParams({
         baseCurrency: baseCurrency.code,
-        targetCurrency: key,
-        rate: value.toFixed(5),
-      }),
+        targetCurrency: targetCurrencyCodes.join(','),
+      });
+
+      const fetchedFxRates: FetchFxRate = await (
+        await fetch(`/api/get-latest-fx-rate?${params.toString()}`, { method: 'GET' })
+      ).json();
+
+      const fxRateInserts: ForexInsert[] = Object.entries(fetchedFxRates.rates).map(
+        ([key, value]) => ({
+          date: fetchedFxRates.date,
+          baseCurrency: baseCurrency.code,
+          targetCurrency: key,
+          rate: value.toFixed(5),
+        }),
+      );
+
+      fxRates = await this.configRepository.insertFxRate(fxRateInserts);
+
+      fxRateResult.push(...fxRates);
+    };
+
+    await Promise.allSettled(
+      baseCurrencies.map((baseCurrency) => fetchFxRate(baseCurrency, targetCurrencies)),
     );
 
-    fxRates = await this.configRepository.insertFxRate(fxRateInserts);
-
-    return fxRates;
+    return fxRateResult;
   }
 
   public async updateUserConfig(key: UserConfigKey, value: string) {

@@ -1,19 +1,20 @@
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import type { AccountGroupSelect } from '@/db/drizzle/types';
-import { ChevronsDown, ChevronsUp, ChevronsUpDown } from 'lucide-react';
-import { Account } from './account';
-import { useMemo, useState } from 'react';
+import type { AccountGroupSelect, AccountGroupType } from '@/db/drizzle/types';
 import { cn } from '@/lib/utils';
+import { ChevronsDown, ChevronsUp, ChevronsUpDown } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Account } from './account';
 
 type AccountGroupProps = {
   accountGroup: AccountGroupSelect<{
     accounts: { with: { country: true; balance: true; currency: true } };
   }>;
+  groupType: AccountGroupType;
+  balanceMap?: Record<string, number>;
 };
 
-export const AccountGroup = ({ accountGroup }: AccountGroupProps) => {
+export const AccountGroup = ({ accountGroup, balanceMap, groupType }: AccountGroupProps) => {
   const activeAccounts = useMemo(
     () => accountGroup.accounts.filter((account) => !account.isArchive),
     [accountGroup.accounts],
@@ -49,7 +50,12 @@ export const AccountGroup = ({ accountGroup }: AccountGroupProps) => {
         <CollapsibleContent>
           <CardContent className={cn('flex flex-col gap-4', hasArchive ? 'pb-3' : '')}>
             {activeAccounts.map((account) => (
-              <Account key={`${account.country.code}-${account.id}`} account={account} />
+              <Account
+                key={`${account.country.code}-${account.id}`}
+                account={account}
+                groupType={groupType}
+                balanceMap={balanceMap}
+              />
             ))}
           </CardContent>
           {hasArchive ? (
@@ -58,7 +64,12 @@ export const AccountGroup = ({ accountGroup }: AccountGroupProps) => {
                 <div className="w-full">
                   <CardTitle className="text-muted-foreground pb-3 text-lg">Archived</CardTitle>
                   {archivedAccounts.map((account) => (
-                    <Account key={`${account.country.code}-${account.id}`} account={account} />
+                    <Account
+                      key={`${account.country.code}-${account.id}`}
+                      account={account}
+                      groupType={groupType}
+                      balanceMap={balanceMap}
+                    />
                   ))}
                 </div>
               ) : null}

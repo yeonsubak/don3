@@ -49,7 +49,7 @@ export class TransactionService extends Service {
 
     const fxRates =
       diffCurrencies.length > 0
-        ? await this.configService.getLatestFxRate(baseCurrency, diffCurrencies)
+        ? await this.configService.getLatestFxRate([baseCurrency], diffCurrencies)
         : null;
 
     const calculateSummary = (

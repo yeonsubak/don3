@@ -29,6 +29,7 @@ export const FundTransferForm = ({ onSubmit }: TxFormProps) => {
   const form = useForm<FundTransferTxForm>({
     resolver: zodResolver(fundTransferTxForm),
     defaultValues: {
+      id: sharedForm?.id ?? '',
       date: sharedForm?.date ?? curDate.toJSDate(),
       time: sharedForm?.time ?? { hour: curDate.get('hour'), minute: curDate.get('minute') },
       journalEntryType: 'transfer',
