@@ -49,7 +49,7 @@ export const TransactionSummary = ({ children }: { children?: ReactNode }) => {
       <div className="flex flex-row gap-8">
         <p className="grow text-left">Income</p>
         <p className="grow text-right text-emerald-600 dark:text-emerald-400">
-          {defaultCurrency.symbol.padEnd(currencyPadding, invisibleCharMd)}
+          {defaultCurrency.symbol.padEnd(currencyPadding, invisibleCharMd)}{' '}
           {income.toLocaleString()}
         </p>
       </div>

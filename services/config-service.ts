@@ -28,6 +28,11 @@ export class ConfigService extends Service {
     return await this.configRepository.getCurrencyByCode(defaultCurrency?.value ?? 'USD');
   }
 
+  public async getDefaultCountry() {
+    const defaultCountry = await this.configRepository.getUserConfig('defaultCountry');
+    return await this.configRepository.getCountryByCode(defaultCountry?.value ?? 'USA');
+  }
+
   public async getAllCountries() {
     return await this.configRepository.getAllCountries();
   }

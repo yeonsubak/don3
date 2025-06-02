@@ -52,13 +52,20 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
   ) as CountrySelect;
 
   const {
-    data: { fetchedDefaultCurrency, fetchedCountries, fetchedCurrencies, fetchedAccountGroups },
+    data: {
+      fetchedDefaultCurrency,
+      fetchedDefaultCountry,
+      fetchedCountries,
+      fetchedCurrencies,
+      fetchedAccountGroups,
+    },
     isPending,
     isError,
     error,
   } = useQueries({
     queries: [
       QUERIES.config.defaultCurrency(),
+      QUERIES.config.defaultCountry(),
       QUERIES.config.countries(),
       QUERIES.config.currencies(),
       QUERIES.accounts.allAccountGroups(),
@@ -66,9 +73,10 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
     combine: (results) => ({
       data: {
         fetchedDefaultCurrency: results[0].data ?? currencyFallback,
-        fetchedCountries: results[1].data,
-        fetchedCurrencies: results[2].data,
-        fetchedAccountGroups: results[3].data,
+        fetchedDefaultCountry: results[1].data ?? countryFallback,
+        fetchedCountries: results[2].data,
+        fetchedCurrencies: results[3].data,
+        fetchedAccountGroups: results[4].data,
       },
       isPending: results.some((result) => result.isPending),
       isError: results.some((result) => result.isError),
@@ -103,10 +111,23 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
 
   useEffect(() => {
     setDefaultCurrency(fetchedDefaultCurrency);
+  }, [fetchedDefaultCurrency]);
+
+  useEffect(() => {
+    setDefaultCountry(fetchedDefaultCountry);
+  }, [fetchedDefaultCountry]);
+
+  useEffect(() => {
     setCountries(fetchedCountries ?? []);
+  }, [fetchedCountries]);
+
+  useEffect(() => {
     setCurrencies(fetchedCurrencies ?? []);
+  }, [fetchedCurrencies]);
+
+  useEffect(() => {
     setAccountGroups(fetchedAccountGroups ?? []);
-  }, [fetchedCountries, fetchedDefaultCurrency, fetchedCurrencies, fetchedAccountGroups]);
+  }, [fetchedAccountGroups]);
 
   if (isPending) {
     return <></>;

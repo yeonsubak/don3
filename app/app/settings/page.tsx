@@ -5,10 +5,16 @@ import { CurrencyCombobox } from '@/components/compositions/currency-combobox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import type { UserConfigKey } from '@/db/drizzle/schema';
-import { getConfigService } from '@/services/helper';
-import { useState } from 'react';
-import { useGlobalContext } from '../global-context';
 import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
+import { getConfigService } from '@/services/helper';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMemo } from 'react';
+import { useGlobalContext } from '../global-context';
+
+const updateUserConfig = async ({ key, value }: { key: UserConfigKey; value: string }) => {
+  const configService = await getConfigService();
+  return configService.updateUserConfig(key, value);
+};
 
 export default function SettingsPage() {
   const {
@@ -20,20 +26,28 @@ export default function SettingsPage() {
     defaultCurrency,
   } = useGlobalContext();
 
-  const [country, setCountry] = useState<string>(defaultCountry.code);
-  const [currency, setCurrency] = useState<string>(defaultCurrency.code);
+  const country = useMemo(() => defaultCountry.code, [defaultCountry.code]);
+  const currency = useMemo(() => defaultCurrency.code, [defaultCurrency.code]);
 
-  const handleConfigChange = async (key: UserConfigKey, value: string) => {
-    const configService = await getConfigService();
-    const result = await configService.updateUserConfig(key, value);
-    if (key === 'defaultCountry') {
-      localStorage.setItem(LOCAL_STORAGE_KEYS.APP.DEFAULT_COUNTRY, value);
-    }
+  const queryClient = useQueryClient();
 
-    if (key === 'defaultCurrency') {
-      localStorage.setItem(LOCAL_STORAGE_KEYS.APP.DEFAULT_CURRENCY, value);
-    }
-  };
+  const configMutation = useMutation({
+    mutationKey: ['userConfig', 'update'],
+    mutationFn: updateUserConfig,
+    onSuccess: async (_data, variables) => {
+      const { key, value } = variables;
+
+      if (key === 'defaultCountry') {
+        localStorage.setItem(LOCAL_STORAGE_KEYS.APP.DEFAULT_COUNTRY, value);
+      }
+
+      if (key === 'defaultCurrency') {
+        localStorage.setItem(LOCAL_STORAGE_KEYS.APP.DEFAULT_CURRENCY, value);
+      }
+
+      await queryClient.invalidateQueries({ queryKey: [key] });
+    },
+  });
 
   return (
     <div className="w-full xl:max-w-lg">
@@ -50,15 +64,15 @@ export default function SettingsPage() {
             countries={countries}
             countriesInUse={countriesInUse}
             mode="all"
-            state={[country, setCountry]}
-            onSelectFn={(value) => handleConfigChange('defaultCountry', value)}
+            value={country}
+            onSelectFn={(value) => configMutation.mutate({ key: 'defaultCountry', value })}
           />
           <Label>Currency</Label>
           <CurrencyCombobox
             currencies={currencies}
             currenciesInUse={currenciesInUse}
-            state={[currency, setCurrency]}
-            onSelectFn={(value) => handleConfigChange('defaultCurrency', value)}
+            value={currency}
+            onSelectFn={(value) => configMutation.mutate({ key: 'defaultCurrency', value })}
           />
         </CardContent>
       </Card>

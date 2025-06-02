@@ -44,6 +44,7 @@ export interface ComboboxProps {
   keyRenderFn?: (item: ComboboxItem) => string;
   labelRenderFn?: (itemData: unknown) => string;
   state?: [string, Dispatch<SetStateAction<string>>];
+  value?: string;
 }
 
 export function flattenComboboxItems<T>(items: ComboboxItem<T>[]): ComboboxItem<T>[] {
@@ -60,6 +61,7 @@ export const Combobox = ({
   searchable = true,
   field,
   isChevron = true,
+  value,
   buttonLabelRenderFn = () => {
     if (state && state[0].length > 0) {
       return (
@@ -72,6 +74,12 @@ export const Combobox = ({
       return (
         flattenComboboxItems(items ?? []).find((item) => item.value === field.value)?.label ??
         placeholder
+      );
+    }
+
+    if (value) {
+      return (
+        flattenComboboxItems(items ?? []).find((item) => item.value === value)?.label ?? placeholder
       );
     }
 
