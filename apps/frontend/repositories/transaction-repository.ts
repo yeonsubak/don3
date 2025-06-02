@@ -6,6 +6,7 @@ import type {
   TransactionInsert,
 } from '@/db/drizzle/types';
 import { and, between, eq, inArray } from 'drizzle-orm';
+import type { DateRange } from 'react-day-picker';
 import { Repository } from './abstract-repository';
 
 export class TransactionRepository extends Repository {
@@ -26,7 +27,7 @@ export class TransactionRepository extends Repository {
 
   public async getJournalEntries(
     entryType: JournalEntryType[],
-    { from, to }: { from: Date; to: Date },
+    { from, to }: DateRange,
     includeTx: boolean = false,
   ) {
     if (!from || !to) throw new Error('Invalid date range');

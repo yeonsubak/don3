@@ -152,7 +152,7 @@ const FxField = ({
     isPending,
     isError,
     error,
-  } = useQuery(QUERIES.config.latestFxRate(targetCurrency, [baseCurrency]));
+  } = useQuery(QUERIES.config.latestFxRate([targetCurrency], [baseCurrency]));
 
   const amountWatch: string = useWatch({ control: zForm?.control, name: amountFieldName! });
   const fxRateWatch: string = useWatch({ control: zForm?.control, name: fxRateFieldName! });

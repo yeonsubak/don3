@@ -29,6 +29,7 @@ export const IncomeForm = ({ onSubmit }: TxFormProps) => {
   const form = useForm<IncomeTxForm>({
     resolver: zodResolver(incomeTxForm),
     defaultValues: {
+      id: sharedForm?.id ?? '',
       date: sharedForm?.date ?? curDate.toJSDate(),
       time: sharedForm?.time ?? { hour: curDate.get('hour'), minute: curDate.get('minute') },
       journalEntryType: 'income',

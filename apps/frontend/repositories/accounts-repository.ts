@@ -129,8 +129,8 @@ export class AccountsRepository extends Repository {
     });
 
     return withGroup
-      ? resultWithGroup
-      : (this.db.query.accountGroups.findMany({
+      ? await resultWithGroup
+      : await (this.db.query.accountGroups.findMany({
           where: ({ parentGroupId, type, isHidden }, { and, eq, isNull, inArray }) =>
             isFlatten
               ? and(eq(isHidden, includeHidden), inArray(type, groupTypes), isNull(parentGroupId))

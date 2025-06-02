@@ -10,33 +10,37 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
-import type { AccountSelect } from '@/db/drizzle/types';
+import { Skeleton } from '@/components/ui/skeleton';
+import type { AccountGroupType, AccountSelect } from '@/db/drizzle/types';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useAccountDrawerContext } from './drawer/drawer-context';
 
 type AccountProps = {
   account: AccountSelect<{ balance: true; currency: true; country: true }>;
+  groupType: AccountGroupType;
+  balanceMap?: Record<string, number>;
 };
 
-export const Account = ({ account }: AccountProps) => {
+export const Account = ({ account, balanceMap, groupType }: AccountProps) => {
   const { currencies, defaultCurrency } = useGlobalContext();
   const { setOpen, setMode, setFormValues, setAccount } = useAccountDrawerContext();
   const { fxRates } = useAccountsContext();
 
   const currency = currencies.find((c) => c.id === account.currencyId);
-  const accountBalance = parseMoney(account.balance?.balance ?? 0, account.currency, false, true);
+  const balance = balanceMap ? balanceMap[account.id] : account.balance?.balance;
+  const parsedBalance = parseMoney(balance, account.currency, true, true);
 
   const fxRate =
     currency?.id !== defaultCurrency?.id
       ? fxRates.find(
           ({ baseCurrency, targetCurrency }) =>
-            baseCurrency === defaultCurrency.code && targetCurrency === currency?.code,
+            baseCurrency === currency?.code && targetCurrency === defaultCurrency.code,
         )
       : undefined;
 
   const convertedBalance = fxRate?.rate
-    ? parseMoney(accountBalance.value * Number(fxRate.rate), defaultCurrency, false, true)
+    ? parseMoney(parsedBalance.value * Number(fxRate.rate), defaultCurrency, true, true)
     : null;
 
   function handleEdit() {
@@ -94,9 +98,11 @@ export const Account = ({ account }: AccountProps) => {
             {account.name}
           </p>
           <div className="text-right">
-            <p className="min-w-[30px] font-semibold text-sky-600">
-              {`${currency?.symbol ?? ''} ${accountBalance.formatted}`}
-            </p>
+            {(groupType === 'income' || groupType === 'expense') && !balanceMap ? (
+              <Skeleton className="h-4 w-[60px]" />
+            ) : (
+              <p className="min-w-[30px] font-semibold text-sky-600">{`${currency?.symbol ?? ''} ${parsedBalance.formatted}`}</p>
+            )}
             {convertedBalance && (
               <p className="text-xs font-semibold">
                 ≈{defaultCurrency.symbol} {convertedBalance.formatted}
