@@ -1,5 +1,7 @@
 import { type SchemaDefinition } from '@/app/api/database/common';
 import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
+import { IdbFs as IdbFs02, PGlite as PGlite02 } from '@electric-sql/pglite-02';
+import { pgDump } from '@electric-sql/pglite-tools/pg_dump';
 import { drizzle } from 'drizzle-orm/pglite';
 import type { PgliteDrizzle } from '.';
 import { DATASET_ACCOUNT_GROUPS } from './dataset/account-groups';
@@ -90,7 +92,11 @@ export class DBInitializer {
   }
 
   private async syncSchema() {
-    const updateSchema = async (nextVersion: string | undefined | null, latestVersion: string) => {
+    const updateSchema = async (
+      nextVersion: string | undefined | null,
+      latestVersion: string,
+      hasData: boolean,
+    ) => {
       if (!nextVersion) return;
 
       const currentVersion = window.localStorage.getItem(LOCAL_STORAGE_KEYS.PGLITE.SCHEMA_VERSION);
@@ -99,7 +105,14 @@ export class DBInitializer {
       const url = new URL('/api/database/get-schema-definition', window.location.origin);
       url.searchParams.append('schemaVersion', nextVersion);
       const { sql, version }: SchemaDefinition = await (await fetch(url, { method: 'GET' })).json();
+
+      if (hasData && version.requireDumpToUpdate) {
+        await this.dumpToUpdate();
+      }
+
       await this.pg.transaction(async (tx) => {
+        if (!sql) return;
+
         try {
           await tx.exec(sql);
         } catch (err) {
@@ -133,7 +146,7 @@ export class DBInitializer {
         `Synchronized the local database schema to ${window.localStorage.getItem(LOCAL_STORAGE_KEYS.PGLITE.SCHEMA_VERSION)}`,
       );
 
-      await updateSchema(version.nextVersion, latestVersion);
+      await updateSchema(version.nextVersion, latestVersion, hasData);
     };
 
     const currentVersion = window.localStorage.getItem(LOCAL_STORAGE_KEYS.PGLITE.SCHEMA_VERSION);
@@ -142,7 +155,7 @@ export class DBInitializer {
       : LATEST_CLEAN_VERSION.version;
     const latestVersion = getLatestSchemaVersion();
 
-    await updateSchema(nextVersion, latestVersion);
+    await updateSchema(nextVersion, latestVersion, !!currentVersion);
   }
 
   private async validateDataset() {
@@ -234,5 +247,20 @@ export class DBInitializer {
   private async hasAccounts() {
     const cnt = await this.db.$count(schema.accounts);
     return cnt > 0;
+  }
+
+  private async dumpToUpdate() {
+    const pg02 = await PGlite02.create({
+      fs: new IdbFs02('don3'),
+      relaxedDurability: true,
+    });
+    const dumpDir = await pg02.dumpDataDir('none');
+    const pgCurr = await PGlite02.create({ loadDataDir: dumpDir });
+    // @ts-ignore
+    const dumpResult = await pgDump({ pg: pgCurr });
+    const dumpText = await dumpResult.text();
+
+    await this.pg.exec(dumpText);
+    await this.pg.exec('SET SEARCH_PATH = public;');
   }
 }

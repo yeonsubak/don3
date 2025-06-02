@@ -1,4 +1,4 @@
-import { parseSQLFile } from '@/app/api/database/get-schema-definition/route';
+import { parseSQLFile } from '@/app/api/database/server-util';
 import type { PgliteDrizzle } from '@/db';
 import { DATASET_ACCOUNT_GROUPS } from '@/db/dataset/account-groups';
 import { DATASET_COUNTRY } from '@/db/dataset/country';
@@ -27,13 +27,21 @@ export async function createInMemoryPGLiteDrizzle(): Promise<PgliteDrizzle> {
     casing: 'snake_case',
   });
 
+  if (!LATEST_CLEAN_VERSION.fileName) {
+    throw new Error('Invalid fileName');
+  }
+
   const majorDDL = await parseSQLFile(LATEST_CLEAN_VERSION.fileName);
   const minorDDLs: string[] = [];
   let nextVersion = LATEST_CLEAN_VERSION.nextVersion;
   while (nextVersion) {
-    const ddl = await parseSQLFile(SCHEMA_VERSION_TABLE[nextVersion].fileName);
-    minorDDLs.push(ddl);
-    nextVersion = SCHEMA_VERSION_TABLE[nextVersion].nextVersion;
+    const next = SCHEMA_VERSION_TABLE[nextVersion];
+    if (next.fileName) {
+      const ddl = await parseSQLFile(next.fileName);
+      minorDDLs.push(ddl);
+    }
+
+    nextVersion = next.nextVersion;
   }
 
   await pg.transaction(async (tx) => {

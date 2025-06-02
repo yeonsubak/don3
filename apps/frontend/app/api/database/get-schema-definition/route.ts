@@ -1,12 +1,8 @@
 import { SCHEMA_VERSION_TABLE } from '@/db/drizzle/version-table';
 import { externalDB } from '@/db/external-db/drizzle-client';
-import { promises as fs } from 'fs';
 import { NextResponse, type NextRequest } from 'next/server';
 import { type SchemaDefinition } from '../common';
-
-export async function parseSQLFile(fileName: string): Promise<string> {
-  return await fs.readFile(`${process.cwd()}/db/drizzle/migration/${fileName}`, 'utf-8');
-}
+import { parseSQLFile } from '../server-util';
 
 export async function GET(request: NextRequest) {
   try {
@@ -30,7 +26,7 @@ export async function fetchLocal(
   if (!schemaVersion) return;
 
   const version = SCHEMA_VERSION_TABLE[schemaVersion];
-  const parsed = await parseSQLFile(version.fileName);
+  const parsed = version.fileName ? await parseSQLFile(version.fileName) : undefined;
   return {
     sql: parsed,
     version,
@@ -53,6 +49,7 @@ async function fetchRemote(schemaVersion: string | null): Promise<SchemaDefiniti
       version: fetched.version,
       nextVersion: fetched.nextVersion,
       requireMigration: fetched.requireMigration,
+      requireDumpToUpdate: fetched.requireDumpToUpdate,
       createAt: fetched.createAt,
       updateAt: fetched.updateAt ?? undefined,
     },

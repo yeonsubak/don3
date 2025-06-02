@@ -17,7 +17,7 @@ export class PgliteClient extends PGlite {
 
     if (!PgliteClient.instance) {
       PgliteClient.instance = new PGlite({
-        fs: new IdbFs('don3'),
+        fs: new IdbFs('don3_pg_17'),
         relaxedDurability: true,
         extensions: { live, uuid_ossp },
       });

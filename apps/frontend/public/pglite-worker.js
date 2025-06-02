@@ -6,7 +6,7 @@ import { worker } from '@electric-sql/pglite/worker';
 worker({
   async init() {
     return await PGlite.create({
-      fs: new IdbFs('don3'),
+      fs: new IdbFs('don3_pg_17'),
       relaxedDurability: true,
       extensions: { live, uuid_ossp }
     });
