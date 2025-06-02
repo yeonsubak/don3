@@ -1,18 +1,56 @@
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 import { Noto_Color_Emoji } from 'next/font/google';
 import localFont from 'next/font/local';
+import './globals.css';
+
+const APP_NAME = 'Don³';
+const APP_DEFAULT_TITLE = 'Don³';
+const APP_TITLE_TEMPLATE = '%s — Open Source Budget Tracker';
+const APP_DESCRIPTION =
+  'Free, browser-based budget tracking app with double-entry accounting, multi-currency support, and planned stock & crypto features.';
 
 export const metadata: Metadata = {
-  title: 'Don³ — Open Source Budget Tracker',
-  description:
-    'Free, browser-based budget tracking app with double-entry accounting, multi-currency support, and planned stock & crypto features.',
+  applicationName: APP_NAME,
+  title: {
+    default: APP_DEFAULT_TITLE,
+    template: APP_TITLE_TEMPLATE,
+  },
+  description: APP_DESCRIPTION,
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: APP_DEFAULT_TITLE,
+    // startUpImage: [],
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  openGraph: {
+    type: 'website',
+    siteName: APP_NAME,
+    title: {
+      default: APP_DEFAULT_TITLE,
+      template: APP_TITLE_TEMPLATE,
+    },
+    description: APP_DESCRIPTION,
+  },
+  twitter: {
+    card: 'summary',
+    title: {
+      default: APP_DEFAULT_TITLE,
+      template: APP_TITLE_TEMPLATE,
+    },
+    description: APP_DESCRIPTION,
+  },
 };
 
-import './globals.css';
+export const viewport: Viewport = {
+  themeColor: '#FFFFFF',
+};
 
 const pretendard = localFont({
   src: 'fonts/PretendardVariable.woff2',
@@ -40,6 +78,9 @@ export default async function RootLayout({
 
   return (
     <html lang={locale} suppressHydrationWarning>
+      <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+      </head>
       <body className={`${pretendard.variable} ${notoColorEmoji.variable} antialiased`}>
         <NextIntlClientProvider messages={messages}>
           {children}

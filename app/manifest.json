@@ -1,0 +1,24 @@
+{
+  "name": "Don³",
+  "short_name": "Don³",
+  "description": "An open source budget tracker.",
+  "start_url": "/app",
+  "display": "standalone",
+  "background_color": "#231f20",
+  "theme_color": "#000000",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
