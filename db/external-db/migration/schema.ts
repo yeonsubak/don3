@@ -41,11 +41,12 @@ export const schemaDefinitions = pgTable(
   {
     id: uuid().defaultRandom().primaryKey().notNull(),
     version: varchar().notNull(),
-    sqlContent: text('sql_content').notNull(),
+    sqlContent: text('sql_content'),
     nextVersion: varchar('next_version'),
     createAt: timestamp('create_at', { withTimezone: true, mode: 'date' }).defaultNow().notNull(),
     updateAt: timestamp('update_at', { withTimezone: true, mode: 'date' }),
     requireMigration: boolean('require_migration').default(false).notNull(),
+    requireDumpToUpdate: boolean('require_dump_to_update').default(false).notNull(),
   },
   (table) => [
     unique('schema_definitions_version_key').on(table.version),

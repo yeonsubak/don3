@@ -23,4 +23,4 @@ export const compareSemanticVersions = (a: string, b: string) => {
   return 0;
 };
 
-export type SchemaDefinition = { sql: string; version: RemoteVersion };
+export type SchemaDefinition = { sql: string | undefined | null; version: RemoteVersion };
