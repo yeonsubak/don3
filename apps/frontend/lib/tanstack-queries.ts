@@ -14,6 +14,11 @@ export const QUERIES = {
         queryKey: ['currencies'],
         queryFn: async () => (await getConfigService()).getAllCurrencies(),
       }),
+    defaultCountry: () =>
+      queryOptions({
+        queryKey: ['defaultCountry'],
+        queryFn: async () => (await getConfigService()).getDefaultCountry(),
+      }),
     defaultCurrency: () =>
       queryOptions({
         queryKey: ['defaultCurrency'],
