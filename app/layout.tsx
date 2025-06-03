@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: 'default',
     title: APP_DEFAULT_TITLE,
-    // startUpImage: [],
+    startupImage: '/images/web-app-manifest-1024x1024.png',
   },
   formatDetection: {
     telephone: false,
@@ -79,7 +79,26 @@ export default async function RootLayout({
   return (
     <html lang={locale} suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/images/favicon.ico" sizes="any" />
+        <link
+          rel="icon"
+          href="/images/web-app-manifest-192x192.png"
+          type="image/png"
+          sizes="192x192"
+        />
+        <link
+          rel="icon"
+          href="/images/web-app-manifest-512x512.png"
+          type="image/png"
+          sizes="512x512"
+        />
+        <link
+          rel="icon"
+          href="/images/web-app-manifest-1024x1024.png"
+          type="image/png"
+          sizes="1024x1024"
+        />
+        <link rel="apple-touch-icon" href="/images/apple-icon.png" sizes="180x180" />
       </head>
       <body className={`${pretendard.variable} ${notoColorEmoji.variable} antialiased`}>
         <NextIntlClientProvider messages={messages}>
