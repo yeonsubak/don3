@@ -1,5 +1,6 @@
 import { Home, NotebookTabs, PencilLine, Settings, type LucideIcon } from 'lucide-react';
 import Link from 'next/link';
+import { useIsMobile } from '../hooks/use-mobile';
 import {
   Sidebar,
   SidebarContent,
@@ -11,7 +12,10 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
+  useSidebar,
 } from '../ui/sidebar';
+import Image from 'next/image';
+import { SyncIndicator } from './sync-indicator';
 
 type MenuItem = {
   title: string;
@@ -58,17 +62,43 @@ const menuItems: MenuItems = {
   ],
 };
 
+const LogoArea = () => (
+  <SidebarMenuItem className="mb-4 flex flex-row gap-2">
+    <Image
+      src="/images/icon0.svg"
+      alt="logo"
+      width={20}
+      height={20}
+      className="aspect-square size-10 rounded-lg"
+    />
+    <div className="text-md flex flex-col gap-1 leading-none">
+      <span className="font-medium">Budget Tracker</span>
+      <SyncIndicator />
+    </div>
+  </SidebarMenuItem>
+);
+
 export const AppSidebar = () => {
+  const { toggleSidebar } = useSidebar();
+  const isMobile = useIsMobile();
+
+  const handleToggleSidebar = () => {
+    if (isMobile) {
+      toggleSidebar();
+    }
+  };
+
   return (
-    <Sidebar variant="inset">
-      <SidebarContent>
+    <Sidebar variant="inset" className="rounded-tr-lg rounded-br-md shadow-lg">
+      <SidebarContent className="p-2">
         {/* Main */}
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
+              <LogoArea />
               {menuItems.navMain.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton onClick={handleToggleSidebar} asChild>
                     <Link href={item.url}>
                       {item.icon ? <item.icon /> : <></>}
                       {item.title}
@@ -78,7 +108,11 @@ export const AppSidebar = () => {
                     <SidebarMenuSub>
                       {item.items.map((item) => (
                         <SidebarMenuSubItem key={item.title}>
-                          <SidebarMenuSubButton asChild isActive={item.isActive}>
+                          <SidebarMenuSubButton
+                            isActive={item.isActive}
+                            onClick={handleToggleSidebar}
+                            asChild
+                          >
                             <Link href={item.url}>{item.title}</Link>
                           </SidebarMenuSubButton>
                         </SidebarMenuSubItem>
@@ -96,7 +130,7 @@ export const AppSidebar = () => {
             <SidebarMenu>
               {menuItems.navBottom.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton onClick={handleToggleSidebar} asChild>
                     <Link href={item.url}>
                       {item.icon ? <item.icon /> : <></>}
                       {item.title}
@@ -106,7 +140,11 @@ export const AppSidebar = () => {
                     <SidebarMenuSub>
                       {item.items.map((item) => (
                         <SidebarMenuSubItem key={item.title}>
-                          <SidebarMenuSubButton asChild isActive={item.isActive}>
+                          <SidebarMenuSubButton
+                            onClick={handleToggleSidebar}
+                            isActive={item.isActive}
+                            asChild
+                          >
                             <Link href={item.url}>{item.title}</Link>
                           </SidebarMenuSubButton>
                         </SidebarMenuSubItem>
