@@ -65,7 +65,7 @@ const menuItems: MenuItems = {
 const LogoArea = () => (
   <SidebarMenuItem className="mb-4 flex flex-row gap-2">
     <Image
-      src="/images/icon0.svg"
+      src="/assets/images/icon0.svg"
       alt="logo"
       width={20}
       height={20}
