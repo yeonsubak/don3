@@ -11,21 +11,32 @@ export class PGliteWorker {
 
   public static async getInstance() {
     if (!PGliteWorker.instance) {
-      PGliteWorker.instance = new PGliteWorker();
-      const dbInitializer = await DBInitializer.getInstance();
-      await dbInitializer.ensureDbReady();
-      const worker = await _PGliteWorker.create(
-        new Worker(new URL('@/public/pglite-worker.js', import.meta.url), {
-          type: 'module',
-        }),
-        {
-          extensions: { live },
-        },
-      );
-
-      PGliteWorker.instance = worker;
+      PGliteWorker.instance = new PGliteWorker(); // avoid race condition on object creation
+      await this.ensureDBReady();
+      PGliteWorker.instance = await this.createWorker();
     }
 
     return PGliteWorker.instance;
+  }
+
+  public static async createNewInstance(): Promise<PGliteWorker> {
+    await this.ensureDBReady();
+    return await this.createWorker();
+  }
+
+  private static async createWorker() {
+    return await _PGliteWorker.create(
+      new Worker(new URL('@/public/pglite-worker.js', import.meta.url), {
+        type: 'module',
+      }),
+      {
+        extensions: { live },
+      },
+    );
+  }
+
+  private static async ensureDBReady() {
+    const dbInitializer = await DBInitializer.getInstance();
+    await dbInitializer.ensureDbReady();
   }
 }
