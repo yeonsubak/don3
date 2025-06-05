@@ -2,7 +2,7 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { JournalEntryType } from '@/db/drizzle/types';
-import { getTransactionService } from '@/services/helper';
+import { getTransactionService } from '@/services/service-helpers';
 import { DateTime } from 'luxon';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';

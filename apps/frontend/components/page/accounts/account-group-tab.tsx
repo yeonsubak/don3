@@ -5,7 +5,7 @@ import type { AccountGroupType } from '@/db/drizzle/types';
 import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
 import { QUERIES } from '@/lib/tanstack-queries';
 import { cn } from '@/lib/utils';
-import { getAccountsService } from '@/services/helper';
+import { getAccountsService } from '@/services/service-helpers';
 import { Plus } from '@phosphor-icons/react';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';

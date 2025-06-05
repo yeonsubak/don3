@@ -1,5 +1,10 @@
+import type { UserConfigKey } from '@/db/drizzle/schema';
 import type { AccountGroupType, CurrencySelect, JournalEntryType } from '@/db/drizzle/types';
-import { getAccountsService, getTransactionService, getConfigService } from '@/services/helper';
+import {
+  getAccountsService,
+  getConfigService,
+  getTransactionService,
+} from '@/services/service-helpers';
 import { queryOptions } from '@tanstack/react-query';
 
 export const QUERIES = {
@@ -29,6 +34,11 @@ export const QUERIES = {
         queryKey: ['getLatestFxRate'],
         queryFn: async () =>
           (await getConfigService()).getLatestFxRate(baseCurrencies, targetCurrencies),
+      }),
+    getUserConfig: (key: UserConfigKey) =>
+      queryOptions({
+        queryKey: ['getUserConfig', key],
+        queryFn: async () => (await getConfigService()).getUserConfig(key),
       }),
   },
   accounts: {

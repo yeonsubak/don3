@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { DialogClose, DialogFooter } from '@/components/ui/dialog';
 import { SheetClose, SheetFooter } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
-import { getTransactionService } from '@/services/helper';
+import { getTransactionService } from '@/services/service-helpers';
 import { LoaderCircle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { type ComponentProps } from 'react';

@@ -24,7 +24,7 @@ import type {
 } from '@/db/drizzle/types';
 import { QUERIES } from '@/lib/tanstack-queries';
 import { cn } from '@/lib/utils';
-import { getAccountsService } from '@/services/helper';
+import { getAccountsService } from '@/services/service-helpers';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus } from '@phosphor-icons/react';
 import { useQueryClient } from '@tanstack/react-query';
