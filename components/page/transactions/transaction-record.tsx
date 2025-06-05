@@ -4,7 +4,7 @@ import { AccountIconEmojiOnly } from '@/components/primitives/account-icon-emoji
 import type { AccountSelect, JournalEntrySelect, JournalEntryType } from '@/db/drizzle/types';
 import { QUERIES } from '@/lib/tanstack-queries';
 import { cn } from '@/lib/utils';
-import { getTransactionService } from '@/services/helper';
+import { getTransactionService } from '@/services/service-helpers';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { useTransactionContext } from './transaction-context';

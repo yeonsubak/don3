@@ -11,7 +11,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import type { AccountGroupSelect, AccountGroupType } from '@/db/drizzle/types';
-import { getAccountsService } from '@/services/helper';
+import { getAccountsService } from '@/services/service-helpers';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { createAccountGroupForm, type CreateAccountGroupForm } from './form-schema';

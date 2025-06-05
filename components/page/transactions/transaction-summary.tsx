@@ -3,7 +3,7 @@ import { invisibleCharMd } from '@/components/common-functions';
 import { useTransactionContext } from '@/components/page/transactions/transaction-context';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
-import { getTransactionService } from '@/services/helper';
+import { getTransactionService } from '@/services/service-helpers';
 import { useEffect, useMemo, type ReactNode } from 'react';
 
 export const TransactionSummary = ({ children }: { children?: ReactNode }) => {

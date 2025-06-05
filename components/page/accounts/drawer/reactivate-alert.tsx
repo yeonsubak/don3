@@ -5,7 +5,7 @@ import { DialogClose, DialogFooter } from '@/components/ui/dialog';
 import { SheetClose, SheetFooter } from '@/components/ui/sheet';
 import { QUERIES } from '@/lib/tanstack-queries';
 import { cn } from '@/lib/utils';
-import { getAccountsService } from '@/services/helper';
+import { getAccountsService } from '@/services/service-helpers';
 import { useQueryClient } from '@tanstack/react-query';
 import { LoaderCircle } from 'lucide-react';
 import { type ComponentProps } from 'react';
