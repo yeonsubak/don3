@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import { DBBackupUtil } from '@/db/db-backup-util';
 import { PGliteWorker } from '@/db/pglite-web-worker';
 import { useRef, useState } from 'react';
+import { useSettingsDrawerContext } from '../settings-drawer-context';
 
 const SyncSelect = () => {
   const [value, setValue] = useState<string>('disabled');
@@ -30,6 +31,8 @@ const SyncSelect = () => {
 };
 
 export const SyncBackupCard = () => {
+  const { setMode, setOpen } = useSettingsDrawerContext();
+
   const downloadAnchorRef = useRef<HTMLAnchorElement>(null);
 
   async function handleBackup() {
@@ -45,6 +48,11 @@ export const SyncBackupCard = () => {
     downloadAnchorRef.current.download = fileName;
     downloadAnchorRef.current.click();
     URL.revokeObjectURL(url);
+  }
+
+  async function handleRestoreButton() {
+    setMode('restore');
+    setOpen(true);
   }
 
   return (
@@ -85,7 +93,12 @@ export const SyncBackupCard = () => {
                 <Label htmlFor="restore-database-btn">Restore Database</Label>
               </TableCell>
               <TableCell>
-                <Button id="restore-database-btn" type="button" variant="outline">
+                <Button
+                  id="restore-database-btn"
+                  type="button"
+                  variant="outline"
+                  onClick={handleRestoreButton}
+                >
                   Restore
                 </Button>
               </TableCell>

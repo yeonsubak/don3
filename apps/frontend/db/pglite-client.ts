@@ -1,3 +1,4 @@
+import { INDEXEDDB_NAME } from '@/db/db-constants';
 import { IdbFs, PGlite } from '@electric-sql/pglite';
 import { uuid_ossp } from '@electric-sql/pglite/contrib/uuid_ossp';
 import { live } from '@electric-sql/pglite/live';
@@ -17,7 +18,7 @@ export class PgliteClient extends PGlite {
 
     if (!PgliteClient.instance) {
       PgliteClient.instance = new PGlite({
-        fs: new IdbFs('don3_pg_17'),
+        fs: new IdbFs(INDEXEDDB_NAME),
         relaxedDurability: true,
         extensions: { live, uuid_ossp },
       });
