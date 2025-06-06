@@ -18,7 +18,7 @@ import {
 import { PgliteClient } from './pglite-client';
 
 export class DBInitializer {
-  private static instance: DBInitializer;
+  public static instance: DBInitializer | null;
   private pg!: PgliteClient;
   private db!: PgliteDrizzle;
   private defaultCountry!: string;
@@ -63,8 +63,16 @@ export class DBInitializer {
     this.initializationPromise = null;
   }
 
-  private async initialize() {
-    if (!this.validateSchemaVersion()) {
+  public static async close() {
+    if (!DBInitializer.instance?.pg.closed) {
+      await DBInitializer.instance?.pg.close();
+    }
+
+    DBInitializer.instance = null;
+  }
+
+  public async initialize(isDBReady = false) {
+    if (!(await this.validateSchemaVersion(isDBReady))) {
       await this.syncSchema();
     }
 
@@ -85,10 +93,26 @@ export class DBInitializer {
     DBInitializer.isInitialized = true;
   }
 
-  private validateSchemaVersion() {
+  private async validateSchemaVersion(isDBReady: boolean) {
     const latestVersion = getLatestSchemaVersion();
-    const currentVersion = window.localStorage.getItem(LOCAL_STORAGE_KEYS.PGLITE.SCHEMA_VERSION);
-    return currentVersion === latestVersion;
+    const localStorageVersion = window.localStorage.getItem(
+      LOCAL_STORAGE_KEYS.PGLITE.SCHEMA_VERSION,
+    );
+
+    if (localStorageVersion || !isDBReady) {
+      return localStorageVersion === latestVersion;
+    }
+
+    const dbVersion = (
+      await this.db.query.information.findFirst({
+        where: ({ name }, { eq }) => eq(name, 'schemaVersion'),
+      })
+    )?.value;
+
+    if (dbVersion) {
+      window.localStorage.setItem(LOCAL_STORAGE_KEYS.PGLITE.SCHEMA_VERSION, dbVersion);
+    }
+    return dbVersion === latestVersion;
   }
 
   private async syncSchema() {
@@ -160,8 +184,24 @@ export class DBInitializer {
 
   private async validateDataset() {
     const latestVersion = '0.0.1';
-    const currentVersion = window.localStorage.getItem(LOCAL_STORAGE_KEYS.PGLITE.DATASET_VERSION);
-    return currentVersion === latestVersion;
+    const localStorageVersion = window.localStorage.getItem(
+      LOCAL_STORAGE_KEYS.PGLITE.DATASET_VERSION,
+    );
+
+    if (localStorageVersion) {
+      return localStorageVersion === latestVersion;
+    }
+
+    const dbVersion = (
+      await this.db.query.information.findFirst({
+        where: ({ name }, { eq }) => eq(name, 'datasetVersion'),
+      })
+    )?.value;
+
+    if (dbVersion) {
+      window.localStorage.setItem(LOCAL_STORAGE_KEYS.PGLITE.SCHEMA_VERSION, dbVersion);
+    }
+    return dbVersion === latestVersion;
   }
 
   private async syncDataset() {
@@ -197,7 +237,11 @@ export class DBInitializer {
         .from(schema.information)
     )?.map((e) => e.key);
 
-    return schema.USER_CONFIG_KEYS.filter((key) => !storedKeys?.includes(key));
+    const ignoredKeys: UserConfigKey[] = ['username'];
+
+    return schema.USER_CONFIG_KEYS.filter(
+      (key) => !ignoredKeys.includes(key) && !storedKeys?.includes(key),
+    );
   }
 
   private async insertDefaultConfig(missingKeys: UserConfigKey[]) {
@@ -223,6 +267,13 @@ export class DBInitializer {
           await this.db
             .insert(schema.information)
             .values({ name: 'defaultLanguage', value: 'en' })
+            .onConflictDoNothing();
+          break;
+        }
+        case 'deviceId': {
+          await this.db
+            .insert(schema.information)
+            .values({ name: 'deviceId', value: crypto.randomUUID() })
             .onConflictDoNothing();
           break;
         }

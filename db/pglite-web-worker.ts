@@ -1,13 +1,17 @@
 'use client';
 
-import { live } from '@electric-sql/pglite/live';
+import { live, type LiveNamespace } from '@electric-sql/pglite/live';
 import { PGliteWorker as _PGliteWorker } from '@electric-sql/pglite/worker';
 import { DBInitializer } from './db-initializer';
+
+export type PGliteWorkerClient = _PGliteWorker & {
+  live: LiveNamespace;
+};
 
 export class PGliteWorker {
   private constructor() {}
 
-  private static instance: PGliteWorker;
+  public static instance: PGliteWorker | null;
 
   public static async getInstance() {
     if (!PGliteWorker.instance) {
@@ -17,6 +21,16 @@ export class PGliteWorker {
     }
 
     return PGliteWorker.instance;
+  }
+
+  public static async close() {
+    if (PGliteWorker.instance) {
+      const instance = PGliteWorker.instance as PGliteWorkerClient;
+      if (!instance.closed) {
+        await instance.close();
+      }
+      PGliteWorker.instance = null;
+    }
   }
 
   public static async createNewInstance(): Promise<PGliteWorker> {
