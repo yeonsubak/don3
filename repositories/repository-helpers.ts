@@ -3,7 +3,6 @@ import { PGliteWorker } from '@/db/pglite-web-worker';
 import { retry, type RetryOptions } from '@/lib/utils/retry';
 import { AccountsRepository } from './accounts-repository';
 import { ConfigRepository } from './config-repository';
-import { SyncRepository } from './sync-repository';
 import { TransactionRepository } from './transaction-repository';
 
 const retryOption: RetryOptions = {
@@ -36,13 +35,5 @@ export const getTransactionRepository = async () => {
     const worker = await PGliteWorker.getInstance();
     const pg = drizzle(worker);
     return new TransactionRepository(pg);
-  }, retryOption);
-};
-
-export const getSyncRepository = async () => {
-  return retry(async () => {
-    const worker = await PGliteWorker.getInstance();
-    const pg = drizzle(worker);
-    return new SyncRepository(pg);
   }, retryOption);
 };
