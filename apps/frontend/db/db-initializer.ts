@@ -237,11 +237,7 @@ export class DBInitializer {
         .from(schema.information)
     )?.map((e) => e.key);
 
-    const ignoredKeys: UserConfigKey[] = ['username'];
-
-    return schema.USER_CONFIG_KEYS.filter(
-      (key) => !ignoredKeys.includes(key) && !storedKeys?.includes(key),
-    );
+    return schema.USER_CONFIG_KEYS.filter((key) => !storedKeys?.includes(key));
   }
 
   private async insertDefaultConfig(missingKeys: UserConfigKey[]) {
@@ -267,13 +263,6 @@ export class DBInitializer {
           await this.db
             .insert(schema.information)
             .values({ name: 'defaultLanguage', value: 'en' })
-            .onConflictDoNothing();
-          break;
-        }
-        case 'deviceId': {
-          await this.db
-            .insert(schema.information)
-            .values({ name: 'deviceId', value: crypto.randomUUID() })
             .onConflictDoNothing();
           break;
         }
