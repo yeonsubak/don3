@@ -39,7 +39,7 @@ function SideBar({ children }: Readonly<{ children: React.ReactNode }>) {
           {/* <DarkModeToggle className="ml-auto" /> */}
         </header>
         <main className="h-full w-full p-4">{children}</main>
-        <Toaster className="z-99999 text-pretty" expand={true} />
+        <Toaster className="z-99999 text-pretty" expand={true} richColors />
       </SidebarInset>
     </SidebarProvider>
   );

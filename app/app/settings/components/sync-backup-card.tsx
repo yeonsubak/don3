@@ -13,6 +13,7 @@ import { DBBackupUtil } from '@/db/db-backup-util';
 import { PGliteWorker } from '@/db/pglite-web-worker';
 import { useRef, useState } from 'react';
 import { useSettingsDrawerContext } from '../settings-drawer-context';
+import { toast } from 'sonner';
 
 const SyncSelect = () => {
   const [value, setValue] = useState<string>('disabled');
@@ -48,6 +49,10 @@ export const SyncBackupCard = () => {
     downloadAnchorRef.current.download = fileName;
     downloadAnchorRef.current.click();
     URL.revokeObjectURL(url);
+
+    toast.success([`Backup database has been completed. File: ${fileName}`], {
+      position: 'top-center',
+    });
   }
 
   async function handleRestoreButton() {
@@ -105,24 +110,6 @@ export const SyncBackupCard = () => {
             </TableRow>
           </TableBody>
         </Table>
-
-        {/* <div className="items-center">
-          <Label htmlFor="backup-button">Backup database</Label>
-          <Button id="backup-button" type="button" variant="outline">
-            Backup
-          </Button>
-        </div>
-        <div className="items-center">
-          <Label htmlFor="restore-database" className="mb-2">
-            Restore database
-          </Label>
-          <div className="flex w-full flex-row items-center gap-2">
-            <Input id="restore-database" type="file" />
-            <Button type="button" variant="default">
-              Restore
-            </Button>
-          </div>
-        </div> */}
       </CardContent>
     </Card>
   );

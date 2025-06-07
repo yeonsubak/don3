@@ -28,7 +28,7 @@ export class DBBackupUtil {
     });
 
     const timestamp = Date.now();
-    const baseFileName = `don3-backup-${timestamp}`;
+    const baseFileName = `don3-backup-${schemaVersion?.value ?? ''}-${timestamp}`;
 
     const dumpDir = await this.db.$client.dumpDataDir('none');
     const tempPg = await PGlite.create({ loadDataDir: dumpDir });
@@ -57,8 +57,8 @@ export class DBBackupUtil {
   }
 
   public async restoreDatabase(file: File) {
+    const { metaData, dump } = await this.decompressZipFile(file);
     try {
-      const { metaData, dump } = await this.decompressZipFile(file);
       if (!metaData) throw new Error('metaData not found');
       if (!dump) throw new Error('dump not found');
 
@@ -76,10 +76,16 @@ export class DBBackupUtil {
       this.restoreLocalStorage(metaData);
       const dbInitializer = await DBInitializer.getInstance();
       await dbInitializer.initialize(true);
-      return 'success';
+      return {
+        status: 'success',
+        metaData,
+      };
     } catch (err) {
       console.error(err);
-      return 'fail';
+      return {
+        status: 'fail',
+        metaData,
+      };
     }
   }
 

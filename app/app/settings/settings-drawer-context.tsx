@@ -2,8 +2,8 @@
 
 import {
   createContext,
+  useCallback,
   useContext,
-  useEffect,
   useState,
   type Dispatch,
   type ReactNode,
@@ -19,6 +19,7 @@ type SettingsDrawerContextProps = {
   setMode: Dispatch<SetStateAction<DrawerMode>>;
   isProcessing: boolean;
   setIsProcessing: Dispatch<SetStateAction<boolean>>;
+  onClose: () => void;
 };
 
 const SettingsDrawerContext = createContext<SettingsDrawerContextProps | null>(null);
@@ -28,12 +29,11 @@ export const SettingsDrawerContextProvider = ({ children }: { children: ReactNod
   const [mode, setMode] = useState<DrawerMode>('sync');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
-  useEffect(() => {
-    if (!open) {
-      setIsProcessing(false);
-      setMode('sync');
-    }
-  }, [open, setIsProcessing, setMode]);
+  const onClose = useCallback(() => {
+    setMode('sync');
+    setOpen(false);
+    setIsProcessing(false);
+  }, []);
 
   return (
     <SettingsDrawerContext.Provider
@@ -44,6 +44,7 @@ export const SettingsDrawerContextProvider = ({ children }: { children: ReactNod
         setMode,
         isProcessing,
         setIsProcessing,
+        onClose,
       }}
     >
       {children}
