@@ -43,7 +43,7 @@ export const SettingsDrawer = () => {
   if (isMobile) {
     return (
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="bottom" closeBtnOnHeader={false} className="gap-1">
+        <SheetContent side="bottom" className="gap-1">
           <SheetHeader>
             <SheetTitle className="text-xl">{modalTitle}</SheetTitle>
           </SheetHeader>

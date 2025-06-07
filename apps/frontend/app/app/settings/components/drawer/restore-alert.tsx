@@ -1,8 +1,6 @@
 import { useIsMobile } from '@/components/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
-import { DialogClose, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { SheetClose, SheetFooter } from '@/components/ui/sheet';
 import { DBBackupUtil } from '@/db/db-backup-util';
 import { PGliteWorker } from '@/db/pglite-web-worker';
 import { cn } from '@/lib/utils';
@@ -15,6 +13,7 @@ import {
   type ComponentProps,
   type RefObject,
 } from 'react';
+import { toast } from 'sonner';
 import { useSettingsDrawerContext } from '../../settings-drawer-context';
 
 const RestoreButton = ({
@@ -55,7 +54,7 @@ const RestoreButton = ({
 };
 
 export const RestoreAlert = () => {
-  const { setIsProcessing } = useSettingsDrawerContext();
+  const { setIsProcessing, onClose } = useSettingsDrawerContext();
   const isMobile = useIsMobile();
   const CANCEL_BUTTON_LABEL = 'Cancel';
 
@@ -79,17 +78,25 @@ export const RestoreAlert = () => {
     try {
       const pg = await PGliteWorker.createNewInstance();
       const backupUtil = new DBBackupUtil(pg);
-      await backupUtil.restoreDatabase(file);
+      const { status, metaData } = await backupUtil.restoreDatabase(file);
+      if (status === 'fail') {
+        throw new Error(`Restoring database from ${metaData?.fileName} has failed.`);
+      }
+
+      toast.success(`Restoring database from ${metaData?.fileName} has been completed.`, {
+        position: 'top-center',
+      });
     } catch (err) {
       console.error(err);
+      toast.error(`${err}`, { position: 'top-center' });
     } finally {
-      setIsProcessing(false);
+      onClose();
     }
   }
 
   return (
-    <>
-      <div className={cn('break-keep', isMobile ? 'px-4 py-2' : '')}>
+    <div className={cn('break-keep', isMobile ? 'px-4 pt-2 pb-10' : '')}>
+      <div>
         <p className="mb-2 text-pretty">
           Are you sure you want to restore your data from the previous backup?
         </p>
@@ -101,32 +108,13 @@ export const RestoreAlert = () => {
         </p>
         <div></div>
       </div>
-      {isMobile ? (
-        <SheetFooter>
-          <RestoreButton
-            onClick={handleRestore}
-            fileInputRef={fileInputRef}
-            handleFileChange={handleFileChange}
-            isFilePathValid={isFilePathValid}
-          />
-          <SheetClose asChild>
-            <Button variant="outline">{CANCEL_BUTTON_LABEL}</Button>
-          </SheetClose>
-        </SheetFooter>
-      ) : (
-        <DialogFooter className="mt-4">
-          <RestoreButton
-            className="w-20"
-            onClick={handleRestore}
-            fileInputRef={fileInputRef}
-            handleFileChange={handleFileChange}
-            isFilePathValid={isFilePathValid}
-          />
-          <DialogClose asChild>
-            <Button variant="outline">{CANCEL_BUTTON_LABEL}</Button>
-          </DialogClose>
-        </DialogFooter>
-      )}
-    </>
+      <RestoreButton
+        className="w-20"
+        onClick={handleRestore}
+        fileInputRef={fileInputRef}
+        handleFileChange={handleFileChange}
+        isFilePathValid={isFilePathValid}
+      />
+    </div>
   );
 };
