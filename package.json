@@ -15,10 +15,10 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@electric-sql/pglite": "^0.3.2",
+    "@electric-sql/pglite": "^0.3.3",
     "@electric-sql/pglite-02": "npm:@electric-sql/pglite@0.2.17",
-    "@electric-sql/pglite-repl": "^0.2.20",
-    "@electric-sql/pglite-tools": "^0.2.7",
+    "@electric-sql/pglite-repl": "^0.2.21",
+    "@electric-sql/pglite-tools": "^0.2.8",
     "@hookform/resolvers": "^3.9.1",
     "@phosphor-icons/react": "^2.1.7",
     "@radix-ui/react-collapsible": "^1.1.10",
@@ -46,7 +46,7 @@
     "clsx": "^2.1.1",
     "cmdk": "1.1.1",
     "drizzle-kit": "^0.31.1",
-    "drizzle-orm": "^0.44.1",
+    "drizzle-orm": "^0.44.2",
     "fflate": "^0.8.2",
     "lucide-react": "^0.508.0",
     "luxon": "^3.5.0",
