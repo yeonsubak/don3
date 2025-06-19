@@ -3,6 +3,7 @@ import type { CountrySelect, CurrencySelect, ForexInsert } from '@/db/drizzle/ty
 import { and, between, desc, eq, inArray } from 'drizzle-orm';
 import { DateTime } from 'luxon';
 import { Repository } from './abstract-repository';
+import { writeOperationLog } from './repository-decorators';
 
 export class ConfigRepository extends Repository {
   public async getAllCurrencies() {
@@ -54,11 +55,13 @@ export class ConfigRepository extends Repository {
     });
   }
 
+  @writeOperationLog
   public async insertUserConfig(key: UserConfigKey, value: string) {
     const result = await this.db.insert(information).values({ name: key, value }).returning();
     return result.at(0);
   }
 
+  @writeOperationLog
   public async updateUserConfig(key: UserConfigKey, value: string) {
     const result = await this.db
       .update(information)

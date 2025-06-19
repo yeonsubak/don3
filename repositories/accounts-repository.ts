@@ -1,4 +1,4 @@
-import { assetLiabilityBalances, accountGroups, accounts } from '@/db/drizzle/schema';
+import { accountGroups, accounts, assetLiabilityBalances } from '@/db/drizzle/schema';
 import type {
   AccountBalanceInsert,
   AccountBalanceSelect,
@@ -10,6 +10,7 @@ import type {
 } from '@/db/drizzle/types';
 import { eq } from 'drizzle-orm';
 import { Repository } from './abstract-repository';
+import { writeOperationLog } from './repository-decorators';
 
 export class AccountsRepository extends Repository {
   public async getAllAccounts(): Promise<AccountSelectAll[]> {
@@ -57,11 +58,13 @@ export class AccountsRepository extends Repository {
     });
   }
 
+  @writeOperationLog
   public async insertAccount(insert: AccountInsert) {
     const result = await this.db.insert(accounts).values(insert).returning();
     return result.at(0);
   }
 
+  @writeOperationLog
   public async updateAccount(update: Partial<AccountInsert>) {
     const result = await this.db
       .update(accounts)
@@ -74,6 +77,7 @@ export class AccountsRepository extends Repository {
     return result.at(0);
   }
 
+  @writeOperationLog
   public async archiveAccount(accountId: string) {
     const result = await this.db
       .update(accounts)
@@ -83,6 +87,7 @@ export class AccountsRepository extends Repository {
     return result.at(0);
   }
 
+  @writeOperationLog
   public async deleteAccount(accountId: string) {
     const result = await this.db.delete(accounts).where(eq(accounts.id, accountId)).returning();
     return result.at(0);
@@ -155,23 +160,10 @@ export class AccountsRepository extends Repository {
     });
   }
 
+  @writeOperationLog
   public async insertAccountGroup(form: AccountGroupInsert) {
     return await this.db.insert(accountGroups).values(form).returning();
   }
-
-  // public async getBalancesByType(_type: AccountGroupType) {
-  //   if (_type === 'asset' || _type === 'liability') {
-  //     const accounts = await this.db.query.accounts.findMany({
-  //       where: ({type}, {eq}) => eq(type, _type)
-  //     });
-
-  //     return await this.db.query.incomeLiabilityBalances.findMany({
-  //       where: ({}, {}) =>
-  //     })
-  //   }
-
-  //   return await this.db.query.
-  // }
 
   public async getAccountBalance(targetAccountId: string) {
     return await this.db.query.assetLiabilityBalances.findFirst({
@@ -179,6 +171,7 @@ export class AccountsRepository extends Repository {
     });
   }
 
+  @writeOperationLog
   public async insertAccountBalance(
     accountBalanceInsert: AccountBalanceInsert,
   ): Promise<AccountBalanceSelect> {
@@ -196,6 +189,7 @@ export class AccountsRepository extends Repository {
     return insertedBalance;
   }
 
+  @writeOperationLog
   public async updateAccountBalance(
     accountBalanceId: string,
     amount: number,

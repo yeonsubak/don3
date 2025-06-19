@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Badge } from '../ui/badge';
 
 export const SyncIndicator = () => {
-  type Status = 'ready' | 'offline' | 'notConfigured';
+  type Status = 'ready' | 'offline' | 'notConfigured' | 'disabled';
 
   const [status, setStatus] = useState<Status>('notConfigured');
 
