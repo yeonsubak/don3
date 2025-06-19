@@ -7,11 +7,17 @@ export type PgliteDrizzle = PgliteDatabase<typeof schema> & {
   $client: PGlite;
 };
 
+export type PgliteDrizzleMock = PgliteDatabase<typeof schema> & {
+  $client: '$client is not available on drizzle.mock()';
+};
+
 export function drizzle(client: PGliteWorker): PgliteDrizzle {
   if (!client) {
     throw new Error('PGLite client is null');
   }
 
-  // @ts-expect-error
+  // @ts-expect-error: type inferencing
   return _drizzle(client, { schema, casing: 'snake_case' });
 }
+
+export const mockDrizzle: PgliteDrizzleMock = _drizzle.mock({ schema, casing: 'snake_case' });
