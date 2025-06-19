@@ -1,5 +1,14 @@
 export * from './schema/app';
 export * from './schema/config';
+export * from './schema/sync';
 
-export const USER_CONFIG_KEYS = ['defaultCurrency', 'defaultLanguage', 'defaultCountry'] as const;
+export const USER_CONFIG_KEYS = [
+  'defaultCurrency',
+  'defaultLanguage',
+  'defaultCountry',
+  'deviceId',
+  'username',
+  'schemaVersion',
+  'datasetVersion',
+] as const;
 export type UserConfigKey = (typeof USER_CONFIG_KEYS)[number];

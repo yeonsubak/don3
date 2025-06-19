@@ -9,12 +9,15 @@ import {
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { useMemo } from 'react';
 import { useSettingsDrawerContext } from '../../settings-drawer-context';
+import { EnableSyncModal } from './enable-sync-modal';
 import { RestoreAlert } from './restore-alert';
 
 const DrawerContent = () => {
   const { mode } = useSettingsDrawerContext();
 
   switch (mode) {
+    case 'sync':
+      return <EnableSyncModal />;
     case 'restore':
       return <RestoreAlert />;
     default:
@@ -23,7 +26,7 @@ const DrawerContent = () => {
 };
 
 export const SettingsDrawer = () => {
-  const { open, setOpen, mode } = useSettingsDrawerContext();
+  const { open, setOpen, mode, onClose } = useSettingsDrawerContext();
 
   const isMobile = useIsMobile();
 
@@ -40,11 +43,17 @@ export const SettingsDrawer = () => {
     }
   }, [mode]);
 
+  function onOpenChange(open: boolean) {
+    if (!open) {
+      onClose();
+    }
+  }
+
   if (isMobile) {
     return (
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="bottom" className="gap-1">
-          <SheetHeader>
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetContent side="bottom" className="gap-1 px-4 pt-4 pb-8">
+          <SheetHeader className='px-0 py-2'>
             <SheetTitle className="text-xl">{modalTitle}</SheetTitle>
           </SheetHeader>
           <DrawerContent />

@@ -110,7 +110,12 @@ export class ConfigService extends Service {
     return fxRateResult;
   }
 
-  public async updateUserConfig(key: UserConfigKey, value: string) {
-    return await this.configRepository.updateUserConfig(key, value);
+  public async getUserConfig(key: UserConfigKey) {
+    return await this.configRepository.getUserConfig(key);
+  }
+
+  public async upsertUserConfig(key: UserConfigKey, value: string) {
+    const result = await this.configRepository.updateUserConfig(key, value);
+    return !!result ? result : await this.configRepository.insertUserConfig(key, value);
   }
 }

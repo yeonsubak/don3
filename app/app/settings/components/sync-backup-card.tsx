@@ -12,16 +12,25 @@ import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import { DBBackupUtil } from '@/db/db-backup-util';
 import { PGliteWorker } from '@/db/pglite-web-worker';
 import { useRef, useState } from 'react';
-import { useSettingsDrawerContext } from '../settings-drawer-context';
 import { toast } from 'sonner';
+import { useSettingsDrawerContext } from '../settings-drawer-context';
 
 const SyncSelect = () => {
   const [value, setValue] = useState<string>('disabled');
+  const { setOpen, setMode } = useSettingsDrawerContext();
+
+  function handleValueChange(value: string) {
+    setValue(value);
+    if (value === 'enable') {
+      setMode('sync');
+      setOpen(true);
+    }
+  }
 
   return (
-    <Select value={value} onValueChange={setValue}>
+    <Select value={value} onValueChange={handleValueChange}>
       <SelectTrigger className="w-[180px]">
-        <SelectValue placeholder="sssss" />
+        <SelectValue />
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="disabled">Disabled</SelectItem>

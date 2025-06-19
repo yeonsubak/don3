@@ -13,7 +13,7 @@ import { useGlobalContext } from '../../global-context';
 
 const updateUserConfig = async ({ key, value }: { key: UserConfigKey; value: string }) => {
   const configService = await getConfigService();
-  return configService.updateUserConfig(key, value);
+  return configService.upsertUserConfig(key, value);
 };
 
 export const DefaultCountryCurrencyCard = () => {

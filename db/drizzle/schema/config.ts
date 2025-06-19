@@ -1,4 +1,4 @@
-import { relations, sql } from 'drizzle-orm';
+import { relations } from 'drizzle-orm';
 import {
   date,
   index,
@@ -38,7 +38,7 @@ export const countries = configSchema.table(
     codeAlpha2: varchar({ length: 2 }).notNull().unique(),
     defaultCurrencyId: uuid(),
     emoji: varchar({ length: 3 }),
-    createAt: timestamp({ withTimezone: true }).defaultNow(),
+    createAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
     updateAt: timestamp({ withTimezone: true }),
   },
   (t) => [
@@ -66,7 +66,7 @@ export const currencies = configSchema.table(
     symbol: varchar({ length: 10 }).notNull(),
     symbolNative: varchar({ length: 10 }).notNull(),
     isoDigits: integer().notNull().default(0), // The number of digits after the decimal separator in accordance with ISO 4217
-    createAt: timestamp({ withTimezone: true }).defaultNow(),
+    createAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
     updateAt: timestamp({ withTimezone: true }),
   },
   (t) => [

@@ -12,7 +12,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { Check, ChevronsUpDown } from 'lucide-react';
-import { type Dispatch, type SetStateAction, useState } from 'react';
+import React, { type Dispatch, type ReactElement, type SetStateAction, useState } from 'react';
 import type { ControllerRenderProps, FieldValue, FieldValues } from 'react-hook-form';
 import type { TailwindClass } from '../common-types';
 import { useIsMobile } from '../hooks/use-mobile';
@@ -45,6 +45,7 @@ export interface ComboboxProps {
   labelRenderFn?: (itemData: unknown) => string;
   state?: [string, Dispatch<SetStateAction<string>>];
   value?: string;
+  extraComponents?: ReactElement[];
 }
 
 export function flattenComboboxItems<T>(items: ComboboxItem<T>[]): ComboboxItem<T>[] {
@@ -117,6 +118,10 @@ const Item = ({
   );
 };
 
+const ExtraComponent = ({ children }: { children: ReactElement }) => (
+  <CommandItem onSelect={() => {}}>{children}</CommandItem>
+);
+
 export const Combobox = (comboboxProps: ComboboxProps) => {
   const {
     items,
@@ -157,6 +162,7 @@ export const Combobox = (comboboxProps: ComboboxProps) => {
     popoverContentAlign = 'center',
     keyRenderFn,
     state,
+    extraComponents,
   } = comboboxProps;
 
   const [open, setOpen] = useState(false);
@@ -180,10 +186,21 @@ export const Combobox = (comboboxProps: ComboboxProps) => {
         side={popoverContentSide}
         align={popoverContentAlign}
         onOpenAutoFocus={(e) => isMobile && e.preventDefault()}
-        style={!popoverContentClass ? { width: 'var(--radix-popover-trigger-width)' } : undefined}
+        style={
+          !popoverContentClass
+            ? {
+                width: 'var(--radix-popover-trigger-width)',
+                maxWidth: 'var(--radix-popover-content-available-height)',
+              }
+            : undefined
+        }
       >
         <Command>
-          {searchable ? <CommandInput placeholder={searchPlaceholder} /> : <></>}
+          {searchable && <CommandInput placeholder={searchPlaceholder} />}
+          {extraComponents &&
+            extraComponents.map((component, idx) => (
+              <ExtraComponent key={`${idx}`}>{component}</ExtraComponent>
+            ))}
           <CommandList>
             <CommandEmpty>{notFoundPlaceholder}</CommandEmpty>
             {items?.map((item) => (

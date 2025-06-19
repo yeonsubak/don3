@@ -82,3 +82,21 @@ export type TransactionSelect<R extends Relation<'transactions'> = undefined> = 
 
 export type ForexInsert = typeof schema.forex.$inferInsert;
 export type ForexSelect<R extends Relation<'forex'> = undefined> = TableWithRelation<'forex', R>;
+
+export type OperationLogInsert = typeof schema.operationLogs.$inferInsert;
+export type OperationLogSelect = typeof schema.operationLogs.$inferSelect;
+
+export type KeyRegistryInsert = typeof schema.encryptKeyRegistry.$inferInsert;
+export type KeyRegistrySelect = typeof schema.encryptKeyRegistry.$inferSelect;
+export type KeyRegistryType = (typeof schema.encryptKeyRegistryTypeEnum.enumValues)[number];
+
+export type EncryptKeyInsert = typeof schema.encryptKeys.$inferInsert;
+export type EncryptKeySelect = typeof schema.encryptKeys.$inferSelect;
+export type EncryptKeyType = (typeof schema.encryptKeyTypeEnum.enumValues)[number];
+export type Algorithm = (typeof schema.algorithmEnum.enumValues)[number];
+
+export type OperationLogSyncStatusInsert = typeof schema.operationLogSyncStatus.$inferInsert;
+export type OperationLogSyncStatusSelect = typeof schema.operationLogSyncStatus.$inferSelect;
+
+export type TempKeyStoreInsert = typeof schema.tempKeyStore.$inferInsert;
+export type TempKeyStoreSelect = typeof schema.tempKeyStore.$inferSelect;

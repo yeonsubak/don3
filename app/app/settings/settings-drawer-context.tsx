@@ -2,21 +2,22 @@
 
 import {
   createContext,
-  useCallback,
-  useContext,
-  useState,
   type Dispatch,
   type ReactNode,
   type SetStateAction,
+  useCallback,
+  useContext,
+  useState,
 } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 
-type DrawerMode = 'sync' | 'backup' | 'restore';
+export type SettingsDrawerMode = 'sync' | 'backup' | 'restore';
 
 type SettingsDrawerContextProps = {
   open: boolean;
   setOpen: Dispatch<SetStateAction<boolean>>;
-  mode: DrawerMode;
-  setMode: Dispatch<SetStateAction<DrawerMode>>;
+  mode: SettingsDrawerMode;
+  setMode: Dispatch<SetStateAction<SettingsDrawerMode>>;
   isProcessing: boolean;
   setIsProcessing: Dispatch<SetStateAction<boolean>>;
   onClose: () => void;
@@ -26,14 +27,21 @@ const SettingsDrawerContext = createContext<SettingsDrawerContextProps | null>(n
 
 export const SettingsDrawerContextProvider = ({ children }: { children: ReactNode }) => {
   const [open, setOpen] = useState(false);
-  const [mode, setMode] = useState<DrawerMode>('sync');
+  const [mode, setMode] = useState<SettingsDrawerMode>('sync');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+
+  const router = useRouter();
+  const pathname = usePathname();
 
   const onClose = useCallback(() => {
     setMode('sync');
-    setOpen(false);
     setIsProcessing(false);
-  }, []);
+    router.push(pathname);
+
+    if (open) {
+      setOpen(false);
+    }
+  }, [open, pathname, router]);
 
   return (
     <SettingsDrawerContext.Provider
