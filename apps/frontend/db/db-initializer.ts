@@ -241,19 +241,19 @@ export class DBInitializer {
   }
 
   private async insertDefaultConfig(missingKeys: UserConfigKey[]) {
-    missingKeys.forEach(async (key) => {
+    for (const key of missingKeys) {
       switch (key) {
         case 'defaultCountry': {
           await this.db
             .insert(schema.information)
-            .values({ name: 'defaultCountry', value: this.defaultCountry })
+            .values({ name: key, value: this.defaultCountry })
             .onConflictDoNothing();
           break;
         }
         case 'defaultCurrency': {
           await this.db
             .insert(schema.information)
-            .values({ name: 'defaultCurrency', value: this.defaultCurrency })
+            .values({ name: key, value: this.defaultCurrency })
             .onConflictDoNothing();
           break;
         }
@@ -262,12 +262,21 @@ export class DBInitializer {
           // const langCodeAlpha2 = lang?.substring(0, 2) ?? 'en';
           await this.db
             .insert(schema.information)
-            .values({ name: 'defaultLanguage', value: 'en' })
+            .values({ name: key, value: 'en' })
             .onConflictDoNothing();
           break;
         }
+        case 'deviceId': {
+          await this.db
+            .insert(schema.information)
+            .values({
+              name: key,
+              value: crypto.randomUUID(),
+            })
+            .onConflictDoNothing();
+        }
       }
-    });
+    }
   }
 
   private async insertPresetData() {
@@ -296,7 +305,7 @@ export class DBInitializer {
     });
     const dumpDir = await pg02.dumpDataDir('none');
     const pgCurr = await PGlite02.create({ loadDataDir: dumpDir });
-    // @ts-ignore
+    // @ts-expect-error: Only type error due to the client type mismatching
     const dumpResult = await pgDump({ pg: pgCurr });
     const dumpText = await dumpResult.text();
 

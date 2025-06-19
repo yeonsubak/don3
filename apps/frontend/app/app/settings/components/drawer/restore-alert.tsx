@@ -95,18 +95,17 @@ export const RestoreAlert = () => {
   }
 
   return (
-    <div className={cn('break-keep', isMobile ? 'px-4 pt-2 pb-10' : '')}>
+    <div className={cn('break-keep', isMobile ? 'pb-2' : '')}>
       <div>
         <p className="mb-2 text-pretty">
           Are you sure you want to restore your data from the previous backup?
         </p>
-        <p className="mb-2 text-pretty">
+        <p className="mb-4 text-pretty">
           All data will be overriden by the backup and the current data will be{' '}
           <span className="text-destructive font-bold">
             permanently deleted and cannot be restored.
           </span>
         </p>
-        <div></div>
       </div>
       <RestoreButton
         className="w-20"

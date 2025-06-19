@@ -1,4 +1,4 @@
-import { relations, type SQL } from 'drizzle-orm';
+import { relations } from 'drizzle-orm';
 import {
   boolean,
   index,
@@ -40,7 +40,7 @@ export const accounts = appSchema.table(
     sortOrder: integer().notNull().default(0),
     isArchive: boolean().default(false),
     icon: varchar({ length: 20 }),
-    createAt: timestamp({ withTimezone: true }).defaultNow(),
+    createAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
     updateAt: timestamp({ withTimezone: true }),
   },
   (t) => [
@@ -80,7 +80,7 @@ export const assetLiabilityBalances = appSchema.table(
       })
       .notNull(),
     balance: numeric({ precision: 15, scale: 2, mode: 'number' }).notNull().default(0),
-    createAt: timestamp({ withTimezone: true }).defaultNow(),
+    createAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
     updateAt: timestamp({ withTimezone: true }),
   },
   (t) => [
@@ -142,7 +142,7 @@ export const journalEntries = appSchema.table(
     amount: numeric({ precision: 15, scale: 2, mode: 'number' }).notNull(),
     title: varchar({ length: 255 }),
     description: text(),
-    createAt: timestamp({ withTimezone: true }).defaultNow(),
+    createAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
     updateAt: timestamp({ withTimezone: true }),
   },
   (t) => [
@@ -176,7 +176,7 @@ export const journalEntryFxRates = appSchema.table(
       .references(() => currencies.id, { onUpdate: 'cascade', onDelete: 'restrict' })
       .notNull(),
     rate: numeric({ scale: 8, mode: 'number' }).notNull(),
-    createAt: timestamp({ withTimezone: true }).defaultNow(),
+    createAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
     updateAt: timestamp({ withTimezone: true }),
   },
   (t) => [
@@ -220,7 +220,7 @@ export const transactions = appSchema.table(
       .notNull(),
     amount: numeric({ precision: 15, scale: 2, mode: 'number' }).notNull(),
     description: text(),
-    createAt: timestamp({ withTimezone: true }).defaultNow(),
+    createAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
     updateAt: timestamp({ withTimezone: true }),
   },
   (t) => [
@@ -241,6 +241,6 @@ export const transactionsRelations = relations(transactions, ({ one }) => ({
 
 // export const users = appSchema.table('users', {
 //   id: uuid().primaryKey().defaultRandom(),
-//   createAt: timestamp({ withTimezone: true }).defaultNow(),
+//   createAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
 //   updateAt: timestamp({ withTimezone: true }),
 // });

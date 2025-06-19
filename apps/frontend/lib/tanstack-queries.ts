@@ -5,6 +5,7 @@ import {
   getTransactionService,
 } from '@/services/service-helpers';
 import { queryOptions } from '@tanstack/react-query';
+import { authClient } from '@/lib/better-auth/auth-client';
 
 export const QUERIES = {
   config: {
@@ -77,6 +78,26 @@ export const QUERIES = {
           );
         },
         enabled: !!dateRange.from && !!dateRange.to,
+      }),
+  },
+  sync: {
+    listPasskeys: () =>
+      queryOptions({
+        queryKey: ['passkeys'],
+        queryFn: async () => await authClient.passkey.listUserPasskeys(),
+      }),
+    refreshUsername: (userEmail: string | undefined) =>
+      queryOptions({
+        queryKey: ['refreshUsername'],
+        queryFn: async () => {
+          if (!userEmail) return;
+          const configService = await getConfigService();
+          const currentUsername = (await configService.getUserConfig('username'))?.value;
+          if (currentUsername !== userEmail) {
+            await configService.upsertUserConfig('username', userEmail);
+          }
+          return userEmail;
+        },
       }),
   },
 };

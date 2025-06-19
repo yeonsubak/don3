@@ -19,10 +19,13 @@
         "name": "next"
       }
     ],
+    "baseUrl": "./",
     "paths": {
       "@/*": ["./*"]
     },
-    "types": ["@serwist/next/typings"]
+    "types": ["@serwist/next/typings"],
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "vitest.config.mts"],
   "exclude": ["node_modules", ".next", "public/sw.js"]

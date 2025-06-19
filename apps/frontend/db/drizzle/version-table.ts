@@ -13,7 +13,7 @@ export interface LocalVersion extends Version {
   fileName?: string;
 }
 
-export interface RemoteVersion extends Version {}
+export type RemoteVersion = Version;
 
 export const SCHEMA_VERSION_TABLE: Record<string, LocalVersion> = {
   '0.0.1': {
@@ -84,9 +84,17 @@ export const SCHEMA_VERSION_TABLE: Record<string, LocalVersion> = {
   '0.1.2': {
     version: '0.1.2',
     fileName: undefined,
+    nextVersion: '0.1.3',
     requireMigration: false,
     requireDumpToUpdate: true,
     createAt: new Date('2025-06-02 12:27:56.012000+00'),
+  },
+  '0.1.3': {
+    version: '0.1.3',
+    fileName: 'ver-0.1.3.sql',
+    requireMigration: false,
+    requireDumpToUpdate: false,
+    createAt: new Date('2025-06-19 09:57:55.413000+00'),
   },
 } as const;
 
