@@ -8,6 +8,7 @@ import type {
 import { and, between, eq, inArray } from 'drizzle-orm';
 import type { DateRange } from 'react-day-picker';
 import { Repository } from './abstract-repository';
+import { writeOperationLog } from './repository-decorators';
 
 export class TransactionRepository extends Repository {
   public async getJournalEntryById(id: string) {
@@ -48,10 +49,12 @@ export class TransactionRepository extends Repository {
     });
   }
 
+  @writeOperationLog
   public async insertJournalEntry(insert: JournalEntryInsert) {
     return (await this.db.insert(journalEntries).values(insert).returning()).at(0);
   }
 
+  @writeOperationLog
   public async updateJournalEntry(updateObj: JournalEntryInsert) {
     return (
       await this.db
@@ -62,6 +65,7 @@ export class TransactionRepository extends Repository {
     ).at(0);
   }
 
+  @writeOperationLog
   public async deleteJournalEntries(journalEntryId: string | string[]) {
     if (Array.isArray(journalEntryId)) {
       return await this.db
@@ -75,10 +79,12 @@ export class TransactionRepository extends Repository {
     ).at(0);
   }
 
+  @writeOperationLog
   public async insertJournalEntryFxRate(insert: JournalEntryFxRatesInsert) {
     return (await this.db.insert(journalEntryFxRates).values(insert).returning()).at(0);
   }
 
+  @writeOperationLog
   public async updateJournalEntryFxRate(updateObj: JournalEntryFxRatesInsert) {
     return (
       await this.db
@@ -89,10 +95,12 @@ export class TransactionRepository extends Repository {
     ).at(0);
   }
 
+  @writeOperationLog
   public async insertTransaction(insertObj: TransactionInsert) {
     return (await this.db.insert(transactions).values(insertObj).returning()).at(0);
   }
 
+  @writeOperationLog
   public async updateTransaction(updateObj: TransactionInsert) {
     return (
       await this.db
