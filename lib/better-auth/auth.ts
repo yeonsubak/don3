@@ -3,7 +3,13 @@ import * as schema from '@/db/external-db/migration/schema';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { passkey } from 'better-auth/plugins/passkey';
-import { PASSKEY_PRF_FIRST_SALT } from '../constants';
+import { PASSKEY_PRF_SALT_FIRST } from '../constants';
+
+const passkeyPrfSalt = new TextEncoder().encode(PASSKEY_PRF_SALT_FIRST);
+const passkeyPrfSaltBuffer = passkeyPrfSalt.buffer.slice(
+  passkeyPrfSalt.byteOffset,
+  passkeyPrfSalt.byteOffset + passkeyPrfSalt.byteLength,
+) as ArrayBuffer;
 
 export const auth = betterAuth({
   database: drizzleAdapter(externalDB!, {
@@ -27,7 +33,7 @@ export const auth = betterAuth({
       extensions: {
         prf: {
           eval: {
-            first: PASSKEY_PRF_FIRST_SALT,
+            first: passkeyPrfSaltBuffer,
           },
         },
       },

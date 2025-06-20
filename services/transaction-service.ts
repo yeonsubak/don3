@@ -182,8 +182,8 @@ export class TransactionService extends Service {
 
         // Update balance
         const accountsRepoWithTx = new AccountsRepository(tx);
-        let debitAmount = debitTransaction.amount * (journalEntryType === 'expense' ? -1 : 1);
-        let creditAmount = creditTransaction.amount * (journalEntryType === 'transfer' ? -1 : 1);
+        const debitAmount = debitTransaction.amount * (journalEntryType === 'expense' ? -1 : 1);
+        const creditAmount = creditTransaction.amount * (journalEntryType === 'transfer' ? -1 : 1);
 
         await updateAccountBalance(debitAccountId, debitAmount, accountsRepoWithTx);
         await updateAccountBalance(creditAccountId, creditAmount, accountsRepoWithTx);
