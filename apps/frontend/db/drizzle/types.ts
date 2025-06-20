@@ -80,6 +80,9 @@ export type TransactionSelect<R extends Relation<'transactions'> = undefined> = 
   R
 >;
 
+export type InformationInsert = typeof schema.information.$inferInsert;
+export type InformationSelect = typeof schema.information.$inferSelect;
+
 export type ForexInsert = typeof schema.forex.$inferInsert;
 export type ForexSelect<R extends Relation<'forex'> = undefined> = TableWithRelation<'forex', R>;
 
