@@ -103,7 +103,8 @@
       "vite": "^6.3.5",
       "@babel/runtime": ">=7.26.10",
       "@babel/helpers": ">=7.26.10",
-      "react-is": "^19.0.0"
+      "react-is": "^19.0.0",
+      "brace-expansion": ">=2.0.2"
     },
     "onlyBuiltDependencies": [
       "@biomejs/biome",
