@@ -1,10 +1,10 @@
 'use client';
 
 import { Calendar } from '@/components/compositions/calendar';
-import { TransactionDrawer } from '@/components/page/transactions/drawer';
-import { useTransactionContext } from '@/components/page/transactions/transaction-context';
-import { TransactionRecord } from '@/components/page/transactions/transaction-record';
-import { TransactionSummary } from '@/components/page/transactions/transaction-summary';
+import { useTransactionContext } from './transaction-context';
+import { TransactionSummary } from './components/transaction-summary';
+import { TransactionDrawer } from './components/drawer';
+import { TransactionRecord } from './components/transaction-record';
 
 export default function TransactionPage() {
   const { calendarDateState } = useTransactionContext();

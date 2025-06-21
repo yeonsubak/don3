@@ -1,5 +1,5 @@
 'use client';
-import { AccountDrawerContextProvider } from '@/components/page/accounts/drawer/drawer-context';
+import { AccountDrawerContextProvider } from '@/app/app/accounts/account-drawer-context';
 import { AccountsContextProvider } from './accounts-context';
 
 export default function TransactionPageLayout({
