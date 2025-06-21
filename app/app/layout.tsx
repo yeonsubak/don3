@@ -1,8 +1,8 @@
 'use client';
 
+import { GettingStartedDialog } from '@/app/app/getting-started/getting-started-dialog';
 import { AppSidebar } from '@/components/compositions/app-sidebar';
 import { Breadcrumb } from '@/components/compositions/breadcrumb';
-import { GettingStartedDialog } from '@/components/page/layout/getting-started/getting-started-dialog';
 import { Separator } from '@/components/ui/separator';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Toaster } from '@/components/ui/sonner';

@@ -1,7 +1,7 @@
 'use client';
 
-import type { AccountFormSchema } from '@/components/page/accounts/drawer/account-form-schema';
-import type { CreateAccountGroupForm } from '@/components/page/groups/form-schema';
+import type { AccountFormSchema } from '@/app/app/accounts/components/drawer/account-form';
+import type { CreateAccountGroupForm } from '@/app/app/accounts/components/drawer/add-account-group-form';
 import type {
   AccountGroupSelect,
   AccountGroupSelectAll,
