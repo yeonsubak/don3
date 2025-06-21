@@ -71,18 +71,9 @@ export class AccountsRepository extends Repository {
       .set({
         ...update,
         id: undefined,
+        updateAt: new Date(),
       })
       .where(eq(accounts.id, update.id!))
-      .returning();
-    return result.at(0);
-  }
-
-  @writeOperationLog
-  public async archiveAccount(accountId: string) {
-    const result = await this.db
-      .update(accounts)
-      .set({ isArchive: true })
-      .where(eq(accounts.id, accountId))
       .returning();
     return result.at(0);
   }

@@ -243,7 +243,6 @@ export class TransactionService extends Service {
             baseCurrencyId: debitAccount.currencyId,
             targetCurrencyId: formCurrency.id,
             rate: parsedFxRate,
-            updateAt: new Date(),
           });
         }
 
@@ -262,7 +261,6 @@ export class TransactionService extends Service {
             type: journalEntryType,
             title: title,
             description: description,
-            updateAt: new Date(),
           }),
           transactionRepoWithTx.updateTransaction({
             type: 'debit',
