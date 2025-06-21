@@ -1,7 +1,7 @@
 'use client';
 
-import { TransactionDrawerContextProvider } from '@/components/page/transactions/drawer/drawer-context';
-import { TransactionContextProvider } from '@/components/page/transactions/transaction-context';
+import { TransactionDrawerContextProvider } from './transaction-drawer-context';
+import { TransactionContextProvider } from './transaction-context';
 
 export default function TransactionPageLayout({
   children,

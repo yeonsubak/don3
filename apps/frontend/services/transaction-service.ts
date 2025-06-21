@@ -1,17 +1,17 @@
 'use client';
 
 import { parseNumber } from '@/components/common-functions';
-import type {
-  ExpenseTxForm,
-  FundTransferTxForm,
-  IncomeTxForm,
-} from '@/components/page/transactions/drawer/forms/form-schema';
 import type { CurrencySelect, JournalEntryType, TransactionInsert } from '@/db/drizzle/types';
 import { DateTime } from 'luxon';
 import { AccountsRepository } from '../repositories/accounts-repository';
 import { TransactionRepository } from '../repositories/transaction-repository';
 import { Service } from './abstract-service';
 import type { ConfigService } from './config-service';
+import type {
+  ExpenseTxForm,
+  FundTransferTxForm,
+  IncomeTxForm,
+} from '@/app/app/transactions/components/drawer/forms/form-schema';
 
 export class TransactionService extends Service {
   private transactionRepository: TransactionRepository;
