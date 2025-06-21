@@ -59,7 +59,7 @@ export class TransactionRepository extends Repository {
     return (
       await this.db
         .update(journalEntries)
-        .set({ ...updateObj, id: undefined })
+        .set({ ...updateObj, id: undefined, updateAt: new Date() })
         .where(eq(journalEntries.id, updateObj.id!))
         .returning()
     ).at(0);
@@ -89,7 +89,7 @@ export class TransactionRepository extends Repository {
     return (
       await this.db
         .update(journalEntryFxRates)
-        .set({ ...updateObj, id: undefined })
+        .set({ ...updateObj, id: undefined, updateAt: new Date() })
         .where(eq(journalEntryFxRates.id, updateObj.id!))
         .returning()
     ).at(0);
@@ -105,7 +105,7 @@ export class TransactionRepository extends Repository {
     return (
       await this.db
         .update(transactions)
-        .set({ ...updateObj, id: undefined })
+        .set({ ...updateObj, id: undefined, updateAt: new Date() })
         .where(eq(transactions.id, updateObj.id!))
         .returning()
     ).at(0);
