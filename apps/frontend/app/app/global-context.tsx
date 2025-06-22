@@ -29,28 +29,18 @@ type GlobalContext = {
   accounts: AccountSelectAll[];
 
   defaultCountry: CountrySelect;
-  setDefaultCountry: Dispatch<SetStateAction<CountrySelect>>;
-
   defaultCurrency: CurrencySelect;
-  setDefaultCurrency: Dispatch<SetStateAction<CurrencySelect>>;
-
   defaultLanguage: string;
-  setDefaultLanguage: Dispatch<SetStateAction<string>>;
 
   accountGroups: AccountGroupSelectAll[];
   setAccountGroups: Dispatch<SetStateAction<AccountGroupSelectAll[]>>;
+
+  isPending: boolean;
 };
 
 export const GlobalContext = createContext<GlobalContext | null>(null);
 
 export const GlobalContextProvider = ({ children }: { children: ReactNode }) => {
-  const currencyFallback = DATASET_CURRENCY_FIAT.find(
-    (e) => e.code === (localStorage.getItem(LOCAL_STORAGE_KEYS.APP.DEFAULT_CURRENCY) ?? 'USD'),
-  ) as CurrencySelect;
-  const countryFallback = DATASET_COUNTRY.find(
-    (e) => e.code === (localStorage.getItem(LOCAL_STORAGE_KEYS.APP.DEFAULT_COUNTRY) ?? 'USA'),
-  ) as CountrySelect;
-
   const {
     data: {
       fetchedDefaultCurrency,
@@ -72,8 +62,8 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
     ],
     combine: (results) => ({
       data: {
-        fetchedDefaultCurrency: results[0].data ?? currencyFallback,
-        fetchedDefaultCountry: results[1].data ?? countryFallback,
+        fetchedDefaultCurrency: results[0].data,
+        fetchedDefaultCountry: results[1].data,
         fetchedCountries: results[2].data,
         fetchedCurrencies: results[3].data,
         fetchedAccountGroups: results[4].data,
@@ -84,13 +74,34 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
     }),
   });
 
-  const [defaultCurrency, setDefaultCurrency] = useState<CurrencySelect>(currencyFallback);
-  const [defaultCountry, setDefaultCountry] = useState<CountrySelect>(countryFallback);
-  const [defaultLanguage, setDefaultLanguage] = useState<string>('en');
-  const [countries, setCountries] = useState<CountrySelect<{ defaultCurrency: true }>[]>([]);
-  const [currencies, setCurrencies] = useState<CurrencySelect[]>([]);
-  const [accountGroups, setAccountGroups] = useState<AccountGroupSelectAll[]>([]);
+  const defaultCurrency: CurrencySelect = useMemo(() => {
+    if (fetchedDefaultCurrency) {
+      return fetchedDefaultCurrency;
+    }
 
+    return DATASET_CURRENCY_FIAT.find(
+      (e) => e.code === (localStorage.getItem(LOCAL_STORAGE_KEYS.APP.DEFAULT_CURRENCY) ?? 'USD'),
+    ) as CurrencySelect;
+  }, [fetchedDefaultCurrency]);
+
+  const defaultCountry: CountrySelect = useMemo(() => {
+    if (fetchedDefaultCountry) {
+      return fetchedDefaultCountry;
+    }
+
+    return DATASET_COUNTRY.find(
+      (e) => e.code === (localStorage.getItem(LOCAL_STORAGE_KEYS.APP.DEFAULT_COUNTRY) ?? 'USA'),
+    ) as CountrySelect;
+  }, [fetchedDefaultCountry]);
+  const defaultLanguage: string = useMemo(() => 'en', []); // TODO: add fetch logic when i8n is supported.
+
+  const countries: CountrySelect<{ defaultCurrency: true }>[] = useMemo(
+    () => fetchedCountries ?? [],
+    [fetchedCountries],
+  );
+  const currencies: CurrencySelect[] = useMemo(() => fetchedCurrencies ?? [], [fetchedCurrencies]);
+
+  const [accountGroups, setAccountGroups] = useState<AccountGroupSelectAll[]>([]);
   const accounts = useMemo(
     () => accountGroups.flatMap((group) => group.accounts),
     [accountGroups],
@@ -108,22 +119,6 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
     const removeDups = new Map(currencies.map((e) => [e.id, e]));
     return Array.from(removeDups.values());
   }, [accounts]);
-
-  useEffect(() => {
-    setDefaultCurrency(fetchedDefaultCurrency);
-  }, [fetchedDefaultCurrency]);
-
-  useEffect(() => {
-    setDefaultCountry(fetchedDefaultCountry);
-  }, [fetchedDefaultCountry]);
-
-  useEffect(() => {
-    setCountries(fetchedCountries ?? []);
-  }, [fetchedCountries]);
-
-  useEffect(() => {
-    setCurrencies(fetchedCurrencies ?? []);
-  }, [fetchedCurrencies]);
 
   useEffect(() => {
     setAccountGroups(fetchedAccountGroups ?? []);
@@ -144,16 +139,14 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
         currenciesInUse,
         isMultiCountry,
         defaultCountry,
-        setDefaultCountry,
         defaultCurrency,
-        setDefaultCurrency,
         defaultLanguage,
-        setDefaultLanguage,
         countries,
         currencies,
         accounts,
         accountGroups,
         setAccountGroups,
+        isPending,
       }}
     >
       {children}
