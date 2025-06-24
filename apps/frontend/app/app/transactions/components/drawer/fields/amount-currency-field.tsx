@@ -12,7 +12,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import type { CurrencySelect } from '@/db/drizzle/types';
+import type { CurrencySelect } from '@/db/app-db/drizzle-types';
 import { QUERIES } from '@/lib/tanstack-queries';
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, type Dispatch, type SetStateAction } from 'react';

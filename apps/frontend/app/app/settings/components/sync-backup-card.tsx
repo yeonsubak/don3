@@ -9,8 +9,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
-import { DBBackupUtil } from '@/db/db-backup-util';
-import { PGliteWorker } from '@/db/pglite-web-worker';
+import { getBackupService, getSyncService } from '@/services/service-helpers';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { useSettingsDrawerContext } from '../settings-drawer-context';
@@ -50,9 +49,19 @@ export const SyncBackupCard = () => {
       return;
     }
 
-    const pg = await PGliteWorker.createNewInstance();
-    const backupUtil = new DBBackupUtil(pg);
-    const { fileName, url } = await backupUtil.createBackup();
+    const backupService = await getBackupService();
+    const syncService = await getSyncService();
+
+    const { dump, metaData, baseFileName } = await backupService.createBackup();
+
+    // Insert the backup to the sync db
+    await syncService.insertSnapshot({
+      type: 'user',
+      meta: metaData,
+      dump,
+    });
+
+    const { fileName, url } = await backupService.exportToZip(dump, metaData, baseFileName);
 
     downloadAnchorRef.current.href = url;
     downloadAnchorRef.current.download = fileName;

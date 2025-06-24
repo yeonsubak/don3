@@ -6,7 +6,7 @@ import type {
   KeyRegistryType,
   OperationLogInsert,
   SnapshotInsert,
-} from '@/db/drizzle-types';
+} from '@/db/sync-db/drizzle-types';
 import { insertOperationLogMutex } from '@/lib/async-mutex';
 import { addPasskey } from '@/lib/better-auth/auth-client';
 import { OPERATION_LOG_VERSION } from '@/lib/constants';

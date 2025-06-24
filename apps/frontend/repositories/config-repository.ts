@@ -1,5 +1,10 @@
 import { accounts, forex, information, type UserConfigKey } from '@/db/app-db/schema';
-import type { AppSchema, CountrySelect, CurrencySelect, ForexInsert } from '@/db/drizzle-types';
+import type {
+  AppSchema,
+  CountrySelect,
+  CurrencySelect,
+  ForexInsert,
+} from '@/db/app-db/drizzle-types';
 import { and, between, desc, eq, inArray } from 'drizzle-orm';
 import { DateTime } from 'luxon';
 import { Repository } from './abstract-repository';

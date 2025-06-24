@@ -8,7 +8,7 @@ import type {
   AccountSelectAll,
   AccountSelectAllTx,
   AppSchema,
-} from '@/db/drizzle-types';
+} from '@/db/app-db/drizzle-types';
 import { eq } from 'drizzle-orm';
 import { Repository } from './abstract-repository';
 import { writeOperationLog } from './repository-decorators';

@@ -1,6 +1,10 @@
 import { createInMemoryPGLiteDrizzle } from '@/__tests__/common';
 import type { AppDrizzle } from '@/db';
-import type { AccountBalanceInsert, AccountBalanceSelect, AccountInsert } from '@/db/drizzle-types';
+import type {
+  AccountBalanceInsert,
+  AccountBalanceSelect,
+  AccountInsert,
+} from '@/db/app-db/drizzle-types';
 import { AccountsRepository } from '@/repositories/accounts-repository';
 import { TransactionRepository } from '@/repositories/transaction-repository';
 import { beforeEach, describe, expect, test } from 'vitest';

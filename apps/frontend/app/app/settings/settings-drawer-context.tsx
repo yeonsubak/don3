@@ -34,13 +34,13 @@ export const SettingsDrawerContextProvider = ({ children }: { children: ReactNod
   const pathname = usePathname();
 
   const onClose = useCallback(() => {
-    setMode('sync');
-    setIsProcessing(false);
-    router.push(pathname);
-
     if (open) {
       setOpen(false);
     }
+
+    setMode('sync');
+    setIsProcessing(false);
+    router.push(pathname);
   }, [open, pathname, router]);
 
   return (

@@ -1,7 +1,7 @@
 'use client';
 
 import type { AppDrizzle } from '@/db';
-import type { PgliteTransaction } from '@/db/drizzle-types';
+import type { PgliteTransaction } from '@/db/app-db/drizzle-types';
 import { DECORATOR_NAME_KEY_SYMBOL, LOCAL_STORAGE_KEYS } from '@/lib/constants';
 import { SyncService } from '@/services/sync-service';
 import { ConfigRepository } from './config-repository';

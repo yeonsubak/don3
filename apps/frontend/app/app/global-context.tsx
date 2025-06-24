@@ -5,7 +5,7 @@ import type {
   AccountSelectAll,
   CountrySelect,
   CurrencySelect,
-} from '@/db/drizzle/types';
+} from '@/db/app-db/drizzle-types';
 import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
 import { QUERIES } from '@/lib/tanstack-queries';
 import { useQueries } from '@tanstack/react-query';

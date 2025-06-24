@@ -3,8 +3,8 @@
 import { AccountGroupTab } from '@/app/app/accounts/components/account-group-tab';
 import { AccountDrawer } from '@/app/app/accounts/components/drawer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { accountGroupTypeEnum } from '@/db/drizzle/schema';
-import type { AccountGroupType } from '@/db/drizzle/types';
+import { accountGroupTypeEnum } from '@/db/app-db/schema';
+import type { AccountGroupType } from '@/db/app-db/drizzle-types';
 import { cn } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
 import type React from 'react';

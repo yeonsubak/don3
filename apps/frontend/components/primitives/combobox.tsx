@@ -12,7 +12,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { Check, ChevronsUpDown } from 'lucide-react';
-import React, { type Dispatch, type ReactElement, type SetStateAction, useState } from 'react';
+import { type Dispatch, type ReactElement, type SetStateAction, useState } from 'react';
 import type { ControllerRenderProps, FieldValue, FieldValues } from 'react-hook-form';
 import type { TailwindClass } from '../common-types';
 import { useIsMobile } from '../hooks/use-mobile';
@@ -45,7 +45,7 @@ export interface ComboboxProps {
   labelRenderFn?: (itemData: unknown) => string;
   state?: [string, Dispatch<SetStateAction<string>>];
   value?: string;
-  extraComponents?: ReactElement[];
+  extraComponents?: { component: ReactElement; label?: string }[];
 }
 
 export function flattenComboboxItems<T>(items: ComboboxItem<T>[]): ComboboxItem<T>[] {
@@ -118,8 +118,10 @@ const Item = ({
   );
 };
 
-const ExtraComponent = ({ children }: { children: ReactElement }) => (
-  <CommandItem onSelect={() => {}}>{children}</CommandItem>
+const ExtraComponent = ({ children, label }: { children: ReactElement; label?: string }) => (
+  <CommandGroup heading={label}>
+    <CommandItem onSelect={() => {}}>{children}</CommandItem>
+  </CommandGroup>
 );
 
 export const Combobox = (comboboxProps: ComboboxProps) => {
@@ -198,8 +200,10 @@ export const Combobox = (comboboxProps: ComboboxProps) => {
         <Command>
           {searchable && <CommandInput placeholder={searchPlaceholder} />}
           {extraComponents &&
-            extraComponents.map((component, idx) => (
-              <ExtraComponent key={`${idx}`}>{component}</ExtraComponent>
+            extraComponents.map(({ component, label }, idx) => (
+              <ExtraComponent key={`${idx}`} label={label}>
+                {component}
+              </ExtraComponent>
             ))}
           <CommandList>
             <CommandEmpty>{notFoundPlaceholder}</CommandEmpty>

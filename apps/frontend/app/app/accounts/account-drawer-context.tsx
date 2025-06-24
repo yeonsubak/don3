@@ -1,6 +1,6 @@
 'use client';
 
-import type { AccountGroupType, AccountSelect } from '@/db/drizzle/types';
+import type { AccountGroupType, AccountSelect } from '@/db/app-db/drizzle-types';
 import {
   createContext,
   useContext,

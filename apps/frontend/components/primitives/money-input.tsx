@@ -1,6 +1,6 @@
 'use client';
 
-import type { CurrencySelect } from '@/db/drizzle/types';
+import type { CurrencySelect } from '@/db/app-db/drizzle-types';
 import { cn } from '@/lib/utils';
 import type { ChangeEvent, ComponentProps, Dispatch, SetStateAction } from 'react';
 import type {
