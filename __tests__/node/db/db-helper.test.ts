@@ -3,7 +3,7 @@ import {
   compareSemanticVersions,
   extractSemanticVersion,
   isValidVersionedSQL,
-} from '@/app/api/database/common';
+} from '@/db/db-helper';
 import { promises as fs } from 'fs';
 import { describe, expect, test } from 'vitest';
 
@@ -29,7 +29,7 @@ describe('Extract semantic version from the file name', () => {
 });
 
 describe('Are drizzle migration files are in the right convention?', async () => {
-  const sqlFileNames = (await fs.readdir('db/drizzle/migration')).filter((fileName) =>
+  const sqlFileNames = (await fs.readdir('db/app-db/migration')).filter((fileName) =>
     fileName.endsWith('.sql'),
   );
   const testArgs = sqlFileNames.map((fileName) => [fileName, true]);

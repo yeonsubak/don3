@@ -1,4 +1,4 @@
-import type { RemoteVersion } from '@/db/drizzle/version-table';
+import type { RemoteVersion } from '@/db';
 
 const semanticVersionRegex = /^ver-(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?\.sql$/;
 
