@@ -1,11 +1,11 @@
 import { getSchemaDefinition } from '@/app/server/db';
 import * as schema from '@/db/sync-db/schema';
-import { LOCAL_STORAGE_KEYS, SYNC_DB_NAME } from '@/lib/constants';
+import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
 import { drizzle } from 'drizzle-orm/pglite';
 import type { SyncDrizzle } from '..';
 import { getLatestSchemaVersion } from '../db-helper';
 import { DBInitializer } from '../db-initializer';
-import { PGliteClient } from '../pglite/pglite-client';
+import { PGliteSync } from '../pglite/pglite-sync';
 import { LATEST_CLEAN_VERSION, SYNC_SCHEMA_VERSION } from './version-table';
 
 export class SyncDBInitializer extends DBInitializer {
@@ -15,7 +15,7 @@ export class SyncDBInitializer extends DBInitializer {
   public static async getInstance(): Promise<SyncDBInitializer> {
     if (!SyncDBInitializer.instance) {
       SyncDBInitializer.instance = new SyncDBInitializer();
-      const pg = new PGliteClient(SYNC_DB_NAME);
+      const pg = PGliteSync.getInstance();
       const db = drizzle(pg, {
         schema,
         casing: 'snake_case',

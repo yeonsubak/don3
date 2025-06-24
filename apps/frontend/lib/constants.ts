@@ -10,6 +10,7 @@ export const LOCAL_STORAGE_KEYS = {
     DARK_MODE: 'app.darkMode',
     SYNC_ENABLED: 'app.syncEnabled',
     USER_ID: 'app.userId',
+    DEVICE_ID: 'app.deviceId',
   },
   SYNC: {
     SCHEMA_VERSION: 'sync.schemaVersion',

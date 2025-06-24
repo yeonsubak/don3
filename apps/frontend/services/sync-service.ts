@@ -9,7 +9,7 @@ import type {
 } from '@/db/sync-db/drizzle-types';
 import { insertOperationLogMutex } from '@/lib/async-mutex';
 import { addPasskey } from '@/lib/better-auth/auth-client';
-import { OPERATION_LOG_VERSION } from '@/lib/constants';
+import { LOCAL_STORAGE_KEYS, OPERATION_LOG_VERSION } from '@/lib/constants';
 import {
   arrayBufferToBase64,
   deriveKeyEncryptionKey,
@@ -17,19 +17,16 @@ import {
   serializeEncryptionKey,
   unwrapEK,
 } from '@/lib/utils/encryption-utils';
-import type { ConfigRepository } from '@/repositories/config-repository';
 import { SyncRepository } from '@/repositories/sync-repository';
 import { DateTime } from 'luxon';
 import { Service } from './abstract-service';
 
 export class SyncService extends Service {
   private syncRepository: SyncRepository;
-  private configRepository: ConfigRepository;
 
-  constructor(syncRepository: SyncRepository, configRepository: ConfigRepository) {
+  constructor(syncRepository: SyncRepository) {
     super();
     this.syncRepository = syncRepository;
-    this.configRepository = configRepository;
   }
 
   public async getKeyRegistry(credentialId: string) {
@@ -183,17 +180,17 @@ export class SyncService extends Service {
     data: Record<string, unknown>,
   ): Promise<OperationLogInsert | undefined> {
     return await insertOperationLogMutex.runExclusive(async () => {
-      const deviceId = await this.configRepository.getUserConfig('deviceId');
-      const schemaVersion = await this.configRepository.getUserConfig('schemaVersion');
+      const deviceId = localStorage.getItem(LOCAL_STORAGE_KEYS.APP.DEVICE_ID);
+      const appSchemaVersion = localStorage.getItem(LOCAL_STORAGE_KEYS.APP.SCHEMA_VERSION);
       if (!deviceId) throw new Error('deviceId not found.');
-      if (!schemaVersion) throw new Error('schemaVersion not found.');
+      if (!appSchemaVersion) throw new Error('schemaVersion not found.');
 
-      const nextSeq = await this.getNextSeq(deviceId.value);
+      const nextSeq = await this.getNextSeq(deviceId);
 
       const insertObj: OperationLogInsert = {
         version: OPERATION_LOG_VERSION,
-        schemaVersion: schemaVersion.value,
-        deviceId: deviceId.value,
+        schemaVersion: appSchemaVersion,
+        deviceId: deviceId.replace(/\s+/g, ''),
         sequence: nextSeq,
         method: methodName,
         methodHash,
