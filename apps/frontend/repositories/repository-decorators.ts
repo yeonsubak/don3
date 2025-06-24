@@ -1,8 +1,8 @@
 'use client';
 
-import type { PgliteDrizzle } from '@/db';
-import type { PgliteTransaction } from '@/db/drizzle/types';
-import { DECORATOR_NAME_KEY_SYMBOL } from '@/lib/constants';
+import type { AppDrizzle } from '@/db';
+import type { PgliteTransaction } from '@/db/drizzle-types';
+import { DECORATOR_NAME_KEY_SYMBOL, LOCAL_STORAGE_KEYS } from '@/lib/constants';
 import { SyncService } from '@/services/sync-service';
 import { ConfigRepository } from './config-repository';
 import { hashMethod } from './repository-helpers';
@@ -15,7 +15,10 @@ export function writeOperationLog(
 ) {
   descriptor.value[DECORATOR_NAME_KEY_SYMBOL] = 'writeOperationLog';
 
-  if (typeof localStorage === 'undefined') {
+  if (
+    typeof localStorage === 'undefined' ||
+    localStorage.getItem(LOCAL_STORAGE_KEYS.APP.SYNC_ENABLED) !== 'true'
+  ) {
     return descriptor;
   }
 
@@ -26,7 +29,7 @@ export function writeOperationLog(
     const methodName = propertyKey;
     const hash = await hashMethod(originalMethod);
     //@ts-expect-error: `this` refers to the class
-    const db = this.db as PgliteDrizzle | PgliteTransaction;
+    const db = this.db as AppDrizzle | PgliteTransaction;
 
     try {
       const mutateResult = await originalMethod.apply(this, args);

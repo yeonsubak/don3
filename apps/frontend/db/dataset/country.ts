@@ -1,4 +1,4 @@
-import type { CountryInsert } from '../drizzle/types';
+import type { CountryInsert } from '@/db/drizzle-types';
 
 export const DATASET_COUNTRY: CountryInsert[] = [
   {

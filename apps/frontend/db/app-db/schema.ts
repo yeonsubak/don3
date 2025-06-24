@@ -1,6 +1,5 @@
 export * from './schema/app';
 export * from './schema/config';
-export * from './schema/sync';
 
 export const USER_CONFIG_KEYS = [
   'defaultCurrency',

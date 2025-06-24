@@ -1,6 +1,10 @@
-import { drizzle } from '@/db';
-import { PGliteWorker } from '@/db/pglite-web-worker';
+import { appDrizzle, syncDrizzle } from '@/db';
+import { PGliteAppWorker } from '@/db/pglite/pglite-app-worker';
+import { SYNC_DB_NAME } from '@/lib/constants';
 import { retry, type RetryOptions } from '@/lib/utils/retry';
+import { IdbFs, PGlite } from '@electric-sql/pglite';
+import { uuid_ossp } from '@electric-sql/pglite/contrib/uuid_ossp';
+import { live } from '@electric-sql/pglite/live';
 import { xxhash3 } from 'hash-wasm';
 import { AccountsRepository } from './accounts-repository';
 import { ConfigRepository } from './config-repository';
@@ -25,32 +29,36 @@ const retryOption: RetryOptions = {
 
 export const getAccountsRepository = async () => {
   return retry(async () => {
-    const worker = await PGliteWorker.getInstance();
-    const pg = drizzle(worker);
-    return new AccountsRepository(pg);
+    const pg = await PGliteAppWorker.getInstance();
+    const drizzle = appDrizzle(pg);
+    return new AccountsRepository(drizzle);
   }, retryOption);
 };
 
 export const getConfigRepository = async () => {
   return retry(async () => {
-    const worker = await PGliteWorker.getInstance();
-    const pg = drizzle(worker);
-    return new ConfigRepository(pg);
+    const pg = await PGliteAppWorker.getInstance();
+    const drizzle = appDrizzle(pg);
+    return new ConfigRepository(drizzle);
   }, retryOption);
 };
 
 export const getTransactionRepository = async () => {
   return retry(async () => {
-    const worker = await PGliteWorker.getInstance();
-    const pg = drizzle(worker);
-    return new TransactionRepository(pg);
+    const pg = await PGliteAppWorker.getInstance();
+    const drizzle = appDrizzle(pg);
+    return new TransactionRepository(drizzle);
   }, retryOption);
 };
 
 export const getSyncRepository = async () => {
   return retry(async () => {
-    const worker = await PGliteWorker.getInstance();
-    const pg = drizzle(worker);
-    return new SyncRepository(pg);
+    const pg = await PGlite.create({
+      fs: new IdbFs(SYNC_DB_NAME),
+      relaxedDurability: true,
+      extensions: { uuid_ossp, live },
+    });
+    const drizzle = syncDrizzle(pg);
+    return new SyncRepository(drizzle);
   }, retryOption);
 };

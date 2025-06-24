@@ -1,4 +1,4 @@
-import { accountGroups, accounts, assetLiabilityBalances } from '@/db/drizzle/schema';
+import { accountGroups, accounts, assetLiabilityBalances } from '@/db/app-db/schema';
 import type {
   AccountBalanceInsert,
   AccountBalanceSelect,
@@ -7,12 +7,13 @@ import type {
   AccountInsert,
   AccountSelectAll,
   AccountSelectAllTx,
-} from '@/db/drizzle/types';
+  AppSchema,
+} from '@/db/drizzle-types';
 import { eq } from 'drizzle-orm';
 import { Repository } from './abstract-repository';
 import { writeOperationLog } from './repository-decorators';
 
-export class AccountsRepository extends Repository {
+export class AccountsRepository extends Repository<AppSchema> {
   public async getAllAccounts(): Promise<AccountSelectAll[]> {
     return await this.db.query.accounts.findMany({
       with: {

@@ -1,3 +1,4 @@
+import type { DumpMetaData } from '@/services/backup-service';
 import { relations } from 'drizzle-orm';
 import {
   bigint,
@@ -12,7 +13,7 @@ import {
   uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
-import { generateRandomUUID } from './helper';
+import { generateRandomUUID } from '../db-helper';
 
 export const syncSchema = pgSchema('sync');
 
@@ -23,7 +24,7 @@ export const encryptKeyRegistryTypeEnum = pgEnum('encrypt_key_registry_type_enum
 export const encryptKeyRegistry = syncSchema.table('encrypt_key_registry', {
   id: uuid().primaryKey().default(generateRandomUUID).notNull(),
   type: encryptKeyRegistryTypeEnum().notNull(),
-  username: varchar({ length: 255 }).notNull(),
+  userId: text().notNull(),
   credentialId: varchar({ length: 255 }).notNull(),
   createAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
   updateAt: timestamp({ withTimezone: true }),
@@ -53,6 +54,18 @@ export const encryptKeysRelations = relations(encryptKeys, ({ one }) => ({
   }),
 }));
 
+export const tempKeyStore = syncSchema.table(
+  'tempKeyStore',
+  {
+    id: uuid().primaryKey().default(generateRandomUUID).notNull(),
+    serializedKey: text().notNull(),
+    expireAt: timestamp({ withTimezone: true }).notNull(),
+    createAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+    updateAt: timestamp({ withTimezone: true }),
+  },
+  (t) => [index('temp_key_store_idx_expire_at').on(t.expireAt.desc())],
+);
+
 export const operationLogs = syncSchema.table(
   'operation_logs',
   {
@@ -67,7 +80,7 @@ export const operationLogs = syncSchema.table(
     createAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
     updateAt: timestamp({ withTimezone: true }),
   },
-  (t) => [unique('operation_log_unq_username_device_id_sequence').on(t.deviceId, t.sequence)],
+  (t) => [unique('operation_log_unq_device_id_sequence').on(t.deviceId, t.sequence)],
 );
 export const operationLogsRelations = relations(operationLogs, ({ one }) => ({
   syncStatus: one(operationLogSyncStatus, {
@@ -78,7 +91,9 @@ export const operationLogsRelations = relations(operationLogs, ({ one }) => ({
 
 export const operationLogSyncStatus = syncSchema.table('operation_log_sync_status', {
   id: uuid().primaryKey().default(generateRandomUUID).notNull(),
-  logId: uuid().references(() => operationLogs.id, { onUpdate: 'cascade', onDelete: 'no action' }),
+  logId: uuid()
+    .references(() => operationLogs.id, { onUpdate: 'cascade', onDelete: 'no action' })
+    .notNull(),
   isUploaded: boolean().notNull().default(false),
   uploadAt: timestamp({ withTimezone: true }),
   createAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
@@ -91,14 +106,50 @@ export const operationLogSyncStatusRelations = relations(operationLogSyncStatus,
   }),
 }));
 
-export const tempKeyStore = syncSchema.table(
-  'tempKeyStore',
+export const snapshotTypeEnum = pgEnum('snapshot_type_enum', ['autosave', 'user']);
+export const snapshots = syncSchema.table('snapshots', {
+  id: uuid().primaryKey().default(generateRandomUUID).notNull(),
+  type: snapshotTypeEnum().notNull(),
+  meta: jsonb().$type<DumpMetaData>().notNull(),
+  dump: text().notNull(),
+  createAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+  updateAt: timestamp({ withTimezone: true }),
+});
+export const snapshotsRelations = relations(snapshots, ({ one }) => ({
+  syncStatus: one(snapshotSyncStatus, {
+    fields: [snapshots.id],
+    references: [snapshotSyncStatus.snapshotId],
+  }),
+}));
+
+export const snapshotSyncStatus = syncSchema.table('snapshot_sync_status', {
+  id: uuid().primaryKey().default(generateRandomUUID).notNull(),
+  snapshotId: uuid()
+    .references(() => snapshots.id, { onUpdate: 'cascade', onDelete: 'no action' })
+    .notNull(),
+  isUploaded: boolean().notNull().default(false),
+  uploadAt: timestamp({ withTimezone: true }),
+  createAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+  updateAt: timestamp({ withTimezone: true }),
+});
+export const snapshotSyncStatusRelations = relations(snapshotSyncStatus, ({ one }) => ({
+  snapshot: one(snapshots, {
+    fields: [snapshotSyncStatus.snapshotId],
+    references: [snapshots.id],
+  }),
+}));
+
+export const configSchema = pgSchema('config');
+
+export const information = configSchema.table(
+  'information',
   {
     id: uuid().primaryKey().default(generateRandomUUID).notNull(),
-    serializedKey: text().notNull(),
-    expireAt: timestamp({ withTimezone: true }).notNull(),
-    createAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
-    updateAt: timestamp({ withTimezone: true }),
+    name: varchar({ length: 255 }).notNull(),
+    value: varchar({ length: 255 }).notNull(),
   },
-  (t) => [index('temp_key_store_idx_expire_at').on(t.expireAt.desc())],
+  (t) => [
+    index('information_idx_name_value').on(t.name, t.value),
+    unique('information_unq_name').on(t.name),
+  ],
 );

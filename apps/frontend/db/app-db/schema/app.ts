@@ -14,7 +14,7 @@ import {
   type AnyPgColumn,
 } from 'drizzle-orm/pg-core';
 import { countries, currencies } from './config';
-import { generateRandomUUID } from './helper';
+import { generateRandomUUID } from '../../db-helper';
 
 export const appSchema = pgSchema('app');
 

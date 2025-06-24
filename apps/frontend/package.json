@@ -10,8 +10,9 @@
     "test": "vitest",
     "coverage": "vitest run --coverage",
     "shadcn": "pnpm dlx shadcn@latest add",
-    "drk": "pnpm drizzle-kit --config=db/drizzle/drizzle.config.ts",
-    "ext-drk": "pnpm drizzle-kit --config=db/external-db/drizzle.config.ts",
+    "drk:app": "pnpm drizzle-kit --config=db/app-db/drizzle.config.ts",
+    "drk:sync": "pnpm drizzle-kit --config=db/sync-db/drizzle.config.ts",
+    "drk:external": "pnpm drizzle-kit --config=db/external-db/drizzle.config.ts",
     "prepare": "husky"
   },
   "dependencies": {

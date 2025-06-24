@@ -1,6 +1,6 @@
 {
-  "id": "73c4d777-2841-4b58-a39c-023661214a47",
-  "prevId": "032a0a96-2b0e-46ac-bf49-fa060eafe989",
+  "id": "107d3b36-2a65-4fda-aacd-1e7a5da137c4",
+  "prevId": "2c15e3d2-93da-40ed-9fd9-563635701167",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -94,12 +94,8 @@
           "tableFrom": "account_groups",
           "tableTo": "account_groups",
           "schemaTo": "app",
-          "columnsFrom": [
-            "parent_group_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["parent_group_id"],
+          "columnsTo": ["id"],
           "onDelete": "set default",
           "onUpdate": "cascade"
         }
@@ -239,12 +235,8 @@
           "tableFrom": "accounts",
           "tableTo": "currencies",
           "schemaTo": "config",
-          "columnsFrom": [
-            "currency_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["currency_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "cascade"
         },
@@ -253,12 +245,8 @@
           "tableFrom": "accounts",
           "tableTo": "countries",
           "schemaTo": "config",
-          "columnsFrom": [
-            "country_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["country_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "cascade"
         },
@@ -267,12 +255,8 @@
           "tableFrom": "accounts",
           "tableTo": "account_groups",
           "schemaTo": "app",
-          "columnsFrom": [
-            "account_group_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["account_group_id"],
+          "columnsTo": ["id"],
           "onDelete": "set default",
           "onUpdate": "cascade"
         }
@@ -350,12 +334,8 @@
           "tableFrom": "asset_liability_balances",
           "tableTo": "accounts",
           "schemaTo": "app",
-          "columnsFrom": [
-            "account_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["account_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         }
@@ -365,9 +345,7 @@
         "asset_liability_balances_unq_account_id": {
           "name": "asset_liability_balances_unq_account_id",
           "nullsNotDistinct": false,
-          "columns": [
-            "account_id"
-          ]
+          "columns": ["account_id"]
         }
       },
       "policies": {},
@@ -474,12 +452,8 @@
           "tableFrom": "journal_entries",
           "tableTo": "currencies",
           "schemaTo": "config",
-          "columnsFrom": [
-            "currency_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["currency_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "cascade"
         }
@@ -574,12 +548,8 @@
           "tableFrom": "journal_entry_fx_rates",
           "tableTo": "journal_entries",
           "schemaTo": "app",
-          "columnsFrom": [
-            "journal_entry_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["journal_entry_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         },
@@ -588,12 +558,8 @@
           "tableFrom": "journal_entry_fx_rates",
           "tableTo": "currencies",
           "schemaTo": "config",
-          "columnsFrom": [
-            "base_currency_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["base_currency_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "cascade"
         },
@@ -602,12 +568,8 @@
           "tableFrom": "journal_entry_fx_rates",
           "tableTo": "currencies",
           "schemaTo": "config",
-          "columnsFrom": [
-            "target_currency_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["target_currency_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "cascade"
         }
@@ -617,11 +579,7 @@
         "journal_entry_fx_rates_unq_entry_base_target": {
           "name": "journal_entry_fx_rates_unq_entry_base_target",
           "nullsNotDistinct": false,
-          "columns": [
-            "journal_entry_id",
-            "base_currency_id",
-            "target_currency_id"
-          ]
+          "columns": ["journal_entry_id", "base_currency_id", "target_currency_id"]
         }
       },
       "policies": {},
@@ -722,12 +680,8 @@
           "tableFrom": "transactions",
           "tableTo": "journal_entries",
           "schemaTo": "app",
-          "columnsFrom": [
-            "journal_entry_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["journal_entry_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         },
@@ -736,12 +690,8 @@
           "tableFrom": "transactions",
           "tableTo": "accounts",
           "schemaTo": "app",
-          "columnsFrom": [
-            "account_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["account_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         }
@@ -857,16 +807,12 @@
         "countries_code_unique": {
           "name": "countries_code_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "code"
-          ]
+          "columns": ["code"]
         },
         "countries_codeAlpha2_unique": {
           "name": "countries_codeAlpha2_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "code_alpha2"
-          ]
+          "columns": ["code_alpha2"]
         }
       },
       "policies": {},
@@ -1119,355 +1065,9 @@
         "information_unq_name": {
           "name": "information_unq_name",
           "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
+          "columns": ["name"]
         }
       },
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "sync.encrypt_key_registry": {
-      "name": "encrypt_key_registry",
-      "schema": "sync",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "uuid_generate_v4()"
-        },
-        "type": {
-          "name": "type",
-          "type": "encrypt_key_registry_type_enum",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "username": {
-          "name": "username",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "credential_id": {
-          "name": "credential_id",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "create_at": {
-          "name": "create_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "update_at": {
-          "name": "update_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "sync.encrypt_keys": {
-      "name": "encrypt_keys",
-      "schema": "sync",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "uuid_generate_v4()"
-        },
-        "registry_id": {
-          "name": "registry_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "type": {
-          "name": "type",
-          "type": "encrypt_key_type_enum",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "algorithm": {
-          "name": "algorithm",
-          "type": "algorithm_enum",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "key": {
-          "name": "key",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "is_key_wrapped": {
-          "name": "is_key_wrapped",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "create_at": {
-          "name": "create_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "update_at": {
-          "name": "update_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "encrypt_keys_registry_id_encrypt_key_registry_id_fk": {
-          "name": "encrypt_keys_registry_id_encrypt_key_registry_id_fk",
-          "tableFrom": "encrypt_keys",
-          "tableTo": "encrypt_key_registry",
-          "schemaTo": "sync",
-          "columnsFrom": [
-            "registry_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "sync.operation_log_sync_status": {
-      "name": "operation_log_sync_status",
-      "schema": "sync",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "uuid_generate_v4()"
-        },
-        "log_id": {
-          "name": "log_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "is_uploaded": {
-          "name": "is_uploaded",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "upload_at": {
-          "name": "upload_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "create_at": {
-          "name": "create_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "update_at": {
-          "name": "update_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "operation_log_sync_status_log_id_operation_logs_id_fk": {
-          "name": "operation_log_sync_status_log_id_operation_logs_id_fk",
-          "tableFrom": "operation_log_sync_status",
-          "tableTo": "operation_logs",
-          "schemaTo": "sync",
-          "columnsFrom": [
-            "log_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "cascade"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "sync.operation_logs": {
-      "name": "operation_logs",
-      "schema": "sync",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "uuid_generate_v4()"
-        },
-        "version": {
-          "name": "version",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "schema_version": {
-          "name": "schema_version",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "device_id": {
-          "name": "device_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "sequence": {
-          "name": "sequence",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "method": {
-          "name": "method",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "method_hash": {
-          "name": "method_hash",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "op_data": {
-          "name": "op_data",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "create_at": {
-          "name": "create_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "update_at": {
-          "name": "update_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "operation_log_unq_username_device_id_sequence": {
-          "name": "operation_log_unq_username_device_id_sequence",
-          "nullsNotDistinct": false,
-          "columns": [
-            "device_id",
-            "sequence"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "sync.tempKeyStore": {
-      "name": "tempKeyStore",
-      "schema": "sync",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "uuid_generate_v4()"
-        },
-        "serialized_key": {
-          "name": "serialized_key",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "expire_at": {
-          "name": "expire_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "create_at": {
-          "name": "create_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "update_at": {
-          "name": "update_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "temp_key_store_idx_expire_at": {
-          "name": "temp_key_store_idx_expire_at",
-          "columns": [
-            {
-              "expression": "expire_at",
-              "isExpression": false,
-              "asc": false,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -1477,70 +1077,27 @@
     "public.account_group_type": {
       "name": "account_group_type",
       "schema": "public",
-      "values": [
-        "asset",
-        "liability",
-        "income",
-        "expense",
-        "uncategorized"
-      ]
+      "values": ["asset", "liability", "income", "expense", "uncategorized"]
     },
     "public.debit_credit_enum": {
       "name": "debit_credit_enum",
       "schema": "public",
-      "values": [
-        "debit",
-        "credit"
-      ]
+      "values": ["debit", "credit"]
     },
     "public.journal_entry_type": {
       "name": "journal_entry_type",
       "schema": "public",
-      "values": [
-        "income",
-        "expense",
-        "transfer"
-      ]
+      "values": ["income", "expense", "transfer"]
     },
     "public.currency_type": {
       "name": "currency_type",
       "schema": "public",
-      "values": [
-        "fiat",
-        "crypto"
-      ]
-    },
-    "public.algorithm_enum": {
-      "name": "algorithm_enum",
-      "schema": "public",
-      "values": [
-        "AES-GCM",
-        "AES-KW",
-        "RSA"
-      ]
-    },
-    "public.encrypt_key_registry_type_enum": {
-      "name": "encrypt_key_registry_type_enum",
-      "schema": "public",
-      "values": [
-        "symmetric",
-        "asymmetric"
-      ]
-    },
-    "public.encrypt_key_type_enum": {
-      "name": "encrypt_key_type_enum",
-      "schema": "public",
-      "values": [
-        "single",
-        "private",
-        "public"
-      ]
+      "values": ["fiat", "crypto"]
     }
   },
   "schemas": {
     "app": "app",
-    "config": "config",
-    "sync": "sync"
+    "config": "config"
   },
   "sequences": {},
   "roles": {},

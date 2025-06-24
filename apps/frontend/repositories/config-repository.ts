@@ -1,11 +1,11 @@
-import { accounts, forex, information, type UserConfigKey } from '@/db/drizzle/schema';
-import type { CountrySelect, CurrencySelect, ForexInsert } from '@/db/drizzle/types';
+import { accounts, forex, information, type UserConfigKey } from '@/db/app-db/schema';
+import type { AppSchema, CountrySelect, CurrencySelect, ForexInsert } from '@/db/drizzle-types';
 import { and, between, desc, eq, inArray } from 'drizzle-orm';
 import { DateTime } from 'luxon';
 import { Repository } from './abstract-repository';
 import { writeOperationLog } from './repository-decorators';
 
-export class ConfigRepository extends Repository {
+export class ConfigRepository extends Repository<AppSchema> {
   public async getAllCurrencies() {
     return await this.db.query.currencies.findMany();
   }

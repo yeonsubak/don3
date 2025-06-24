@@ -1,5 +1,5 @@
 // import { COMMON_ID } from '.';
-// import type { AccountInsert } from '@/db/drizzle/types';
+// import type { AccountInsert } from '@/db/app-db/types';
 
 // const DATASET_ACCOUNTS_ASSETS_KOREA: AccountInsert[] = [
 //   {
