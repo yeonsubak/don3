@@ -1,9 +1,9 @@
 'use client';
 
+import { fetchFxRate } from '@/app/server/fx-rate';
 import type { UserConfigKey } from '@/db/app-db/schema';
 import type { CountrySelect, CurrencySelect, ForexInsert, ForexSelect } from '@/db/drizzle-types';
 import { DateTime } from 'luxon';
-import type { FetchFxRate } from '../app/api/get-latest-fx-rate/route';
 import { ConfigRepository } from '../repositories/config-repository';
 import { Service } from './abstract-service';
 
@@ -51,7 +51,7 @@ export class ConfigService extends Service {
   ): Promise<ForexSelect[]> {
     const fxRateResult: ForexSelect[] = [];
 
-    const fetchFxRate = async (
+    const createFxRateRequest = async (
       baseCurrency: CurrencySelect,
       targetCurrencies: CurrencySelect[],
     ) => {
@@ -80,23 +80,16 @@ export class ConfigService extends Service {
         return;
       }
 
-      const params = new URLSearchParams({
-        baseCurrency: baseCurrency.code,
-        targetCurrency: targetCurrencyCodes.join(','),
-      });
+      const fetchedFxRates = await fetchFxRate(baseCurrency.code, targetCurrencyCodes.join(','));
 
-      const fetchedFxRates: FetchFxRate = await (
-        await fetch(`/api/get-latest-fx-rate?${params.toString()}`, { method: 'GET' })
-      ).json();
-
-      const fxRateInserts: ForexInsert[] = Object.entries(fetchedFxRates.rates).map(
-        ([key, value]) => ({
-          date: fetchedFxRates.date,
-          baseCurrency: baseCurrency.code,
-          targetCurrency: key,
-          rate: value.toFixed(5),
-        }),
-      );
+      const fxRateInserts: ForexInsert[] = fetchedFxRates
+        ? Object.entries(fetchedFxRates.rates).map(([key, value]) => ({
+            date: fetchedFxRates.date,
+            baseCurrency: baseCurrency.code,
+            targetCurrency: key,
+            rate: value.toFixed(5),
+          }))
+        : [];
 
       fxRates = await this.configRepository.insertFxRate(fxRateInserts);
 
@@ -104,7 +97,7 @@ export class ConfigService extends Service {
     };
 
     await Promise.allSettled(
-      baseCurrencies.map((baseCurrency) => fetchFxRate(baseCurrency, targetCurrencies)),
+      baseCurrencies.map((baseCurrency) => createFxRateRequest(baseCurrency, targetCurrencies)),
     );
 
     return fxRateResult;
