@@ -5,7 +5,8 @@ import type {
   EncryptKeyType,
   KeyRegistryType,
   OperationLogInsert,
-} from '@/db/drizzle/types';
+  SnapshotInsert,
+} from '@/db/drizzle-types';
 import { insertOperationLogMutex } from '@/lib/async-mutex';
 import { addPasskey } from '@/lib/better-auth/auth-client';
 import { OPERATION_LOG_VERSION } from '@/lib/constants';
@@ -57,6 +58,7 @@ export class SyncService extends Service {
           prfSalt: wrappedKey.prfSalt,
           publicKey: passkey.publicKey,
           wrappedEk: wrappedKey.wrappedKey,
+          userId: passkey.userId,
         });
         insertEKRes.push(res);
       }
@@ -77,6 +79,7 @@ export class SyncService extends Service {
     publicKey,
     prfSalt,
     mode,
+    userId,
   }: {
     passkeyId: string;
     credentialId: string;
@@ -87,18 +90,18 @@ export class SyncService extends Service {
     publicKey: string;
     prfSalt: BufferSource | string;
     mode: 'local' | 'sync';
+    userId: string;
   }) {
     const wrappedEkBase64 =
       typeof wrappedEk === 'string' ? wrappedEk : arrayBufferToBase64(wrappedEk);
-    const username = (await this.configRepository.getUserConfig('username'))?.value;
-    if (!username) throw new Error('username not found.');
+
     return await this.syncRepository.withTx(async (tx) => {
       try {
         const repoWithTx = new SyncRepository(tx);
         const keyRegistry = await repoWithTx.insertKeyRegistry({
           credentialId,
           type: keyRegistryType,
-          username: username,
+          userId,
         });
         if (!keyRegistry) throw new Error('keyRegistry not found.');
 
@@ -143,21 +146,25 @@ export class SyncService extends Service {
     });
   }
 
-  public async getValidEncryptionKey(): Promise<CryptoKey> {
+  public async getValidEncryptionKey(triggerPasskeyAuth: boolean): Promise<CryptoKey | null> {
     const now = new Date();
     const validTempKey = await this.syncRepository.getValidTempKey(now);
     if (validTempKey) {
       return await deserializeEncryptionKey(validTempKey.serializedKey);
     }
 
-    const { credentialId, prf } = await this.generatePRF();
-    const wrappedKey = await this.getWrappedKey(credentialId);
-    if (!wrappedKey) throw new Error('wrappedKey not found.');
+    if (triggerPasskeyAuth) {
+      const { credentialId, prf } = await this.generatePRF();
+      const wrappedKey = await this.getWrappedKey(credentialId);
+      if (!wrappedKey) throw new Error('wrappedKey not found.');
 
-    const ek = await unwrapEK(wrappedKey.key, prf.first);
-    const ekSerialized = await serializeEncryptionKey(ek);
-    await this.insertTempKey(ekSerialized);
-    return ek;
+      const ek = await unwrapEK(wrappedKey.key, prf.first);
+      const ekSerialized = await serializeEncryptionKey(ek);
+      await this.insertTempKey(ekSerialized);
+      return ek;
+    }
+
+    return null;
   }
 
   private async insertTempKey(serializedKey: string) {
@@ -198,7 +205,7 @@ export class SyncService extends Service {
   }
 
   public async registerPasskey() {
-    const { publicKey, id: passkeyId } = await addPasskey();
+    const { publicKey, id: passkeyId, userId } = await addPasskey();
     const { prf, credentialId } = await this.generatePRF();
     const { wrappedEK, ekKey } = await this.createCryptoKeys(prf.first);
     await this.insertEncryptionKey({
@@ -211,6 +218,7 @@ export class SyncService extends Service {
       wrappedEk: wrappedEK,
       publicKey,
       prfSalt: prf.first,
+      userId,
     });
 
     const serializedEkKey = await serializeEncryptionKey(ekKey);
@@ -223,6 +231,14 @@ export class SyncService extends Service {
     const currentMaxSeq = (await this.syncRepository.getMaxSeq(deviceId))?.value;
     const one = BigInt(1);
     return !currentMaxSeq ? one : currentMaxSeq + one;
+  }
+
+  public async getAllSnapshots() {
+    return await this.syncRepository.getAllSnapshots();
+  }
+
+  public async insertSnapshot(data: SnapshotInsert) {
+    return await this.syncRepository.insertSnapshot(data);
   }
 
   private async insertWrappedKeyToSyncDB(passkeyId: string, wrappedKey: string, prfSalt: string) {

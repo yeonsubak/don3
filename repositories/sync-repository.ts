@@ -1,15 +1,24 @@
-import { encryptKeyRegistry, encryptKeys, operationLogs, tempKeyStore } from '@/db/drizzle/schema';
 import type {
   EncryptKeyInsert,
   KeyRegistryInsert,
   OperationLogInsert,
+  SnapshotInsert,
+  SnapshotSelect,
+  SyncSchema,
   TempKeyStoreInsert,
-} from '@/db/drizzle/types';
+} from '@/db/drizzle-types';
+import {
+  encryptKeyRegistry,
+  encryptKeys,
+  operationLogs,
+  snapshots,
+  tempKeyStore,
+} from '@/db/sync-db/schema';
 import { eq, max } from 'drizzle-orm';
 import { Repository } from './abstract-repository';
 import { writeOperationLog } from './repository-decorators';
 
-export class SyncRepository extends Repository {
+export class SyncRepository extends Repository<SyncSchema> {
   public async getKeyRegistry(_credentialId: string) {
     return this.db.query.encryptKeyRegistry.findFirst({
       where: ({ credentialId }, { eq }) => eq(credentialId, _credentialId),
@@ -51,5 +60,13 @@ export class SyncRepository extends Repository {
         .from(operationLogs)
         .where(eq(operationLogs.deviceId, deviceId))
     ).at(0);
+  }
+
+  public async getAllSnapshots(): Promise<SnapshotSelect[]> {
+    return await this.db.query.snapshots.findMany();
+  }
+
+  public async insertSnapshot(data: SnapshotInsert): Promise<SnapshotSelect | undefined> {
+    return (await this.db.insert(snapshots).values(data).returning()).at(0);
   }
 }

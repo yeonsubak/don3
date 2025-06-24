@@ -1,21 +1,7 @@
-import { compareSemanticVersions } from '@/app/api/database/common';
+import type { LocalVersion } from '@/db';
+import type { VersionTable } from '../db-helper';
 
-interface Version {
-  version: string;
-  nextVersion?: string | null | undefined;
-  requireMigration: boolean;
-  requireDumpToUpdate: boolean;
-  createAt: Date;
-  updateAt?: Date;
-}
-
-export interface LocalVersion extends Version {
-  fileName?: string;
-}
-
-export type RemoteVersion = Version;
-
-export const SCHEMA_VERSION_TABLE: Record<string, LocalVersion> = {
+export const APP_SCHEMA_VERSION: VersionTable = {
   '0.0.1': {
     version: '0.0.1',
     fileName: 'ver-0.0.1.sql',
@@ -92,16 +78,18 @@ export const SCHEMA_VERSION_TABLE: Record<string, LocalVersion> = {
   '0.1.3': {
     version: '0.1.3',
     fileName: 'ver-0.1.3.sql',
+    nextVersion: '0.2.0',
+    requireMigration: true,
+    requireDumpToUpdate: false,
+    createAt: new Date('2025-06-22 14:04:28.918000+00'),
+  },
+  '0.1.4': {
+    version: '0.1.4',
+    fileName: 'ver-0.1.4.sql',
     requireMigration: false,
     requireDumpToUpdate: false,
-    createAt: new Date('2025-06-19 09:57:55.413000+00'),
+    createAt: new Date('2025-06-22 14:04:28.918000+00'),
   },
 } as const;
 
-export const LATEST_CLEAN_VERSION: LocalVersion = SCHEMA_VERSION_TABLE['0.1.0'];
-
-export const getLatestSchemaVersion = () => {
-  return Object.keys(SCHEMA_VERSION_TABLE)
-    .sort((a, b) => compareSemanticVersions(a, b))
-    .at(-1)!;
-};
+export const LATEST_CLEAN_VERSION: LocalVersion = APP_SCHEMA_VERSION['0.1.4'];

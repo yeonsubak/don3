@@ -1,4 +1,4 @@
-import type { AccountGroupInsert } from '../drizzle/types';
+import type { AccountGroupInsert } from '@/db/drizzle-types';
 
 const DATASET_ACCOUNT_GROUPS_ASSETS: AccountGroupInsert[] = [
   {

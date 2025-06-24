@@ -1,7 +1,7 @@
 'use client';
 
 import { parseNumber } from '@/components/common-functions';
-import type { CurrencySelect, JournalEntryType, TransactionInsert } from '@/db/drizzle/types';
+import type { CurrencySelect, JournalEntryType, TransactionInsert } from '@/db/drizzle-types';
 import { DateTime } from 'luxon';
 import { AccountsRepository } from '../repositories/accounts-repository';
 import { TransactionRepository } from '../repositories/transaction-repository';

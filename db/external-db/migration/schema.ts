@@ -40,10 +40,13 @@ export const forex = pgTable(
   ],
 );
 
+export const schemaDefinitionTypeEnum = pgEnum('schema_definition_type_enum', ['app', 'sync']);
+export type SchemaDefinitionType = (typeof schemaDefinitionTypeEnum.enumValues)[number];
 export const schemaDefinitions = pgTable(
   'schema_definitions',
   {
     id: uuid().defaultRandom().primaryKey().notNull(),
+    type: schemaDefinitionTypeEnum().notNull(),
     version: varchar().notNull(),
     sqlContent: text('sql_content'),
     nextVersion: varchar('next_version'),

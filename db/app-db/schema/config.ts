@@ -12,7 +12,7 @@ import {
   uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
-import { generateRandomUUID } from './helper';
+import { generateRandomUUID } from '../../db-helper';
 
 export const configSchema = pgSchema('config');
 

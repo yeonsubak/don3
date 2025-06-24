@@ -1,7 +1,7 @@
 import { createInMemoryPGLiteDrizzle } from '@/__tests__/common';
 import { DATASET_COUNTRY } from '@/db/dataset/country';
 import { DATASET_CURRENCY_FIAT } from '@/db/dataset/currency';
-import type { ForexInsert } from '@/db/drizzle/types';
+import type { ForexInsert } from '@/db/drizzle-types';
 import { ConfigRepository } from '@/repositories/config-repository';
 import { DateTime } from 'luxon';
 import { beforeEach, describe, expect, test } from 'vitest';
@@ -34,7 +34,7 @@ describe('ConfigRepository', { timeout: 2000 }, () => {
   ];
 
   beforeEach(async () => {
-    const pg = await createInMemoryPGLiteDrizzle();
+    const pg = await createInMemoryPGLiteDrizzle('app');
     repo = new ConfigRepository(pg);
   });
 

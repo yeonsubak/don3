@@ -1,4 +1,4 @@
-import type { AccountInsert } from '../drizzle/types';
+import type { AccountInsert } from '@/db/drizzle-types';
 
 const DATASET_ACCOUNTS_EXPENSE: (countryId: string, currencyId: string) => AccountInsert[] = (
   countryId,

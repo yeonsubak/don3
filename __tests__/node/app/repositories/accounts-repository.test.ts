@@ -1,13 +1,13 @@
 import { createInMemoryPGLiteDrizzle } from '@/__tests__/common';
-import type { PgliteDrizzle } from '@/db';
-import type { AccountBalanceInsert, AccountBalanceSelect, AccountInsert } from '@/db/drizzle/types';
+import type { AppDrizzle } from '@/db';
+import type { AccountBalanceInsert, AccountBalanceSelect, AccountInsert } from '@/db/drizzle-types';
 import { AccountsRepository } from '@/repositories/accounts-repository';
 import { TransactionRepository } from '@/repositories/transaction-repository';
 import { beforeEach, describe, expect, test } from 'vitest';
 
 describe('AccountsRepository', { timeout: 2000 }, () => {
   let accountsRepo: AccountsRepository;
-  let pg: PgliteDrizzle;
+  let pg: AppDrizzle;
 
   const ACCOUNT_GROUP_ID_1 = 'a3a1eeb2-4095-40c2-b46e-c89c71bf92ee';
   const ACCOUNT_GROUP_ID_2 = '41687ca0-44a5-4da4-92ac-46c9c8f504b1';
@@ -41,7 +41,7 @@ describe('AccountsRepository', { timeout: 2000 }, () => {
   };
 
   beforeEach(async () => {
-    pg = await createInMemoryPGLiteDrizzle();
+    pg = await createInMemoryPGLiteDrizzle('app');
     accountsRepo = new AccountsRepository(pg);
   });
 

@@ -1,16 +1,17 @@
-import { journalEntries, journalEntryFxRates, transactions } from '@/db/drizzle/schema';
+import { journalEntries, journalEntryFxRates, transactions } from '@/db/app-db/schema';
 import type {
+  AppSchema,
   JournalEntryFxRatesInsert,
   JournalEntryInsert,
   JournalEntryType,
   TransactionInsert,
-} from '@/db/drizzle/types';
+} from '@/db/drizzle-types';
 import { and, between, eq, inArray } from 'drizzle-orm';
 import type { DateRange } from 'react-day-picker';
 import { Repository } from './abstract-repository';
 import { writeOperationLog } from './repository-decorators';
 
-export class TransactionRepository extends Repository {
+export class TransactionRepository extends Repository<AppSchema> {
   public async getJournalEntryById(id: string) {
     return await this.db.query.journalEntries.findFirst({
       where: (journalEntries, { eq }) => eq(journalEntries.id, id),

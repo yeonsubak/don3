@@ -1,14 +1,16 @@
-import type { PgliteDrizzle } from '@/db';
-import type { PgliteTransaction } from '@/db/drizzle/types';
+import type { AppDrizzle, Drizzle } from '@/db';
+import type { PgliteTransaction, SchemaExtracted } from '@/db/drizzle-types';
 
-export abstract class Repository {
-  protected db: PgliteDrizzle | PgliteTransaction;
+export abstract class Repository<TSchema extends Record<string, unknown>> {
+  protected db: Drizzle<TSchema> | PgliteTransaction<TSchema, SchemaExtracted<TSchema>>;
 
-  constructor(db: PgliteDrizzle | PgliteTransaction) {
+  constructor(db: Drizzle<TSchema> | PgliteTransaction<TSchema, SchemaExtracted<TSchema>>) {
     this.db = db;
   }
 
-  public async withTx<T>(processingFn: (tx: PgliteTransaction) => Promise<T>) {
+  public async withTx<T>(
+    processingFn: (tx: PgliteTransaction<TSchema, SchemaExtracted<TSchema>>) => Promise<T>,
+  ) {
     return await this.db.transaction(processingFn);
   }
 }

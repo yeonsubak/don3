@@ -1,7 +1,7 @@
 'use client';
 
-import type { UserConfigKey } from '@/db/drizzle/schema';
-import type { CountrySelect, CurrencySelect, ForexInsert, ForexSelect } from '@/db/drizzle/types';
+import type { UserConfigKey } from '@/db/app-db/schema';
+import type { CountrySelect, CurrencySelect, ForexInsert, ForexSelect } from '@/db/drizzle-types';
 import { DateTime } from 'luxon';
 import type { FetchFxRate } from '../app/api/get-latest-fx-rate/route';
 import { ConfigRepository } from '../repositories/config-repository';
