@@ -1,5 +1,5 @@
 import type { AppDrizzle, Drizzle } from '@/db';
-import type { PgliteTransaction, SchemaExtracted } from '@/db/drizzle-types';
+import type { PgliteTransaction, SchemaExtracted } from '@/db/app-db/drizzle-types';
 
 export abstract class Repository<TSchema extends Record<string, unknown>> {
   protected db: Drizzle<TSchema> | PgliteTransaction<TSchema, SchemaExtracted<TSchema>>;

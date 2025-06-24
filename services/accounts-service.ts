@@ -9,7 +9,7 @@ import type {
   AccountSelectAll,
   AccountSelectAllTx,
   CountrySelect,
-} from '@/db/drizzle-types';
+} from '@/db/app-db/drizzle-types';
 import type { TransactionRepository } from '@/repositories/transaction-repository';
 import type { DateRange } from 'react-day-picker';
 import { AccountsRepository } from '../repositories/accounts-repository';

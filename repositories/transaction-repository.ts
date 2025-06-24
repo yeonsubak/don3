@@ -5,7 +5,7 @@ import type {
   JournalEntryInsert,
   JournalEntryType,
   TransactionInsert,
-} from '@/db/drizzle-types';
+} from '@/db/app-db/drizzle-types';
 import { and, between, eq, inArray } from 'drizzle-orm';
 import type { DateRange } from 'react-day-picker';
 import { Repository } from './abstract-repository';

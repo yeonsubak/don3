@@ -6,7 +6,7 @@ import type {
   SnapshotSelect,
   SyncSchema,
   TempKeyStoreInsert,
-} from '@/db/drizzle-types';
+} from '@/db/sync-db/drizzle-types';
 import {
   encryptKeyRegistry,
   encryptKeys,

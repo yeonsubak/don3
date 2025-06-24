@@ -16,11 +16,11 @@ const queryClient = new QueryClient();
 export default function AppLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <SideBar>
-      <ValidateDefault>
-        <QueryClientProvider client={queryClient}>
+      <QueryClientProvider client={queryClient}>
+        <ValidateDefault>
           <GlobalContextProvider>{children}</GlobalContextProvider>
-        </QueryClientProvider>
-      </ValidateDefault>
+        </ValidateDefault>
+      </QueryClientProvider>
     </SideBar>
   );
 }

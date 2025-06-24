@@ -1,7 +1,7 @@
 import { useAccountsContext } from '@/app/app/accounts/accounts-context';
 import { useGlobalContext } from '@/app/app/global-context';
 import { Calendar } from '@/components/compositions/calendar';
-import type { AccountGroupType } from '@/db/drizzle/types';
+import type { AccountGroupType } from '@/db/app-db/drizzle-types';
 import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
 import { QUERIES } from '@/lib/tanstack-queries';
 import { cn } from '@/lib/utils';

@@ -1,5 +1,5 @@
 import type { ComboboxItem } from '@/components/primitives/combobox';
-import type { AccountSelect } from '@/db/drizzle/types';
+import type { AccountSelect } from '@/db/app-db/drizzle-types';
 import type { GroupAccountsByCountry } from '@/services/accounts-service';
 import type { FieldValue, FieldValues, UseFormReturn } from 'react-hook-form';
 import type { ExpenseTxForm, FundTransferTxForm, IncomeTxForm } from './form-schema';

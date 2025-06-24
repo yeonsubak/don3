@@ -1,11 +1,11 @@
-import type { AccountGroupType, CurrencySelect, JournalEntryType } from '@/db/drizzle/types';
+import type { AccountGroupType, CurrencySelect, JournalEntryType } from '@/db/app-db/drizzle-types';
+import { authClient } from '@/lib/better-auth/auth-client';
 import {
   getAccountsService,
   getConfigService,
   getTransactionService,
 } from '@/services/service-helpers';
 import { queryOptions } from '@tanstack/react-query';
-import { authClient } from '@/lib/better-auth/auth-client';
 
 export const QUERIES = {
   config: {

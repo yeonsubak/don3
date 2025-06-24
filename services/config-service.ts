@@ -2,7 +2,12 @@
 
 import { fetchFxRate } from '@/app/server/fx-rate';
 import type { UserConfigKey } from '@/db/app-db/schema';
-import type { CountrySelect, CurrencySelect, ForexInsert, ForexSelect } from '@/db/drizzle-types';
+import type {
+  CountrySelect,
+  CurrencySelect,
+  ForexInsert,
+  ForexSelect,
+} from '@/db/app-db/drizzle-types';
 import { DateTime } from 'luxon';
 import { ConfigRepository } from '../repositories/config-repository';
 import { Service } from './abstract-service';
