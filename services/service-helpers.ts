@@ -32,8 +32,7 @@ export const getTransactionService = async () => {
 
 export const getSyncService = async () => {
   const SyncRepository = await getSyncRepository();
-  const configRepository = await getConfigRepository();
-  return new SyncService(SyncRepository, configRepository);
+  return new SyncService(SyncRepository);
 };
 
 export const getBackupService = async () => {

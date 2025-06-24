@@ -1,4 +1,3 @@
-import { generatePasskeyAuthenticationOptions } from '@/app/server/authenticate';
 import { passkeyClient } from 'better-auth/client/plugins';
 import { createAuthClient } from 'better-auth/react';
 

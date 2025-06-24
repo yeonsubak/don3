@@ -1,10 +1,7 @@
 import { appDrizzle, syncDrizzle } from '@/db';
 import { PGliteAppWorker } from '@/db/pglite/pglite-app-worker';
-import { SYNC_DB_NAME } from '@/lib/constants';
+import { PGliteSync } from '@/db/pglite/pglite-sync';
 import { retry, type RetryOptions } from '@/lib/utils/retry';
-import { IdbFs, PGlite } from '@electric-sql/pglite';
-import { uuid_ossp } from '@electric-sql/pglite/contrib/uuid_ossp';
-import { live } from '@electric-sql/pglite/live';
 import { xxhash3 } from 'hash-wasm';
 import { AccountsRepository } from './accounts-repository';
 import { ConfigRepository } from './config-repository';
@@ -53,11 +50,7 @@ export const getTransactionRepository = async () => {
 
 export const getSyncRepository = async () => {
   return retry(async () => {
-    const pg = await PGlite.create({
-      fs: new IdbFs(SYNC_DB_NAME),
-      relaxedDurability: true,
-      extensions: { uuid_ossp, live },
-    });
+    const pg = PGliteSync.getInstance();
     const drizzle = syncDrizzle(pg);
     return new SyncRepository(drizzle);
   }, retryOption);

@@ -228,13 +228,17 @@ export class AppDBInitializer extends DBInitializer {
           break;
         }
         case 'deviceId': {
+          const deviceId = crypto.randomUUID();
+
           await this.db
             .insert(schema.information)
             .values({
               name: key,
-              value: crypto.randomUUID(),
+              value: deviceId,
             })
             .onConflictDoNothing();
+
+          localStorage.setItem(LOCAL_STORAGE_KEYS.APP.DEVICE_ID, deviceId);
         }
       }
     }

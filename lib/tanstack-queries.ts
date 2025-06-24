@@ -3,6 +3,7 @@ import { authClient } from '@/lib/better-auth/auth-client';
 import {
   getAccountsService,
   getConfigService,
+  getSyncService,
   getTransactionService,
 } from '@/services/service-helpers';
 import { queryOptions } from '@tanstack/react-query';
@@ -86,17 +87,20 @@ export const QUERIES = {
         queryKey: ['passkeys'],
         queryFn: async () => await authClient.passkey.listUserPasskeys(),
       }),
-    refreshUsername: (userEmail: string | undefined) =>
+    getValidEncryptionKey: () =>
       queryOptions({
-        queryKey: ['refreshUsername'],
+        queryKey: ['validEncryptionKey'],
         queryFn: async () => {
-          if (!userEmail) return;
-          const configService = await getConfigService();
-          const currentUsername = (await configService.getUserConfig('username'))?.value;
-          if (currentUsername !== userEmail) {
-            await configService.upsertUserConfig('username', userEmail);
-          }
-          return userEmail;
+          const syncService = await getSyncService();
+          return await syncService.getValidEncryptionKey(false);
+        },
+      }),
+    getAllSnapshots: () =>
+      queryOptions({
+        queryKey: ['allSnapshots'],
+        queryFn: async () => {
+          const syncService = await getSyncService();
+          return await syncService.getAllSnapshots();
         },
       }),
   },
