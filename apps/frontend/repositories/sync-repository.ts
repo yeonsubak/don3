@@ -69,4 +69,9 @@ export class SyncRepository extends Repository<SyncSchema> {
   public async insertSnapshot(data: SnapshotInsert): Promise<SnapshotSelect | undefined> {
     return (await this.db.insert(snapshots).values(data).returning()).at(0);
   }
+
+  public async hasSnapshot(): Promise<boolean> {
+    const count = await this.db.$count(snapshots);
+    return count > 0;
+  }
 }

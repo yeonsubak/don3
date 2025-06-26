@@ -1,5 +1,5 @@
 {
-  "id": "e4ccb67f-3036-4a60-a3d5-54107bfae844",
+  "id": "af0c429a-1261-40c8-8c42-1ff6e789b3b0",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -431,6 +431,12 @@
           "name": "type",
           "type": "snapshot_type_enum",
           "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "schema_version": {
+          "name": "schema_version",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
         },

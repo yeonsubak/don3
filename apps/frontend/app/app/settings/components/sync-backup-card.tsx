@@ -57,6 +57,7 @@ export const SyncBackupCard = () => {
     // Insert the backup to the sync db
     await syncService.insertSnapshot({
       type: 'user',
+      schemaVersion: metaData.schemaVersion,
       meta: metaData,
       dump,
     });

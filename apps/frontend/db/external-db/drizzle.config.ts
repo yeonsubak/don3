@@ -9,5 +9,5 @@ export default defineConfig({
   dbCredentials: {
     url: EXTERNAL_DATABASE_URL!,
   },
-  schemaFilter: ['public', 'app_auth'],
+  schemaFilter: ['public', 'app_auth', 'sync'],
 });
