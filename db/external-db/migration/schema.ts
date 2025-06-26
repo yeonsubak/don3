@@ -1,5 +1,6 @@
 import { relations, sql } from 'drizzle-orm';
 import {
+  bigint,
   boolean,
   date,
   index,
@@ -182,7 +183,9 @@ export const wrappedKeys = appAuthSchema.table(
     wrappedKey: text('wrapped_key').notNull(),
     algorithm: algorithmEnum().notNull(),
     prfSalt: text('prf_salt').notNull(),
-    createdAt: timestamp('created_at').$defaultFn(() => /* @__PURE__ */ new Date()),
+    createdAt: timestamp('created_at')
+      .$defaultFn(() => /* @__PURE__ */ new Date())
+      .notNull(),
     updatedAt: timestamp('updated_at').$defaultFn(() => /* @__PURE__ */ new Date()),
   },
   (t) => [index('wrapped_key_idx_passkey_id').on(t.passkeyId)],
@@ -193,3 +196,59 @@ export const wrappedKeyRelations = relations(wrappedKeys, ({ one }) => ({
     references: [passkey.id],
   }),
 }));
+
+export const syncSchema = pgSchema('sync');
+
+export const snapshots = syncSchema.table(
+  'snapshots',
+  {
+    id: uuid().primaryKey().notNull().defaultRandom(),
+    userId: text()
+      .notNull()
+      .references(() => user.id),
+    deviceId: uuid().notNull(),
+    schemaVersion: varchar({ length: 255 }).notNull(),
+    dump: text().notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .$defaultFn(() => /* @__PURE__ */ new Date())
+      .notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).$defaultFn(
+      () => /* @__PURE__ */ new Date(),
+    ),
+  },
+  (t) => [
+    index('snapshots_idx_user_id_device_id').on(t.userId, t.deviceId),
+    index('snapshots_idx_create_at_user_id_device_id').on(t.createdAt.desc(), t.userId, t.deviceId),
+  ],
+);
+
+export const operationLogs = syncSchema.table(
+  'operation_logs',
+  {
+    id: uuid().primaryKey().notNull().defaultRandom(),
+    userId: text()
+      .notNull()
+      .references(() => user.id),
+    deviceId: uuid().notNull(),
+    version: varchar({ length: 255 }).notNull(),
+    schemaVersion: varchar({ length: 255 }).notNull(),
+    sequence: bigint({ mode: 'bigint' }).notNull(),
+    method: varchar({ length: 255 }).notNull(),
+    methodHash: text().notNull(),
+    opData: text().notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .$defaultFn(() => /* @__PURE__ */ new Date())
+      .notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).$defaultFn(
+      () => /* @__PURE__ */ new Date(),
+    ),
+  },
+  (t) => [
+    index('operation_logs_idx_user_id_device_id').on(t.userId, t.deviceId),
+    index('operation_logs_idx_create_at_user_id_device_id').on(
+      t.createdAt.desc(),
+      t.userId,
+      t.deviceId,
+    ),
+  ],
+);

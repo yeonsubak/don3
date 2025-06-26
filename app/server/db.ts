@@ -1,12 +1,13 @@
 'use server';
 
+import type { LocalVersion } from '@/db';
 import { APP_SCHEMA_VERSION } from '@/db/app-db/version-table';
+import type { SchemaDefinition } from '@/db/db-helper';
 import { externalDB } from '@/db/external-db/drizzle-client';
 import type { SchemaDefinitionType } from '@/db/external-db/migration/schema';
 import { SYNC_SCHEMA_VERSION } from '@/db/sync-db/version-table';
 import { APP_DB_MIGRATION_PATH, SYNC_DB_MIGRATION_PATH } from '@/lib/constants';
 import { promises as fs } from 'fs';
-import type { SchemaDefinition } from '../../db/db-utils';
 
 export async function parseSQLFile(type: SchemaDefinitionType, fileName: string): Promise<string> {
   const migrationPath = type === 'app' ? APP_DB_MIGRATION_PATH : SYNC_DB_MIGRATION_PATH;
@@ -15,12 +16,8 @@ export async function parseSQLFile(type: SchemaDefinitionType, fileName: string)
 
 async function fetchLocal(
   type: SchemaDefinitionType,
-  schemaVersion: string | null,
+  version: LocalVersion,
 ): Promise<SchemaDefinition | undefined> {
-  if (!schemaVersion) return;
-
-  const version =
-    type === 'app' ? APP_SCHEMA_VERSION[schemaVersion] : SYNC_SCHEMA_VERSION[schemaVersion];
   const parsed = version.fileName ? await parseSQLFile(type, version.fileName) : undefined;
   return {
     sql: parsed,
@@ -30,13 +27,10 @@ async function fetchLocal(
 
 async function fetchRemote(
   type: SchemaDefinitionType,
-  schemaVersion: string | null,
+  version: LocalVersion,
 ): Promise<SchemaDefinition | undefined> {
-  if (!schemaVersion) return;
-
-  const _version = APP_SCHEMA_VERSION[schemaVersion];
   const fetched = await externalDB?.query.schemaDefinitions.findFirst({
-    where: ({ version }, { eq }) => eq(version, _version.version),
+    where: (column, { and, eq }) => and(eq(column.version, version.version), eq(column.type, type)),
   });
 
   if (!fetched) return;
@@ -58,8 +52,10 @@ export async function getSchemaDefinition(
   type: SchemaDefinitionType,
   schemaVersion: string | null,
 ): Promise<SchemaDefinition | undefined> {
+  if (!schemaVersion) return;
+
   const env = process.env.ENVIRONMENT ?? 'DEV';
-  return env === 'PROD'
-    ? await fetchRemote(type, schemaVersion)
-    : await fetchLocal(type, schemaVersion);
+  const version =
+    type === 'app' ? APP_SCHEMA_VERSION[schemaVersion] : SYNC_SCHEMA_VERSION[schemaVersion];
+  return env === 'PROD' ? await fetchRemote(type, version) : await fetchLocal(type, version);
 }

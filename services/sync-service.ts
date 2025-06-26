@@ -5,6 +5,7 @@ import type {
   EncryptKeyType,
   KeyRegistryType,
   OperationLogInsert,
+  OperationLogSelect,
   SnapshotInsert,
 } from '@/db/sync-db/drizzle-types';
 import { insertOperationLogMutex } from '@/lib/async-mutex';
@@ -17,6 +18,7 @@ import {
   serializeEncryptionKey,
   unwrapEK,
 } from '@/lib/utils/encryption-utils';
+import { getMethod } from '@/repositories/sync-method-mapper';
 import { SyncRepository } from '@/repositories/sync-repository';
 import { DateTime } from 'luxon';
 import { Service } from './abstract-service';
@@ -197,7 +199,9 @@ export class SyncService extends Service {
         opData: data,
       };
 
-      return await this.syncRepository.insertOperationLog(insertObj);
+      const res = await this.syncRepository.insertOperationLog(insertObj);
+
+      return res;
     });
   }
 
@@ -236,6 +240,16 @@ export class SyncService extends Service {
 
   public async insertSnapshot(data: SnapshotInsert) {
     return await this.syncRepository.insertSnapshot(data);
+  }
+
+  public async hasSnapshot() {
+    return this.syncRepository.hasSnapshot();
+  }
+
+  public async syncDataFromServer({ method: _method, opData }: OperationLogSelect) {
+    const { method, repository } = await getMethod(_method);
+    const res = await method.apply(repository, [opData]);
+    return res;
   }
 
   private async insertWrappedKeyToSyncDB(passkeyId: string, wrappedKey: string, prfSalt: string) {

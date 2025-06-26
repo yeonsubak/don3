@@ -70,6 +70,7 @@ CREATE TABLE "sync"."snapshot_sync_status" (
 CREATE TABLE "sync"."snapshots" (
 	"id" uuid PRIMARY KEY DEFAULT uuid_generate_v4() NOT NULL,
 	"type" "snapshot_type_enum" NOT NULL,
+	"schema_version" varchar(255) NOT NULL,
 	"meta" jsonb NOT NULL,
 	"dump" text NOT NULL,
 	"create_at" timestamp with time zone DEFAULT now() NOT NULL,

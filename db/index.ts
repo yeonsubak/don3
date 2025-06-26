@@ -47,6 +47,11 @@ export const mockAppDrizzle: AppDrizzleMock = _drizzle.mock({
 
 /* Sync DB */
 export type SyncDrizzle = Drizzle<typeof syncSchema>;
+
+export type SyncDrizzleMock = PgliteDatabase<typeof syncSchema> & {
+  $client: '$client is not available on drizzle.mock()';
+};
+
 export function syncDrizzle(client: PGlite): SyncDrizzle {
   if (!client) {
     throw new Error('PGLite client is null');
@@ -54,3 +59,8 @@ export function syncDrizzle(client: PGlite): SyncDrizzle {
 
   return _drizzle(client, { schema: syncSchema, casing: 'snake_case' });
 }
+
+export const mockSycnDrizzle: SyncDrizzleMock = _drizzle.mock({
+  schema: syncSchema,
+  casing: 'snake_case',
+});

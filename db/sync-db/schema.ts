@@ -110,6 +110,7 @@ export const snapshotTypeEnum = pgEnum('snapshot_type_enum', ['autosave', 'user'
 export const snapshots = syncSchema.table('snapshots', {
   id: uuid().primaryKey().default(generateRandomUUID).notNull(),
   type: snapshotTypeEnum().notNull(),
+  schemaVersion: varchar({ length: 255 }).notNull(),
   meta: jsonb().$type<DumpMetaData>().notNull(),
   dump: text().notNull(),
   createAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
