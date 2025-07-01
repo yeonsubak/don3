@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: sync
+  datasource:
+    url: # TODO: Add the connection string of your database
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
