@@ -1,9 +1,15 @@
+import type { PGliteWorker } from '@electric-sql/pglite/worker';
 import type { Drizzle } from '.';
 import type { PGliteClient } from './pglite/pglite-client';
 
+export type InitializationOptions = {
+  isDBReady?: boolean;
+  closeAfterInit?: boolean;
+};
+
 export abstract class DBInitializer {
   protected static instance: DBInitializer | null;
-  protected pg: PGliteClient | null = null;
+  protected pg: PGliteClient | PGliteWorker | null = null;
   protected db: Drizzle<Record<string, unknown>> | null = null;
 
   public isInitialized = false;
@@ -23,12 +29,12 @@ export abstract class DBInitializer {
       return;
     }
 
-    this.initializationPromise = this.initialize(false);
+    this.initializationPromise = this.initialize({ isDBReady: false });
     await this.initializationPromise;
     this.initializationPromise = null;
   }
 
-  protected abstract initialize(isDBReady: boolean): Promise<void>;
+  protected abstract initialize(options: InitializationOptions): Promise<void>;
 
   protected abstract validateSchemaVersion(isDBReady: boolean): Promise<boolean>;
 

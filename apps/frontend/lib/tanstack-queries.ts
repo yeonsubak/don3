@@ -1,3 +1,4 @@
+import { fetchLatestSnapshot, hasSyncServer } from '@/app/server/sync';
 import type { AccountGroupType, CurrencySelect, JournalEntryType } from '@/db/app-db/drizzle-types';
 import { authClient } from '@/lib/better-auth/auth-client';
 import {
@@ -102,6 +103,24 @@ export const QUERIES = {
           const syncService = await getSyncService();
           return await syncService.getAllSnapshots();
         },
+      }),
+    getLatestSnapshotFromServer: () =>
+      queryOptions({
+        queryKey: ['latestSanpshot'],
+        queryFn: async () => {
+          return fetchLatestSnapshot();
+        },
+      }),
+    hasSyncServer: () =>
+      queryOptions({
+        queryKey: ['hasSyncServer'],
+        queryFn: async () => {
+          return await hasSyncServer();
+        },
+        staleTime: 1000 * 60 * 60 * 2,
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
+        refetchOnReconnect: false,
       }),
   },
 };

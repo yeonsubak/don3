@@ -1,23 +1,16 @@
 import { getSchemaDefinition } from '@/app/server/db';
 import * as schema from '@/db/sync-db/schema';
 import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
-import { SyncRepository } from '@/repositories/sync-repository';
-import { BackupService } from '@/services/backup-service';
-import { getBackupService } from '@/services/service-helpers';
-import { SyncService } from '@/services/sync-service';
 import { drizzle } from 'drizzle-orm/pglite';
 import type { SyncDrizzle } from '..';
 import { getLatestSchemaVersion } from '../db-helper';
-import { DBInitializer } from '../db-initializer';
+import { DBInitializer, type InitializationOptions } from '../db-initializer';
 import { PGliteSync } from '../pglite/pglite-sync';
 import { LATEST_CLEAN_VERSION, SYNC_SCHEMA_VERSION } from './version-table';
 
 export class SyncDBInitializer extends DBInitializer {
   protected static instance: SyncDBInitializer | null = null;
   declare protected db: SyncDrizzle;
-
-  private syncService: SyncService | null = null;
-  private backupService: BackupService | null = null;
 
   public static async getInstance(): Promise<SyncDBInitializer> {
     if (!SyncDBInitializer.instance) {
@@ -34,19 +27,21 @@ export class SyncDBInitializer extends DBInitializer {
     return SyncDBInitializer.instance;
   }
 
-  public async initialize(isDBReady = false): Promise<void> {
-    if (!(await this.validateSchemaVersion(isDBReady))) {
+  public async initialize(options?: InitializationOptions): Promise<void> {
+    if (!(await this.validateSchemaVersion(options?.isDBReady))) {
       await this.syncSchema();
     }
 
-    if (!(await this.hasSnapshot())) {
-      await this.createFirstSnapshot();
+    if (options?.closeAfterInit) {
+      // await PGliteSync.closeInstance();
+      SyncDBInitializer.instance = null;
+      return;
     }
 
     this.isInitialized = true;
   }
 
-  protected async validateSchemaVersion(isDBReady: boolean): Promise<boolean> {
+  protected async validateSchemaVersion(isDBReady?: boolean): Promise<boolean> {
     const latestVersion = getLatestSchemaVersion(SYNC_SCHEMA_VERSION);
     const localStorageVersion = window.localStorage.getItem(LOCAL_STORAGE_KEYS.SYNC.SCHEMA_VERSION);
 
@@ -122,37 +117,5 @@ export class SyncDBInitializer extends DBInitializer {
     };
 
     await updateSchema(nextVersion);
-  }
-
-  private async hasSnapshot() {
-    const isInitialized = localStorage.getItem(LOCAL_STORAGE_KEYS.APP.INITIALIZED);
-    if (isInitialized === 'true') {
-      return true;
-    }
-
-    if (!this.syncService) {
-      this.syncService = new SyncService(new SyncRepository(this.db));
-    }
-
-    return this.syncService.hasSnapshot();
-  }
-
-  private async createFirstSnapshot() {
-    if (!this.backupService) {
-      this.backupService = await getBackupService();
-    }
-
-    if (!this.syncService) {
-      this.syncService = new SyncService(new SyncRepository(this.db));
-    }
-
-    const { dump, metaData } = await this.backupService.createBackup();
-
-    await this.syncService.insertSnapshot({
-      type: 'autosave',
-      schemaVersion: metaData.schemaVersion,
-      meta: metaData,
-      dump,
-    });
   }
 }

@@ -33,12 +33,19 @@ export const DECORATOR_NAME_KEY_SYMBOL = Symbol(DECORATOR_NAME_KEY);
 export const DECORATOR_NAME_WRITE_OPERATION_LOG = 'writeOperationLog' as const;
 
 const APP_DB_NAME_BASE = 'don3_app' as const;
-const USER_ID =
-  typeof localStorage !== 'undefined'
-    ? localStorage.getItem(LOCAL_STORAGE_KEYS.APP.USER_ID)
-    : undefined;
-export const APP_DB_NAME = APP_DB_NAME_BASE + (USER_ID ? '_' + USER_ID : '');
+export const APP_DB_NAME = () => {
+  const userId =
+    typeof localStorage !== 'undefined'
+      ? localStorage.getItem(LOCAL_STORAGE_KEYS.APP.USER_ID)
+      : undefined;
+  return `${APP_DB_NAME_BASE}${userId ? '_' + userId : ''}`;
+};
+
 export const APP_DB_MIGRATION_PATH = 'db/app-db/migration' as const;
 
 export const SYNC_DB_NAME = 'don3_sync' as const;
 export const SYNC_DB_MIGRATION_PATH = 'db/sync-db/migration' as const;
+
+export const BETTER_AUTH_URL = process.env.BETTER_AUTH_URL;
+
+export const SYNC_SERVER_URL = process.env.SYNC_SERVER_URL;

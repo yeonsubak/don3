@@ -15,4 +15,12 @@ export class PGliteSync extends PGliteClient {
 
     return PGliteSync.instance;
   }
+
+  public static async closeInstance() {
+    if (this.instance) {
+      await this.instance.syncToFs();
+      await this.instance.close();
+      this.instance = null;
+    }
+  }
 }
