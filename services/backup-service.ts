@@ -4,6 +4,7 @@ import type { PGliteAppWorker } from '@/db/pglite/pglite-app-worker';
 import { base64ToUint8Array, uInt8ArrayToBase64 } from '@/lib/utils/encryption-utils';
 import { PGlite, type Results, type Transaction } from '@electric-sql/pglite';
 import { pgDump } from '@electric-sql/pglite-tools/pg_dump';
+import type { PgliteClient } from 'drizzle-orm/pglite';
 import { gunzipSync, gzipSync, strFromU8, strToU8, unzip, zipSync } from 'fflate';
 import { Service } from './abstract-service';
 
@@ -17,14 +18,24 @@ export type DumpMetaData = {
 };
 
 export class BackupService extends Service {
-  private pg?: PGliteAppWorker;
+  private pg?: PGliteAppWorker | PgliteClient;
   private db?: AppDrizzle;
 
-  constructor(pg?: PGliteAppWorker) {
+  constructor({ pg, db }: { pg?: PGliteAppWorker; db?: AppDrizzle }) {
     super();
     if (pg) {
+      this.pg = pg;
       this.db = appDrizzle(pg);
+      return;
     }
+
+    if (db) {
+      this.db = db;
+      this.pg = db.$client;
+      return;
+    }
+
+    throw new Error('All arguments passed to the constructor are undefined');
   }
 
   public async createBackup(): Promise<{
@@ -81,37 +92,50 @@ export class BackupService extends Service {
     };
   }
 
-  public async restoreDatabase(file: File) {
-    const { metaData, dump } = await BackupService.decompressZipFile(file);
-    try {
-      if (!metaData) throw new Error('metaData not found');
-      if (!dump) throw new Error('dump not found');
+  public async restoreDB(
+    restoreObj: File | { metaData: DumpMetaData; dump: string },
+    overwrite: boolean,
+  ) {
+    const { metaData, dump } =
+      restoreObj instanceof File ? await BackupService.decompressZipFile(restoreObj) : restoreObj;
 
+    if (!metaData) throw new Error('metaData not found');
+    if (!dump) throw new Error('dump not found');
+
+    return await this.restore(dump, metaData, overwrite);
+  }
+
+  private async restore(dump: string, meta: DumpMetaData, overwrite: boolean) {
+    if (overwrite) {
       await this.pg?.transaction(async (tx) => {
         try {
           await this.dropDatabase(tx);
           await tx.exec(dump);
         } catch (err) {
           tx.rollback();
-          throw new Error(`${err}`);
+          console.error(err);
+          return {
+            status: 'fail',
+            meta,
+          };
         }
       });
-
-      localStorage.clear();
-      this.restoreLocalStorage(metaData);
-      const dbInitializer = await AppDBInitializer.getInstance();
-      await dbInitializer.initialize(true);
-      return {
-        status: 'success',
-        metaData,
-      };
-    } catch (err) {
-      console.error(err);
-      return {
-        status: 'fail',
-        metaData,
-      };
+    } else {
+      await this.pg?.exec(dump);
     }
+
+    localStorage.clear();
+    this.restoreLocalStorage(meta.localStorageItems);
+
+    if (overwrite) {
+      const dbInitializer = await AppDBInitializer.getInstance();
+      await dbInitializer.initialize({ isDBReady: true });
+    }
+
+    return {
+      status: 'success',
+      meta,
+    };
   }
 
   public static compressGzipBase64(original: string) {
@@ -238,7 +262,7 @@ export class BackupService extends Service {
     return items;
   }
 
-  private restoreLocalStorage({ localStorageItems }: DumpMetaData) {
+  private restoreLocalStorage(localStorageItems: Record<string, string>) {
     Object.entries(localStorageItems).forEach(([key, value]) => localStorage.setItem(key, value));
   }
 }

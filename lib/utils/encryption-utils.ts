@@ -55,14 +55,17 @@ export async function unwrapEK(
   return ekKey;
 }
 
+export function generateIV() {
+  return crypto.getRandomValues(new Uint8Array(12));
+}
+
 export async function encryptWithEK(
   plaintext: string,
   ekKey: CryptoKey,
-): Promise<{ ciphertext: string; iv: Uint8Array }> {
+  iv: Uint8Array<ArrayBuffer>,
+): Promise<string> {
   const encoder = new TextEncoder();
   const encoded = encoder.encode(plaintext);
-
-  const iv = crypto.getRandomValues(new Uint8Array(12));
 
   const ciphertext = await crypto.subtle.encrypt(
     {
@@ -73,7 +76,7 @@ export async function encryptWithEK(
     encoded,
   );
 
-  return { ciphertext: arrayBufferToBase64(ciphertext), iv };
+  return arrayBufferToBase64(ciphertext);
 }
 
 export async function decryptWithEK(

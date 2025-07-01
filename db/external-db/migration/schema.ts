@@ -38,6 +38,8 @@ export const forex = pgTable(
     pgPolicy('Enable read access', { as: 'permissive', for: 'select', to: ['dondondon_readonly'] }),
     pgPolicy('Enable insert', { as: 'permissive', for: 'insert', to: ['dondondon_crud'] }),
     pgPolicy('Enable delete', { as: 'permissive', for: 'delete', to: ['dondondon_crud'] }),
+    index('forex_idx_create_at_base_currency').on(table.createAt.desc(), table.baseCurrency),
+    index('forex_idx_date_base_currency').on(table.date.desc(), table.baseCurrency),
   ],
 );
 
@@ -209,6 +211,8 @@ export const snapshots = syncSchema.table(
     deviceId: uuid().notNull(),
     schemaVersion: varchar({ length: 255 }).notNull(),
     dump: text().notNull(),
+    meta: text().notNull(),
+    iv: text().notNull(),
     createdAt: timestamp('created_at', { withTimezone: true })
       .$defaultFn(() => /* @__PURE__ */ new Date())
       .notNull(),
@@ -236,6 +240,7 @@ export const operationLogs = syncSchema.table(
     method: varchar({ length: 255 }).notNull(),
     methodHash: text().notNull(),
     opData: text().notNull(),
+    iv: text().notNull(),
     createdAt: timestamp('created_at', { withTimezone: true })
       .$defaultFn(() => /* @__PURE__ */ new Date())
       .notNull(),

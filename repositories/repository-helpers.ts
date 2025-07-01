@@ -1,6 +1,7 @@
 import { appDrizzle, syncDrizzle } from '@/db';
 import { PGliteAppWorker } from '@/db/pglite/pglite-app-worker';
 import { PGliteSync } from '@/db/pglite/pglite-sync';
+import { SyncDBInitializer } from '@/db/sync-db/sync-db-initializer';
 import { retry, type RetryOptions } from '@/lib/utils/retry';
 import { xxhash3 } from 'hash-wasm';
 import { AccountsRepository } from './accounts-repository';
@@ -26,7 +27,7 @@ const retryOption: RetryOptions = {
 
 export const getAccountsRepository = async () => {
   return retry(async () => {
-    const pg = await PGliteAppWorker.getInstance();
+    const pg = await PGliteAppWorker.getInstance(true);
     const drizzle = appDrizzle(pg);
     return new AccountsRepository(drizzle);
   }, retryOption);
@@ -34,7 +35,7 @@ export const getAccountsRepository = async () => {
 
 export const getConfigRepository = async () => {
   return retry(async () => {
-    const pg = await PGliteAppWorker.getInstance();
+    const pg = await PGliteAppWorker.getInstance(true);
     const drizzle = appDrizzle(pg);
     return new ConfigRepository(drizzle);
   }, retryOption);
@@ -42,7 +43,7 @@ export const getConfigRepository = async () => {
 
 export const getTransactionRepository = async () => {
   return retry(async () => {
-    const pg = await PGliteAppWorker.getInstance();
+    const pg = await PGliteAppWorker.getInstance(true);
     const drizzle = appDrizzle(pg);
     return new TransactionRepository(drizzle);
   }, retryOption);
@@ -51,7 +52,10 @@ export const getTransactionRepository = async () => {
 export const getSyncRepository = async () => {
   return retry(async () => {
     const pg = PGliteSync.getInstance();
+    await pg.waitReady;
     const drizzle = syncDrizzle(pg);
+    const initializer = await SyncDBInitializer.getInstance();
+    await initializer.ensureDbReady();
     return new SyncRepository(drizzle);
   }, retryOption);
 };

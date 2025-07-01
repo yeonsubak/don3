@@ -14,14 +14,17 @@ export class PGliteAppWorker extends PGliteWorker {
 
     super(worker, {
       meta: {
-        dbName: APP_DB_NAME,
+        dbName: APP_DB_NAME(),
       },
     });
   }
 
-  public static async getInstance(): Promise<PGliteAppWorker> {
+  public static async getInstance(ensureDBReady?: boolean): Promise<PGliteAppWorker> {
     if (!PGliteAppWorker.instance) {
       PGliteAppWorker.instance = new PGliteAppWorker();
+    }
+
+    if (ensureDBReady) {
       await this.ensureDBReady();
     }
 

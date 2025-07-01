@@ -8,9 +8,10 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { AppDBInitializer } from '@/db/app-db/app-db-initializer';
 import { DATASET_COUNTRY } from '@/db/dataset/country';
 import { DATASET_CURRENCY_FIAT } from '@/db/dataset/currency';
-import { DBInitializer } from '@/db/db-initializer';
+import { SyncDBInitializer } from '@/db/sync-db/sync-db-initializer';
 import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { forwardRef, useImperativeHandle } from 'react';
@@ -46,9 +47,14 @@ export const DefaultValueStep = forwardRef<{ submitForm: () => Promise<void> }, 
       localStorage.setItem(LOCAL_STORAGE_KEYS.APP.DEFAULT_CURRENCY, currencyCode);
       localStorage.setItem(LOCAL_STORAGE_KEYS.APP.DEFAULT_LANGUAGE, 'en');
 
-      if (!DBInitializer.isInitialized) {
-        const dbInitializer = await DBInitializer.getInstance();
-        await dbInitializer.ensureDbReady();
+      const syncDBInitializer = await SyncDBInitializer.getInstance();
+      if (!syncDBInitializer.isInitialized) {
+        await syncDBInitializer.initialize({ closeAfterInit: true });
+      }
+
+      const appDBInitializer = await AppDBInitializer.getInstance();
+      if (!appDBInitializer.isInitialized) {
+        await appDBInitializer.ensureDbReady();
       }
     }
 

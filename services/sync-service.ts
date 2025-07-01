@@ -238,8 +238,40 @@ export class SyncService extends Service {
     return await this.syncRepository.getAllSnapshots();
   }
 
+  public async getLatestSnapshot() {
+    return this.syncRepository.getLatestSnapshot();
+  }
+
   public async insertSnapshot(data: SnapshotInsert) {
-    return await this.syncRepository.insertSnapshot(data);
+    const res = await this.syncRepository.withTx(async (tx) => {
+      try {
+        const syncRepo = new SyncRepository(tx);
+        const snapshot = await syncRepo.insertSnapshot(data);
+        if (!snapshot) throw new Error('snapshot is undefined');
+
+        const syncStatus = await syncRepo.insertSnapshotSyncStatus({
+          snapshotId: snapshot.id,
+          isUploaded: false,
+        });
+
+        return {
+          ...snapshot,
+          syncStatus,
+        };
+      } catch (err) {
+        console.error(err);
+        tx.rollback();
+      }
+    });
+
+    return res;
+  }
+
+  public async insertSnapshotSyncStatus(snapshotId: string) {
+    return await this.syncRepository.insertSnapshotSyncStatus({
+      snapshotId,
+      isUploaded: false,
+    });
   }
 
   public async hasSnapshot() {

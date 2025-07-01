@@ -2,33 +2,34 @@ import { getSchemaDefinition } from '@/app/server/db';
 import type { UserConfigKey } from '@/db/app-db/schema';
 import * as schema from '@/db/app-db/schema';
 import { APP_SCHEMA_VERSION, LATEST_CLEAN_VERSION } from '@/db/app-db/version-table';
-import { APP_DB_NAME, LOCAL_STORAGE_KEYS } from '@/lib/constants';
+import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
+import { BackupService } from '@/services/backup-service';
+import { getSyncService } from '@/services/service-helpers';
+import { SyncService } from '@/services/sync-service';
 import { IdbFs as IdbFs02, PGlite as PGlite02 } from '@electric-sql/pglite-02';
 import { pgDump } from '@electric-sql/pglite-tools/pg_dump';
-import { drizzle } from 'drizzle-orm/pglite';
-import type { AppDrizzle } from '..';
+import { appDrizzle, type AppDrizzle } from '..';
 import { DATASET_ACCOUNT_GROUPS } from '../dataset/account-groups';
 import { DATASET_ACCOUNTS } from '../dataset/accounts';
 import { DATASET_COUNTRY } from '../dataset/country';
 import { DATASET_CURRENCY_FIAT } from '../dataset/currency';
 import { getLatestSchemaVersion } from '../db-helper';
-import { DBInitializer } from '../db-initializer';
-import { PGliteClient } from '../pglite/pglite-client';
+import { DBInitializer, type InitializationOptions } from '../db-initializer';
+import { PGliteAppWorker } from '../pglite/pglite-app-worker';
 
 export class AppDBInitializer extends DBInitializer {
   protected static instance: AppDBInitializer | null = null;
   declare protected db: AppDrizzle;
+  declare protected pg: PGliteAppWorker;
   private defaultCountry!: string;
   private defaultCurrency!: string;
+  private syncService: SyncService | null = null;
 
   public static async getInstance(): Promise<AppDBInitializer> {
     if (!AppDBInitializer.instance) {
       AppDBInitializer.instance = new AppDBInitializer();
-      const pg = new PGliteClient(APP_DB_NAME);
-      const db = drizzle(pg, {
-        schema,
-        casing: 'snake_case',
-      });
+      const pg = await PGliteAppWorker.getInstance();
+      const db = appDrizzle(pg);
       AppDBInitializer.instance.pg = pg;
       AppDBInitializer.instance.db = db;
       AppDBInitializer.instance.defaultCountry =
@@ -40,7 +41,7 @@ export class AppDBInitializer extends DBInitializer {
     return AppDBInitializer.instance;
   }
 
-  public async initialize(isDBReady = false) {
+  public async initialize({ isDBReady = false }: InitializationOptions) {
     if (!(await this.validateSchemaVersion(isDBReady))) {
       await this.syncSchema();
     }
@@ -59,6 +60,10 @@ export class AppDBInitializer extends DBInitializer {
     }
 
     this.clearUnusedLocalStorageValues();
+
+    if (!(await this.hasSnapshot())) {
+      await this.createFirstSnapshot();
+    }
 
     window.localStorage.setItem(LOCAL_STORAGE_KEYS.APP.SYNC_TIMESTAMP, `${Date.now()}`);
     this.isInitialized = true;
@@ -283,5 +288,35 @@ export class AppDBInitializer extends DBInitializer {
     if (localStorage.getItem(targetKey[0])) {
       targetKey.forEach(localStorage.removeItem);
     }
+  }
+
+  private async hasSnapshot() {
+    const isInitialized = localStorage.getItem(LOCAL_STORAGE_KEYS.APP.INITIALIZED);
+    if (isInitialized === 'true') {
+      return true;
+    }
+
+    if (!this.syncService) {
+      this.syncService = await getSyncService();
+    }
+
+    return this.syncService.hasSnapshot();
+  }
+
+  private async createFirstSnapshot() {
+    const backupService = new BackupService({ db: this.db });
+
+    if (!this.syncService) {
+      this.syncService = await getSyncService();
+    }
+
+    const { dump, metaData } = await backupService.createBackup();
+
+    await this.syncService.insertSnapshot({
+      type: 'autosave',
+      schemaVersion: metaData.schemaVersion,
+      meta: metaData,
+      dump,
+    });
   }
 }

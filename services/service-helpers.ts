@@ -37,5 +37,5 @@ export const getSyncService = async () => {
 
 export const getBackupService = async () => {
   const worker = await PGliteAppWorker.getInstance();
-  return new BackupService(worker);
+  return new BackupService({ pg: worker });
 };
