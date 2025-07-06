@@ -1,4 +1,4 @@
-import type { OperationLogSelect } from '@/db/sync-db/drizzle-types';
+import type { OpLogSelect } from '@/db/sync-db/drizzle-types';
 import { getSyncRepository } from '@/repositories/repository-helpers';
 import { SyncService } from '@/services/sync-service';
 import { describe, test } from 'vitest';

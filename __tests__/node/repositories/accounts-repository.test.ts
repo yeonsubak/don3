@@ -51,7 +51,7 @@ describe('AccountsRepository', { timeout: 2000 }, () => {
 
   describe('insertAccount', () => {
     test('should insert a new account and return the expected fields', async () => {
-      const insertResult = await accountsRepo.insertAccount(ACCOUNT_1);
+      const insertResult = (await accountsRepo.insertAccount(ACCOUNT_1)).at(0);
 
       expect(insertResult).toMatchObject({
         ...ACCOUNT_1,
@@ -59,7 +59,7 @@ describe('AccountsRepository', { timeout: 2000 }, () => {
     });
 
     test('should insert a new account and be retrievable by getAccountById', async () => {
-      const insertResult = await accountsRepo.insertAccount(ACCOUNT_1);
+      const insertResult = (await accountsRepo.insertAccount(ACCOUNT_1)).at(0);
       const accountGetById = await accountsRepo.getAccountById(insertResult!.id);
 
       expect(accountGetById).toMatchObject(ACCOUNT_1);
@@ -86,7 +86,7 @@ describe('AccountsRepository', { timeout: 2000 }, () => {
   describe('insertAccountBalance', () => {
     test('should insert a new account balance and return the expected fields', async () => {
       await accountsRepo.insertAccount(ACCOUNT_1);
-      const insertedBalance = await accountsRepo.insertAccountBalance(ACCOUNT_1_BALANCE);
+      const insertedBalance = (await accountsRepo.insertAccountBalance(ACCOUNT_1_BALANCE)).at(0);
 
       expect(insertedBalance).toMatchObject(ACCOUNT_1_BALANCE);
     });
@@ -96,12 +96,14 @@ describe('AccountsRepository', { timeout: 2000 }, () => {
     let insertedBalance: AccountBalanceSelect | undefined;
 
     beforeEach(async () => {
-      const insertedAccount = await accountsRepo.insertAccount(ACCOUNT_1);
-      insertedBalance = await accountsRepo.insertAccountBalance(ACCOUNT_1_BALANCE);
+      const insertedAccount = (await accountsRepo.insertAccount(ACCOUNT_1)).at(0);
+      insertedBalance = (await accountsRepo.insertAccountBalance(ACCOUNT_1_BALANCE)).at(0);
     });
 
     test('should update the balance of an account balance with an integer value', async () => {
-      const updatedBalance = await accountsRepo.updateAccountBalance(insertedBalance!.id, 16521);
+      const updatedBalance = (
+        await accountsRepo.updateAccountBalance(insertedBalance!.id, 16521)
+      ).at(0);
       expect(updatedBalance).toMatchObject({
         id: insertedBalance!.id,
         balance: 16521,
@@ -109,7 +111,9 @@ describe('AccountsRepository', { timeout: 2000 }, () => {
     });
 
     test('should update the balance of an account balance with a decimal value (scale - 1)', async () => {
-      const updatedBalance = await accountsRepo.updateAccountBalance(insertedBalance!.id, 985.68);
+      const updatedBalance = (
+        await accountsRepo.updateAccountBalance(insertedBalance!.id, 985.68)
+      ).at(0);
       expect(updatedBalance).toMatchObject({
         id: insertedBalance!.id,
         balance: 985.68,
@@ -117,10 +121,9 @@ describe('AccountsRepository', { timeout: 2000 }, () => {
     });
 
     test('should update the balance of an account balance with a decimal value (scale - 2)', async () => {
-      const updatedBalance = await accountsRepo.updateAccountBalance(
-        insertedBalance!.id,
-        16825.455555,
-      );
+      const updatedBalance = (
+        await accountsRepo.updateAccountBalance(insertedBalance!.id, 16825.455555)
+      ).at(0);
       expect(updatedBalance).toMatchObject({
         id: insertedBalance!.id,
         balance: 16825.46,
@@ -129,17 +132,16 @@ describe('AccountsRepository', { timeout: 2000 }, () => {
 
     test('should return undefined if the account balance to update does not exist', async () => {
       const nonExistentAccountBalanceId = crypto.randomUUID();
-      const updatedBalance = await accountsRepo.updateAccountBalance(
-        nonExistentAccountBalanceId,
-        100,
-      );
+      const updatedBalance = (
+        await accountsRepo.updateAccountBalance(nonExistentAccountBalanceId, 100)
+      ).at(0);
       expect(updatedBalance).toBeUndefined();
     });
   });
 
   describe('deleteAccount', () => {
     test('should delete the account', async () => {
-      const account = await accountsRepo.insertAccount(ACCOUNT_1);
+      const account = (await accountsRepo.insertAccount(ACCOUNT_1)).at(0);
       await accountsRepo.deleteAccount(account!.id);
       const accountAfterDelete = await accountsRepo.getAccountById(account!.id);
       expect(accountAfterDelete).toBeUndefined();
@@ -147,35 +149,43 @@ describe('AccountsRepository', { timeout: 2000 }, () => {
     test('should delete the account and related records', async () => {
       const transactionRepo = new TransactionRepository(pg);
 
-      const account1 = await accountsRepo.insertAccount(ACCOUNT_1);
-      const account2 = await accountsRepo.insertAccount(ACCOUNT_2);
-      const balance1 = await accountsRepo.insertAccountBalance(ACCOUNT_1_BALANCE)!;
-      const journalEntry = await transactionRepo.insertJournalEntry({
-        type: 'income',
-        date: new Date(),
-        title: 'deleteAccount',
-        description: 'should delete the account and related records',
-        currencyId: account1!.currencyId,
-        amount: 15843,
-      });
-      const fxRate = await transactionRepo.insertJournalEntryFxRate({
-        journalEntryId: journalEntry!.id,
-        baseCurrencyId: account1!.currencyId,
-        targetCurrencyId: 'f33a4c09-de77-4ebb-add2-4ceb7312439a',
-        rate: 1000,
-      });
-      const debitTx = await transactionRepo.insertTransaction({
-        type: 'debit',
-        accountId: account1!.id,
-        journalEntryId: journalEntry!.id,
-        amount: 15843,
-      });
-      const creditTx = await transactionRepo.insertTransaction({
-        type: 'credit',
-        accountId: account2!.id,
-        journalEntryId: journalEntry!.id,
-        amount: 15843,
-      });
+      const account1 = (await accountsRepo.insertAccount(ACCOUNT_1)).at(0);
+      const account2 = (await accountsRepo.insertAccount(ACCOUNT_2)).at(0);
+      const balance1 = (await accountsRepo.insertAccountBalance(ACCOUNT_1_BALANCE)).at(0);
+      const journalEntry = (
+        await transactionRepo.insertJournalEntry({
+          type: 'income',
+          date: new Date(),
+          title: 'deleteAccount',
+          description: 'should delete the account and related records',
+          currencyId: account1!.currencyId,
+          amount: 15843,
+        })
+      ).at(0);
+      const fxRate = (
+        await transactionRepo.insertJournalEntryFxRate({
+          journalEntryId: journalEntry!.id,
+          baseCurrencyId: account1!.currencyId,
+          targetCurrencyId: 'f33a4c09-de77-4ebb-add2-4ceb7312439a',
+          rate: 1000,
+        })
+      ).at(0);
+      const debitTx = (
+        await transactionRepo.insertTransaction({
+          type: 'debit',
+          accountId: account1!.id,
+          journalEntryId: journalEntry!.id,
+          amount: 15843,
+        })
+      ).at(0);
+      const creditTx = (
+        await transactionRepo.insertTransaction({
+          type: 'credit',
+          accountId: account2!.id,
+          journalEntryId: journalEntry!.id,
+          amount: 15843,
+        })
+      ).at(0);
 
       await accountsRepo.deleteAccount(account1!.id);
       const account1AfterDelete = await accountsRepo.getAccountById(account1!.id);

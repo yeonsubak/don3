@@ -8,6 +8,7 @@ export const SYNC_SCHEMA_VERSION: VersionTable = {
     requireMigration: false,
     requireDumpToUpdate: false,
     createAt: new Date('2025-06-23 11:58:44.820000+00'),
+    updateAt: new Date('2025-07-06 12:56:34.975000+00'),
   },
 } as const;
 

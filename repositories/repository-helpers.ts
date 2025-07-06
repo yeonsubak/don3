@@ -3,18 +3,10 @@ import { PGliteAppWorker } from '@/db/pglite/pglite-app-worker';
 import { PGliteSync } from '@/db/pglite/pglite-sync';
 import { SyncDBInitializer } from '@/db/sync-db/sync-db-initializer';
 import { retry, type RetryOptions } from '@/lib/utils/retry';
-import { xxhash3 } from 'hash-wasm';
 import { AccountsRepository } from './accounts-repository';
 import { ConfigRepository } from './config-repository';
 import { SyncRepository } from './sync-repository';
 import { TransactionRepository } from './transaction-repository';
-
-// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-export async function hashMethod(method: Function): Promise<string> {
-  const methodString = method.toString();
-  const normalized = methodString.replace(/\s+/g, '');
-  return await xxhash3(normalized);
-}
 
 const retryOption: RetryOptions = {
   retries: 3,

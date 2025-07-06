@@ -10,23 +10,24 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { signInWithGoogle } from '@/lib/better-auth/auth-client';
+import { useSession } from '@/lib/better-auth/auth-client';
 import { QUERIES } from '@/lib/tanstack-queries';
 import { useQuery } from '@tanstack/react-query';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { GettingStartedDialog } from './getting-started/getting-started-dialog';
 import { SyncDialog } from './sync/sync-dialog';
 
 const WelcomeDialog = () => {
   const [open, setOpen] = useState<boolean>(true);
-  const currentPath = usePathname();
-
-  const searchParams = useSearchParams();
   const router = useRouter();
-
+  const currentPath = usePathname();
+  const searchParams = useSearchParams();
   const syncParam = searchParams.get('syncSignIn');
+
   const isSync = syncParam === 'true' ? true : syncParam === 'false' ? false : null;
+
+  const session = useSession();
 
   const handleClose = useCallback(() => {
     setOpen(false);
@@ -34,8 +35,17 @@ const WelcomeDialog = () => {
 
   const { data: hasSyncServer, isPending } = useQuery(QUERIES.sync.hasSyncServer());
 
+  useEffect(() => {
+    if (isSync === null && !session.isExpired) {
+      // Show sync dialog
+      const params = new URLSearchParams();
+      params.set('syncSignIn', 'true');
+      router.push(`?${params.toString()}`);
+    }
+  }, [isSync, router, session.isExpired]);
+
   if (isSync) {
-    return <SyncDialog />;
+    return <SyncDialog session={session} />;
   }
 
   if (isSync === false) {
@@ -58,7 +68,8 @@ const WelcomeDialog = () => {
                 <div className="flex flex-col gap-1">
                   <GoogleSignInButton
                     className="text-base"
-                    onClick={() => signInWithGoogle(`${currentPath}?syncSignIn=true`)}
+                    callbackPath={`${currentPath}?syncSignIn=true`}
+                    session={session}
                   />
                   <p className="text-muted-foreground px-2 text-sm">{`⚠️ Sign up is optional and only required for syncing your data across devices. You can use the app fully without an account.`}</p>
                 </div>

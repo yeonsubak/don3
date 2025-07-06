@@ -1,5 +1,10 @@
 'use client';
 
+import type {
+  ExpenseTxForm,
+  FundTransferTxForm,
+  IncomeTxForm,
+} from '@/app/app/transactions/components/drawer/forms/form-schema';
 import { parseNumber } from '@/components/common-functions';
 import type {
   CurrencySelect,
@@ -11,11 +16,6 @@ import { AccountsRepository } from '../repositories/accounts-repository';
 import { TransactionRepository } from '../repositories/transaction-repository';
 import { Service } from './abstract-service';
 import type { ConfigService } from './config-service';
-import type {
-  ExpenseTxForm,
-  FundTransferTxForm,
-  IncomeTxForm,
-} from '@/app/app/transactions/components/drawer/forms/form-schema';
 
 export class TransactionService extends Service {
   private transactionRepository: TransactionRepository;
@@ -127,14 +127,16 @@ export class TransactionService extends Service {
           second: 0,
         });
 
-        const journalEntry = await transactionRepoWithTx.insertJournalEntry({
-          type: journalEntryType,
-          date: dateTime.toJSDate(),
-          title,
-          description,
-          currencyId: baseCurrency.id,
-          amount: parsedAmount,
-        });
+        const journalEntry = (
+          await transactionRepoWithTx.insertJournalEntry({
+            type: journalEntryType,
+            date: dateTime.toJSDate(),
+            title,
+            description,
+            currencyId: baseCurrency.id,
+            amount: parsedAmount,
+          })
+        ).at(0);
 
         if (!journalEntry) throw new Error('Insert to journal Entry failed');
 
@@ -175,13 +177,15 @@ export class TransactionService extends Service {
         ) {
           const accountBalance = await accountsRepo.getAccountBalance(accountId);
           if (!accountBalance) {
-            return await accountsRepo.insertAccountBalance({ accountId, balance: amount });
+            return (await accountsRepo.insertAccountBalance({ accountId, balance: amount })).at(0);
           }
 
-          return await accountsRepo.updateAccountBalance(
-            accountBalance.id,
-            accountBalance.balance + amount,
-          );
+          return (
+            await accountsRepo.updateAccountBalance(
+              accountBalance.id,
+              accountBalance.balance + amount,
+            )
+          ).at(0);
         }
 
         // Update balance
@@ -289,6 +293,6 @@ export class TransactionService extends Service {
   }
 
   public async deleteTransaction(journalEntryId: string) {
-    return await this.transactionRepository.deleteJournalEntries(journalEntryId);
+    return (await this.transactionRepository.deleteJournalEntries(journalEntryId)).at(0);
   }
 }

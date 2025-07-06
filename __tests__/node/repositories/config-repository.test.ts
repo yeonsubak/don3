@@ -203,7 +203,7 @@ describe('ConfigRepository', { timeout: 2000 }, () => {
 
   describe('insertUserConfig', () => {
     test('should insert and return userConfig value', async () => {
-      const result = await repo.insertUserConfig('defaultCountry', 'POL');
+      const result = (await repo.insertUserConfig('defaultCountry', 'POL')).at(0);
       expect(result).not.toBeUndefined();
       expect(result?.name).toBe('defaultCountry');
       expect(result?.value).toBe('POL');
@@ -213,7 +213,7 @@ describe('ConfigRepository', { timeout: 2000 }, () => {
   describe('updateUserConfig', () => {
     test('should update and return userConfig value', async () => {
       await repo.insertUserConfig('defaultCountry', 'KOR');
-      const updateResult = await repo.updateUserConfig('defaultCountry', 'POL');
+      const updateResult = (await repo.updateUserConfig('defaultCountry', 'POL')).at(0);
       expect(updateResult).not.toBeUndefined();
       expect(updateResult?.name).toBe('defaultCountry');
       expect(updateResult?.value).toBe('POL');

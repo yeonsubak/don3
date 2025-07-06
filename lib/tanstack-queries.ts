@@ -8,6 +8,7 @@ import {
   getTransactionService,
 } from '@/services/service-helpers';
 import { queryOptions } from '@tanstack/react-query';
+import { SyncWorker } from './sync-worker';
 
 export const QUERIES = {
   config: {
@@ -83,6 +84,11 @@ export const QUERIES = {
       }),
   },
   sync: {
+    getSyncWorkerInstance: () =>
+      queryOptions({
+        queryKey: ['syncWorkerInstance'],
+        queryFn: async () => await SyncWorker.getInstance(),
+      }),
     listPasskeys: () =>
       queryOptions({
         queryKey: ['passkeys'],
@@ -102,13 +108,6 @@ export const QUERIES = {
         queryFn: async () => {
           const syncService = await getSyncService();
           return await syncService.getAllSnapshots();
-        },
-      }),
-    getLatestSnapshotFromServer: () =>
-      queryOptions({
-        queryKey: ['latestSanpshot'],
-        queryFn: async () => {
-          return fetchLatestSnapshot();
         },
       }),
     hasSyncServer: () =>

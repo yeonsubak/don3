@@ -8,7 +8,6 @@ export const LOCAL_STORAGE_KEYS = {
     DEFAULT_LANGUAGE: 'app.defaultLanguage',
     INITIALIZED: 'app.initialized',
     DARK_MODE: 'app.darkMode',
-    SYNC_ENABLED: 'app.syncEnabled',
     USER_ID: 'app.userId',
     DEVICE_ID: 'app.deviceId',
   },
@@ -16,7 +15,7 @@ export const LOCAL_STORAGE_KEYS = {
     SCHEMA_VERSION: 'sync.schemaVersion',
     DATASET_VERSION: 'sync.datasetVersion',
     SYNC_TIMESTAMP: 'sync.syncTimestamp',
-    INITIALIZED: 'app.initialized',
+    SYNC_ENABLED: 'sync.syncEnabled',
   },
 } as const;
 
@@ -33,7 +32,11 @@ export const DECORATOR_NAME_KEY_SYMBOL = Symbol(DECORATOR_NAME_KEY);
 export const DECORATOR_NAME_WRITE_OPERATION_LOG = 'writeOperationLog' as const;
 
 const APP_DB_NAME_BASE = 'don3_app' as const;
-export const APP_DB_NAME = () => {
+export const APP_DB_NAME = (userIdArg?: string) => {
+  if (userIdArg) {
+    return `${APP_DB_NAME_BASE}_${userIdArg}`;
+  }
+
   const userId =
     typeof localStorage !== 'undefined'
       ? localStorage.getItem(LOCAL_STORAGE_KEYS.APP.USER_ID)
@@ -49,3 +52,5 @@ export const SYNC_DB_MIGRATION_PATH = 'db/sync-db/migration' as const;
 export const BETTER_AUTH_URL = process.env.BETTER_AUTH_URL;
 
 export const SYNC_SERVER_URL = process.env.SYNC_SERVER_URL;
+
+export const SYNC_WEBSOCKET_URL = process.env.NEXT_PUBLIC_SYNC_WEBSOCKET_URL;

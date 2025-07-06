@@ -1,27 +1,40 @@
 import { generatePasskeyAuthenticationOptions } from '@/app/server/authenticate';
-import { fetchPasskey, insertWrappedKey } from '@/app/server/sync';
+import {
+  fetchLatestSnapshot,
+  fetchOpLogsAfterDate,
+  fetchPasskey,
+  insertWrappedKey,
+} from '@/app/server/sync';
+import { appDrizzle } from '@/db';
+import { PGliteAppWorker } from '@/db/pglite/pglite-app-worker';
 import type {
   Algorithm,
   EncryptKeyType,
   KeyRegistryType,
-  OperationLogInsert,
-  OperationLogSelect,
+  OpLogInsert,
   SnapshotInsert,
 } from '@/db/sync-db/drizzle-types';
+import type { GetSnapshotResponse, OpLogResponse } from '@/dto/sync-dto';
 import { insertOperationLogMutex } from '@/lib/async-mutex';
 import { addPasskey } from '@/lib/better-auth/auth-client';
 import { LOCAL_STORAGE_KEYS, OPERATION_LOG_VERSION } from '@/lib/constants';
 import {
   arrayBufferToBase64,
+  base64ToUint8Array,
+  decryptWithEK,
   deriveKeyEncryptionKey,
   deserializeEncryptionKey,
+  encryptWithEK,
   serializeEncryptionKey,
+  stringify,
   unwrapEK,
 } from '@/lib/utils/encryption-utils';
-import { getMethod } from '@/repositories/sync-method-mapper';
 import { SyncRepository } from '@/repositories/sync-repository';
+import type { Query } from 'drizzle-orm';
 import { DateTime } from 'luxon';
 import { Service } from './abstract-service';
+import { BackupService, type DumpMetaData } from './backup-service';
+import { getBackupService } from './service-helpers';
 
 export class SyncService extends Service {
   private syncRepository: SyncRepository;
@@ -176,35 +189,6 @@ export class SyncService extends Service {
     });
   }
 
-  public async insertOperationLog(
-    methodName: string,
-    methodHash: string,
-    data: Record<string, unknown>,
-  ): Promise<OperationLogInsert | undefined> {
-    return await insertOperationLogMutex.runExclusive(async () => {
-      const deviceId = localStorage.getItem(LOCAL_STORAGE_KEYS.APP.DEVICE_ID);
-      const appSchemaVersion = localStorage.getItem(LOCAL_STORAGE_KEYS.APP.SCHEMA_VERSION);
-      if (!deviceId) throw new Error('deviceId not found.');
-      if (!appSchemaVersion) throw new Error('schemaVersion not found.');
-
-      const nextSeq = await this.getNextSeq(deviceId);
-
-      const insertObj: OperationLogInsert = {
-        version: OPERATION_LOG_VERSION,
-        schemaVersion: appSchemaVersion,
-        deviceId: deviceId.replace(/\s+/g, ''),
-        sequence: nextSeq,
-        method: methodName,
-        methodHash,
-        opData: data,
-      };
-
-      const res = await this.syncRepository.insertOperationLog(insertObj);
-
-      return res;
-    });
-  }
-
   public async registerPasskey() {
     const { publicKey, id: passkeyId, userId } = await addPasskey();
     const { prf, credentialId } = await this.generatePRF();
@@ -230,8 +214,7 @@ export class SyncService extends Service {
 
   public async getNextSeq(deviceId: string) {
     const currentMaxSeq = (await this.syncRepository.getMaxSeq(deviceId))?.value;
-    const one = BigInt(1);
-    return !currentMaxSeq ? one : currentMaxSeq + one;
+    return !currentMaxSeq ? 1 : currentMaxSeq + 1;
   }
 
   public async getAllSnapshots() {
@@ -242,7 +225,15 @@ export class SyncService extends Service {
     return this.syncRepository.getLatestSnapshot();
   }
 
-  public async insertSnapshot(data: SnapshotInsert) {
+  public async getUploadableSnapshots() {
+    return this.syncRepository.getUploadableSnapshots();
+  }
+
+  public async hasSnapshot() {
+    return this.syncRepository.hasSnapshot();
+  }
+
+  public async insertSnapshot(data: SnapshotInsert, isUploaded: boolean = false) {
     const res = await this.syncRepository.withTx(async (tx) => {
       try {
         const syncRepo = new SyncRepository(tx);
@@ -251,7 +242,7 @@ export class SyncService extends Service {
 
         const syncStatus = await syncRepo.insertSnapshotSyncStatus({
           snapshotId: snapshot.id,
-          isUploaded: false,
+          isUploaded,
         });
 
         return {
@@ -267,21 +258,143 @@ export class SyncService extends Service {
     return res;
   }
 
-  public async insertSnapshotSyncStatus(snapshotId: string) {
-    return await this.syncRepository.insertSnapshotSyncStatus({
+  public async updateSnapshotStatus(snapshotId: string, isUploaded: boolean, receiveAt: string) {
+    return await this.syncRepository.updateSnapshotSyncStatus(
       snapshotId,
-      isUploaded: false,
+      isUploaded,
+      new Date(receiveAt),
+    );
+  }
+
+  public async insertOpLog(query: Query): Promise<OpLogInsert | undefined> {
+    return await insertOperationLogMutex.runExclusive(async () => {
+      const deviceId = localStorage.getItem(LOCAL_STORAGE_KEYS.APP.DEVICE_ID);
+      const appSchemaVersion = localStorage.getItem(LOCAL_STORAGE_KEYS.APP.SCHEMA_VERSION);
+      if (!deviceId) throw new Error('deviceId not found.');
+      if (!appSchemaVersion) throw new Error('schemaVersion not found.');
+
+      const nextSeq = await this.getNextSeq(deviceId);
+
+      const res = await this.syncRepository.withTx(async (tx) => {
+        const repo = new SyncRepository(tx);
+        try {
+          const opLog = await repo.insertOpLog({
+            version: OPERATION_LOG_VERSION,
+            schemaVersion: appSchemaVersion,
+            deviceId: deviceId.replace(/\s+/g, ''),
+            sequence: nextSeq,
+            data: query,
+          });
+
+          if (!opLog) throw new Error('Result of insertOpLog is undefined');
+
+          const syncStatus = await repo.insertOpLogSyncStatus({
+            logId: opLog.id,
+            isUploaded: false,
+          });
+
+          return {
+            ...opLog,
+            syncStatus,
+          };
+        } catch (err) {
+          console.error(err);
+          tx.rollback();
+        }
+      });
+
+      return res;
     });
   }
 
-  public async hasSnapshot() {
-    return this.syncRepository.hasSnapshot();
+  public async updateOpLogStatus(logId: string, isUploaded: boolean, receiveAt: string) {
+    return await this.syncRepository.updateOpLogSyncStatus(logId, isUploaded, new Date(receiveAt));
   }
 
-  public async syncDataFromServer({ method: _method, opData }: OperationLogSelect) {
-    const { method, repository } = await getMethod(_method);
-    const res = await method.apply(repository, [opData]);
-    return res;
+  public async getUploadableOpLogs() {
+    return this.syncRepository.getUploadableOpLogs();
+  }
+
+  public async syncFromScratch(): Promise<{ status: 'success' | 'fail'; message: string }> {
+    const ek = await this.getValidEncryptionKey(true);
+    if (!ek) throw new Error('Retrieving an encryption key failed.');
+
+    const deviceId = localStorage.getItem(LOCAL_STORAGE_KEYS.APP.DEVICE_ID);
+    if (!deviceId) throw new Error('deviceId is undefined in local storage');
+
+    const snapshotRes = await this.getLatestSnapshotFromServer();
+
+    switch (snapshotRes.statusCode) {
+      case 200: {
+        const { dump, meta, iv: ivBase64, schemaVersion } = snapshotRes.data;
+        const iv = base64ToUint8Array(ivBase64);
+
+        const decryptedDump = await decryptWithEK(dump, iv, ek);
+        const decryptedMeta: DumpMetaData = JSON.parse(await decryptWithEK(meta, iv, ek));
+
+        const decompressedDump = decryptedMeta.compressed
+          ? BackupService.decompressGzipBase64(decryptedDump)
+          : decryptedDump;
+        decryptedMeta.compressed = false;
+
+        const insertedSnapshot = await this.insertSnapshot(
+          {
+            schemaVersion,
+            type: 'autosave',
+            meta: decryptedMeta,
+            dump: decompressedDump,
+            deviceId,
+          },
+          true,
+        );
+
+        const backupService = await getBackupService();
+        const restoreRes = await backupService.restoreDB(
+          {
+            metaData: decryptedMeta,
+            dump: decompressedDump,
+          },
+          false,
+        );
+
+        const opLogs = await this.getOpLogsAfterSnapshotDate(snapshotRes);
+        const opLogRestoreRes = await this.insertFetchedOpLogs(opLogs);
+
+        return {
+          status: 'success',
+          message: 'Syncing database from the cloud success.',
+        };
+      }
+      case 404: {
+        console.warn('Snapshot data not found in the server.');
+      }
+      default: {
+        return {
+          status: 'fail',
+          message: 'Sync failed. StatusCode: ${snapshot.statusCode}. Reroute to ?syncSignIn=false.',
+        };
+      }
+    }
+  }
+
+  public async encryptData(data: unknown, iv: Uint8Array<ArrayBuffer>) {
+    const stringified = stringify(data);
+    const ek = await this.getValidEncryptionKey(false);
+    if (!ek)
+      throw new Error(
+        'Cannot find valid encryption key. It requires a passkey authentication by the user',
+      );
+
+    return await encryptWithEK(stringified, ek, iv);
+  }
+
+  public async decryptData(data: string, iv: Uint8Array<ArrayBuffer>) {
+    const ek = await this.getValidEncryptionKey(false);
+    if (!ek)
+      throw new Error(
+        'Cannot find valid encryption key. It requires a passkey authentication by the user',
+      );
+    return await decryptWithEK(data, iv, ek);
   }
 
   private async insertWrappedKeyToSyncDB(passkeyId: string, wrappedKey: string, prfSalt: string) {
@@ -333,5 +446,29 @@ export class SyncService extends Service {
       ekKey, // CryptoKey for encryption
       wrappedEK, // ArrayBuffer
     };
+  }
+
+  private async insertFetchedOpLogs(opLogRes: OpLogResponse) {
+    opLogRes.data.sort((a, b) => a.sequence - b.sequence);
+
+    const res = [];
+    for (const { data, iv: ivBase64 } of opLogRes.data) {
+      const iv = base64ToUint8Array(ivBase64);
+      const decryptedData = await this.decryptData(data, iv);
+      const { sql, params }: Query = JSON.parse(decryptedData);
+      const drizzle = appDrizzle(await PGliteAppWorker.getInstance());
+      const queryRes = await drizzle.$client.query(sql, params);
+      res.push(queryRes);
+    }
+    return res;
+  }
+
+  private async getLatestSnapshotFromServer() {
+    return fetchLatestSnapshot();
+  }
+
+  private async getOpLogsAfterSnapshotDate(snapshotRes: GetSnapshotResponse) {
+    const date = new Date(snapshotRes.data.createAt);
+    return fetchOpLogsAfterDate(date);
   }
 }

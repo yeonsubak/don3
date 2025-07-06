@@ -8,6 +8,15 @@ CREATE TYPE "public"."algorithm_enum" AS ENUM('AES-GCM', 'AES-KW', 'RSA');--> st
 CREATE TYPE "public"."encrypt_key_registry_type_enum" AS ENUM('symmetric', 'asymmetric');--> statement-breakpoint
 CREATE TYPE "public"."encrypt_key_type_enum" AS ENUM('single', 'private', 'public');--> statement-breakpoint
 CREATE TYPE "public"."snapshot_type_enum" AS ENUM('autosave', 'user');--> statement-breakpoint
+CREATE TABLE "sync"."device_sync_sequences" (
+	"id" uuid PRIMARY KEY DEFAULT uuid_generate_v4() NOT NULL,
+	"device_id" uuid NOT NULL,
+	"sequence" bigint NOT NULL,
+	"create_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"update_at" timestamp with time zone,
+	CONSTRAINT "device_sync_sequences_unq_device_id" UNIQUE("device_id")
+);
+--> statement-breakpoint
 CREATE TABLE "sync"."encrypt_key_registry" (
 	"id" uuid PRIMARY KEY DEFAULT uuid_generate_v4() NOT NULL,
 	"type" "encrypt_key_registry_type_enum" NOT NULL,
@@ -35,7 +44,7 @@ CREATE TABLE "config"."information" (
 	CONSTRAINT "information_unq_name" UNIQUE("name")
 );
 --> statement-breakpoint
-CREATE TABLE "sync"."operation_log_sync_status" (
+CREATE TABLE "sync"."op_log_sync_status" (
 	"id" uuid PRIMARY KEY DEFAULT uuid_generate_v4() NOT NULL,
 	"log_id" uuid NOT NULL,
 	"is_uploaded" boolean DEFAULT false NOT NULL,
@@ -44,18 +53,16 @@ CREATE TABLE "sync"."operation_log_sync_status" (
 	"update_at" timestamp with time zone
 );
 --> statement-breakpoint
-CREATE TABLE "sync"."operation_logs" (
+CREATE TABLE "sync"."op_logs" (
 	"id" uuid PRIMARY KEY DEFAULT uuid_generate_v4() NOT NULL,
 	"version" varchar(255) NOT NULL,
 	"schema_version" varchar(255) NOT NULL,
 	"device_id" uuid NOT NULL,
 	"sequence" bigint NOT NULL,
-	"method" varchar(255) NOT NULL,
-	"method_hash" text NOT NULL,
-	"op_data" jsonb NOT NULL,
+	"data" jsonb NOT NULL,
 	"create_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"update_at" timestamp with time zone,
-	CONSTRAINT "operation_log_unq_device_id_sequence" UNIQUE("device_id","sequence")
+	CONSTRAINT "op_logs_unq_device_id_sequence" UNIQUE("device_id","sequence")
 );
 --> statement-breakpoint
 CREATE TABLE "sync"."snapshot_sync_status" (
@@ -71,13 +78,14 @@ CREATE TABLE "sync"."snapshots" (
 	"id" uuid PRIMARY KEY DEFAULT uuid_generate_v4() NOT NULL,
 	"type" "snapshot_type_enum" NOT NULL,
 	"schema_version" varchar(255) NOT NULL,
+	"device_id" uuid NOT NULL,
 	"meta" jsonb NOT NULL,
 	"dump" text NOT NULL,
 	"create_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"update_at" timestamp with time zone
 );
 --> statement-breakpoint
-CREATE TABLE "sync"."tempKeyStore" (
+CREATE TABLE "sync"."temp_key_store" (
 	"id" uuid PRIMARY KEY DEFAULT uuid_generate_v4() NOT NULL,
 	"serialized_key" text NOT NULL,
 	"expire_at" timestamp with time zone NOT NULL,
@@ -86,7 +94,7 @@ CREATE TABLE "sync"."tempKeyStore" (
 );
 --> statement-breakpoint
 ALTER TABLE "sync"."encrypt_keys" ADD CONSTRAINT "encrypt_keys_registry_id_encrypt_key_registry_id_fk" FOREIGN KEY ("registry_id") REFERENCES "sync"."encrypt_key_registry"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
-ALTER TABLE "sync"."operation_log_sync_status" ADD CONSTRAINT "operation_log_sync_status_log_id_operation_logs_id_fk" FOREIGN KEY ("log_id") REFERENCES "sync"."operation_logs"("id") ON DELETE no action ON UPDATE cascade;--> statement-breakpoint
+ALTER TABLE "sync"."op_log_sync_status" ADD CONSTRAINT "op_log_sync_status_log_id_op_logs_id_fk" FOREIGN KEY ("log_id") REFERENCES "sync"."op_logs"("id") ON DELETE no action ON UPDATE cascade;--> statement-breakpoint
 ALTER TABLE "sync"."snapshot_sync_status" ADD CONSTRAINT "snapshot_sync_status_snapshot_id_snapshots_id_fk" FOREIGN KEY ("snapshot_id") REFERENCES "sync"."snapshots"("id") ON DELETE no action ON UPDATE cascade;--> statement-breakpoint
 CREATE INDEX "information_idx_name_value" ON "config"."information" USING btree ("name","value");--> statement-breakpoint
-CREATE INDEX "temp_key_store_idx_expire_at" ON "sync"."tempKeyStore" USING btree ("expire_at" DESC NULLS LAST);
+CREATE INDEX "temp_key_store_idx_expire_at" ON "sync"."temp_key_store" USING btree ("expire_at" DESC NULLS LAST);

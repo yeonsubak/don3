@@ -14,7 +14,7 @@ import { DATASET_ACCOUNTS } from '../dataset/accounts';
 import { DATASET_COUNTRY } from '../dataset/country';
 import { DATASET_CURRENCY_FIAT } from '../dataset/currency';
 import { getLatestSchemaVersion } from '../db-helper';
-import { DBInitializer, type InitializationOptions } from '../db-initializer';
+import { DBInitializer } from '../db-initializer';
 import { PGliteAppWorker } from '../pglite/pglite-app-worker';
 
 export class AppDBInitializer extends DBInitializer {
@@ -41,8 +41,8 @@ export class AppDBInitializer extends DBInitializer {
     return AppDBInitializer.instance;
   }
 
-  public async initialize({ isDBReady = false }: InitializationOptions) {
-    if (!(await this.validateSchemaVersion(isDBReady))) {
+  public async initialize() {
+    if (!(await this.validateSchemaVersion())) {
       await this.syncSchema();
     }
 
@@ -50,9 +50,9 @@ export class AppDBInitializer extends DBInitializer {
       await this.syncDataset();
     }
 
-    const missingDefaultConfigKeys = await this.getMissingDefaultConfig();
-    if (missingDefaultConfigKeys.length > 0) {
-      await this.insertDefaultConfig(missingDefaultConfigKeys);
+    const missingConfigKeys = await this.getMissingConfig([...schema.USER_CONFIG_KEYS]);
+    if (missingConfigKeys.length > 0) {
+      await this.insertMissingConfig(missingConfigKeys);
     }
 
     if (!(await this.hasAccounts())) {
@@ -65,32 +65,33 @@ export class AppDBInitializer extends DBInitializer {
       await this.createFirstSnapshot();
     }
 
-    window.localStorage.setItem(LOCAL_STORAGE_KEYS.APP.SYNC_TIMESTAMP, `${Date.now()}`);
+    localStorage.setItem(LOCAL_STORAGE_KEYS.APP.SYNC_TIMESTAMP, `${Date.now()}`);
     this.isInitialized = true;
   }
 
-  protected async validateSchemaVersion(isDBReady: boolean) {
+  protected async validateSchemaVersion() {
     const latestVersion = getLatestSchemaVersion(APP_SCHEMA_VERSION);
-    const localStorageVersion = window.localStorage.getItem(LOCAL_STORAGE_KEYS.APP.SCHEMA_VERSION);
+    const localStorageVersion = localStorage.getItem(LOCAL_STORAGE_KEYS.APP.SCHEMA_VERSION);
 
-    if (localStorageVersion || !isDBReady) {
+    if (localStorageVersion) {
       return localStorageVersion === latestVersion;
     }
 
-    const dbVersion = (
-      await this.db.query.information.findFirst({
-        where: ({ name }, { eq }) => eq(name, 'schemaVersion'),
-      })
-    )?.value;
-
-    if (dbVersion) {
-      window.localStorage.setItem(LOCAL_STORAGE_KEYS.APP.SCHEMA_VERSION, dbVersion);
+    const isDBReady = await this.isDBReady();
+    if (!isDBReady) {
+      return false;
     }
+
+    const dbVersion = await this.getDBVersion();
+    if (dbVersion) {
+      localStorage.setItem(LOCAL_STORAGE_KEYS.APP.SCHEMA_VERSION, dbVersion);
+    }
+
     return dbVersion === latestVersion;
   }
 
   protected async syncSchema() {
-    const currentVersion = window.localStorage.getItem(LOCAL_STORAGE_KEYS.APP.SCHEMA_VERSION);
+    const currentVersion = localStorage.getItem(LOCAL_STORAGE_KEYS.APP.SCHEMA_VERSION);
     const nextVersion = currentVersion
       ? APP_SCHEMA_VERSION[currentVersion]?.nextVersion
       : LATEST_CLEAN_VERSION.version;
@@ -99,7 +100,7 @@ export class AppDBInitializer extends DBInitializer {
     const updateSchema = async (nextVersion: string | undefined | null): Promise<void> => {
       if (!nextVersion) return;
 
-      const currentVersion = window.localStorage.getItem(LOCAL_STORAGE_KEYS.APP.SCHEMA_VERSION);
+      const currentVersion = localStorage.getItem(LOCAL_STORAGE_KEYS.APP.SCHEMA_VERSION);
       if (currentVersion === latestVersion) return;
 
       const res = await getSchemaDefinition('app', nextVersion);
@@ -140,7 +141,7 @@ export class AppDBInitializer extends DBInitializer {
 
       const storedVersion = version.requireMigration ? version.nextVersion! : version.version;
 
-      window.localStorage.setItem(LOCAL_STORAGE_KEYS.APP.SCHEMA_VERSION, storedVersion);
+      localStorage.setItem(LOCAL_STORAGE_KEYS.APP.SCHEMA_VERSION, storedVersion);
 
       console.log(`Synchronized app db to ${storedVersion}`);
 
@@ -152,7 +153,7 @@ export class AppDBInitializer extends DBInitializer {
 
   private async validateDataset() {
     const latestVersion = '0.0.1';
-    const localStorageVersion = window.localStorage.getItem(LOCAL_STORAGE_KEYS.APP.DATASET_VERSION);
+    const localStorageVersion = localStorage.getItem(LOCAL_STORAGE_KEYS.APP.DATASET_VERSION);
 
     if (localStorageVersion) {
       return localStorageVersion === latestVersion;
@@ -165,7 +166,7 @@ export class AppDBInitializer extends DBInitializer {
     )?.value;
 
     if (dbVersion) {
-      window.localStorage.setItem(LOCAL_STORAGE_KEYS.APP.SCHEMA_VERSION, dbVersion);
+      localStorage.setItem(LOCAL_STORAGE_KEYS.APP.SCHEMA_VERSION, dbVersion);
     }
     return dbVersion === latestVersion;
   }
@@ -188,25 +189,13 @@ export class AppDBInitializer extends DBInitializer {
         set: { value: '0.0.1' },
       });
 
-    window.localStorage.setItem(LOCAL_STORAGE_KEYS.APP.DATASET_VERSION, version);
+    localStorage.setItem(LOCAL_STORAGE_KEYS.APP.DATASET_VERSION, version);
     console.log(
-      `Synchronized the local dataset to ${window.localStorage.getItem(LOCAL_STORAGE_KEYS.APP.DATASET_VERSION)}`,
+      `Synchronized the local dataset to ${localStorage.getItem(LOCAL_STORAGE_KEYS.APP.DATASET_VERSION)}`,
     );
   }
 
-  private async getMissingDefaultConfig() {
-    const storedKeys = (
-      await this.db
-        .select({
-          key: schema.information.name,
-        })
-        .from(schema.information)
-    )?.map((e) => e.key);
-
-    return schema.USER_CONFIG_KEYS.filter((key) => !storedKeys?.includes(key));
-  }
-
-  private async insertDefaultConfig(missingKeys: UserConfigKey[]) {
+  protected async insertMissingConfig(missingKeys: UserConfigKey[]): Promise<void> {
     for (const key of missingKeys) {
       switch (key) {
         case 'defaultCountry': {
@@ -231,19 +220,6 @@ export class AppDBInitializer extends DBInitializer {
             .values({ name: key, value: 'en' })
             .onConflictDoNothing();
           break;
-        }
-        case 'deviceId': {
-          const deviceId = crypto.randomUUID();
-
-          await this.db
-            .insert(schema.information)
-            .values({
-              name: key,
-              value: deviceId,
-            })
-            .onConflictDoNothing();
-
-          localStorage.setItem(LOCAL_STORAGE_KEYS.APP.DEVICE_ID, deviceId);
         }
       }
     }
@@ -312,11 +288,36 @@ export class AppDBInitializer extends DBInitializer {
 
     const { dump, metaData } = await backupService.createBackup();
 
+    const deviceId = localStorage.getItem(LOCAL_STORAGE_KEYS.APP.DEVICE_ID);
+    if (!deviceId) throw new Error('deviceId is undefined in local storage');
+
     await this.syncService.insertSnapshot({
       type: 'autosave',
       schemaVersion: metaData.schemaVersion,
       meta: metaData,
+      deviceId,
       dump,
     });
+  }
+
+  private async isDBReady() {
+    try {
+      const cnt = await this.db.$count(schema.information);
+      return cnt > 0;
+    } catch (err) {
+      return false;
+    }
+  }
+
+  private async getDBVersion() {
+    try {
+      const res = await this.db.query.information.findFirst({
+        where: ({ name }, { eq }) => eq(name, 'schemaVersion'),
+      });
+
+      return res?.value;
+    } catch (err) {
+      console.error(err);
+    }
   }
 }

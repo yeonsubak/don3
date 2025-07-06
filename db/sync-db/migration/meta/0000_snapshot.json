@@ -1,9 +1,62 @@
 {
-  "id": "af0c429a-1261-40c8-8c42-1ff6e789b3b0",
+  "id": "8868d351-8ec3-44b5-bb6d-66aa8d8dbaf8",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
+    "sync.device_sync_sequences": {
+      "name": "device_sync_sequences",
+      "schema": "sync",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuid_generate_v4()"
+        },
+        "device_id": {
+          "name": "device_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sequence": {
+          "name": "sequence",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "create_at": {
+          "name": "create_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "update_at": {
+          "name": "update_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "device_sync_sequences_unq_device_id": {
+          "name": "device_sync_sequences_unq_device_id",
+          "nullsNotDistinct": false,
+          "columns": [
+            "device_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "sync.encrypt_key_registry": {
       "name": "encrypt_key_registry",
       "schema": "sync",
@@ -198,8 +251,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "sync.operation_log_sync_status": {
-      "name": "operation_log_sync_status",
+    "sync.op_log_sync_status": {
+      "name": "op_log_sync_status",
       "schema": "sync",
       "columns": {
         "id": {
@@ -244,10 +297,10 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "operation_log_sync_status_log_id_operation_logs_id_fk": {
-          "name": "operation_log_sync_status_log_id_operation_logs_id_fk",
-          "tableFrom": "operation_log_sync_status",
-          "tableTo": "operation_logs",
+        "op_log_sync_status_log_id_op_logs_id_fk": {
+          "name": "op_log_sync_status_log_id_op_logs_id_fk",
+          "tableFrom": "op_log_sync_status",
+          "tableTo": "op_logs",
           "schemaTo": "sync",
           "columnsFrom": [
             "log_id"
@@ -265,8 +318,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "sync.operation_logs": {
-      "name": "operation_logs",
+    "sync.op_logs": {
+      "name": "op_logs",
       "schema": "sync",
       "columns": {
         "id": {
@@ -300,20 +353,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "method": {
-          "name": "method",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "method_hash": {
-          "name": "method_hash",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "op_data": {
-          "name": "op_data",
+        "data": {
+          "name": "data",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": true
@@ -336,8 +377,8 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "operation_log_unq_device_id_sequence": {
-          "name": "operation_log_unq_device_id_sequence",
+        "op_logs_unq_device_id_sequence": {
+          "name": "op_logs_unq_device_id_sequence",
           "nullsNotDistinct": false,
           "columns": [
             "device_id",
@@ -440,6 +481,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "device_id": {
+          "name": "device_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
         "meta": {
           "name": "meta",
           "type": "jsonb",
@@ -474,8 +521,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "sync.tempKeyStore": {
-      "name": "tempKeyStore",
+    "sync.temp_key_store": {
+      "name": "temp_key_store",
       "schema": "sync",
       "columns": {
         "id": {

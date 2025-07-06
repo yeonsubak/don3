@@ -205,6 +205,7 @@ export const snapshots = syncSchema.table(
   'snapshots',
   {
     id: uuid().primaryKey().notNull().defaultRandom(),
+    localId: uuid().notNull(),
     userId: text()
       .notNull()
       .references(() => user.id),
@@ -213,47 +214,45 @@ export const snapshots = syncSchema.table(
     dump: text().notNull(),
     meta: text().notNull(),
     iv: text().notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true })
+    createAt: timestamp('create_at', { withTimezone: true })
       .$defaultFn(() => /* @__PURE__ */ new Date())
       .notNull(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).$defaultFn(
+    updateAt: timestamp('update_at', { withTimezone: true }).$defaultFn(
       () => /* @__PURE__ */ new Date(),
     ),
   },
   (t) => [
     index('snapshots_idx_user_id_device_id').on(t.userId, t.deviceId),
-    index('snapshots_idx_create_at_user_id_device_id').on(t.createdAt.desc(), t.userId, t.deviceId),
+    index('snapshots_idx_create_at_user_id_device_id').on(t.createAt.desc(), t.userId, t.deviceId),
+    unique('snapshots_unq_local_id_user_id_device_id').on(t.localId, t.userId, t.deviceId),
   ],
 );
 
-export const operationLogs = syncSchema.table(
-  'operation_logs',
+export const opLogs = syncSchema.table(
+  'op_logs',
   {
     id: uuid().primaryKey().notNull().defaultRandom(),
+    localId: uuid().notNull(),
     userId: text()
       .notNull()
       .references(() => user.id),
     deviceId: uuid().notNull(),
     version: varchar({ length: 255 }).notNull(),
     schemaVersion: varchar({ length: 255 }).notNull(),
-    sequence: bigint({ mode: 'bigint' }).notNull(),
-    method: varchar({ length: 255 }).notNull(),
-    methodHash: text().notNull(),
-    opData: text().notNull(),
+    sequence: bigint({ mode: 'number' }).notNull(),
+    data: text().notNull(),
     iv: text().notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true })
+    createAt: timestamp('create_at', { withTimezone: true })
       .$defaultFn(() => /* @__PURE__ */ new Date())
       .notNull(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).$defaultFn(
+    updateAt: timestamp('update_at', { withTimezone: true }).$defaultFn(
       () => /* @__PURE__ */ new Date(),
     ),
   },
   (t) => [
-    index('operation_logs_idx_user_id_device_id').on(t.userId, t.deviceId),
-    index('operation_logs_idx_create_at_user_id_device_id').on(
-      t.createdAt.desc(),
-      t.userId,
-      t.deviceId,
-    ),
+    index('op_logs_idx_user_id_device_id').on(t.userId, t.deviceId),
+    index('op_logs_idx_create_at_user_id_device_id').on(t.createAt.desc(), t.userId, t.deviceId),
+    unique('op_logs_unq_user_id_device_id_seq').on(t.userId, t.deviceId, t.sequence),
+    unique('op_logs_unq_local_id_user_id_device_id').on(t.localId, t.userId, t.deviceId),
   ],
 );

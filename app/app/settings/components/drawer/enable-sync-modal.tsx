@@ -1,60 +1,51 @@
 import { GoogleSignInButton } from '@/components/buttons/google-sign-in-button';
-import { signInWithGoogle, useSession, type Session } from '@/lib/better-auth/auth-client';
-import { QUERIES } from '@/lib/tanstack-queries';
-import { useQuery } from '@tanstack/react-query';
-import { useMemo } from 'react';
-import { useSettingsDrawerContext } from '../../settings-drawer-context';
-import { PasskeyActivateButton } from './passkey-manager';
-
-const SignInButton = ({ session, isPending }: Session) => {
-  const { data: username } = useQuery({
-    enabled: !!session?.user.email,
-    ...QUERIES.sync.refreshUsername(session?.user.email),
-  });
-
-  const label = useMemo(() => {
-    if (isPending) return 'Checking sign-in status...';
-    if (session) return `Signed in as ${session?.user.email}`;
-    return undefined;
-  }, [isPending, session]);
-
-  return (
-    <GoogleSignInButton
-      label={label}
-      disabled={isPending || !!session}
-      onClick={!isPending && !session ? signInWithGoogle : undefined}
-    />
-  );
-};
+import { PasskeyActivateButton } from '@/components/buttons/passkey-activate-button';
+import { useSession } from '@/lib/better-auth/auth-client';
+import { APP_DB_NAME, LOCAL_STORAGE_KEYS } from '@/lib/constants';
+import { getBackupService } from '@/services/service-helpers';
+import { useQueryClient } from '@tanstack/react-query';
+import { usePathname, useRouter } from 'next/navigation';
 
 export const EnableSyncModal = () => {
-  const { setIsProcessing, onClose } = useSettingsDrawerContext();
+  // const { setIsProcessing, onClose } = useSettingsDrawerContext();
   const session = useSession();
-  const { data: fetchedPasskeys, isPending } = useQuery({
-    enabled: !session.isPending && !!session.session,
-    ...QUERIES.sync.listPasskeys(),
-  });
-  const hasPasskey = useMemo(
-    () => (fetchedPasskeys?.data?.length ?? 0) > 0,
-    [fetchedPasskeys?.data?.length],
-  );
+  const queryClient = useQueryClient();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  async function syncPostHook() {
+    const deviceId = localStorage.getItem(LOCAL_STORAGE_KEYS.APP.DEVICE_ID);
+    if (!deviceId) throw new Error('deviceId is undefined in local storage');
+    const backupService = await getBackupService();
+    const { status, meta } = await backupService.migrateDB(APP_DB_NAME(session.user?.id));
+    router.refresh();
+  }
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex flex-col gap-1">
-        <h2 className="font-semibold">Step 1: Sign in</h2>
-        <p>Click the button below to sign in to the app.</p>
-        <SignInButton {...session} />
-      </div>
+    <>
       <div className="flex flex-col gap-2">
-        <h2 className="font-semibold">Step 2: Authenticate via Passkey</h2>
-        <p>
-          {
-            'Once you tap the button below, the Passkey prompt will appear. Follow the instructions to create a Passkey if you don’t have one, or complete authentication using your existing Passkey.'
-          }
-        </p>
-        <PasskeyActivateButton hasPasskey={hasPasskey} isPendingPasskey={isPending} />
+        <div className="flex flex-col gap-1">
+          <h2 className="font-semibold">Step 1: Sign in</h2>
+          <p>Click the button below to sign in to the app.</p>
+          <GoogleSignInButton
+            session={session}
+            callbackPath={`${pathname}/?drawerMode=sync&isOpen=true`}
+          />
+        </div>
+        <div className="flex flex-col gap-2">
+          <h2 className="font-semibold">Step 2: Authenticate via Passkey</h2>
+          <p>
+            {
+              "Once you tap the button below, the Passkey prompt will appear. Follow the instructions to create a Passkey if you don't have one, or complete authentication using your existing Passkey."
+            }
+          </p>
+          <PasskeyActivateButton
+            session={session}
+            queryClient={queryClient}
+            postHook={syncPostHook}
+          />
+        </div>
       </div>
-    </div>
+    </>
   );
 };

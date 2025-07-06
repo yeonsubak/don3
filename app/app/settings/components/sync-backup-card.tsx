@@ -13,6 +13,7 @@ import { getBackupService, getSyncService } from '@/services/service-helpers';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { useSettingsDrawerContext } from '../settings-drawer-context';
+import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
 
 const SyncSelect = () => {
   const [value, setValue] = useState<string>('disabled');
@@ -49,6 +50,9 @@ export const SyncBackupCard = () => {
       return;
     }
 
+    const deviceId = localStorage.getItem(LOCAL_STORAGE_KEYS.APP.DEVICE_ID);
+    if (!deviceId) throw new Error('deviceId is undefined in local storage');
+
     const backupService = await getBackupService();
     const syncService = await getSyncService();
 
@@ -60,6 +64,7 @@ export const SyncBackupCard = () => {
       schemaVersion: metaData.schemaVersion,
       meta: metaData,
       dump,
+      deviceId,
     });
 
     const { fileName, url } = await backupService.exportToZip(dump, metaData, baseFileName);

@@ -22,4 +22,8 @@ describe('BackupService', { timeout: 1000 }, () => {
       expect(decompressed).toBe(testString);
     });
   });
+
+  describe('compressGzipBase64()', () => {
+    test('', async () => {});
+  });
 });
