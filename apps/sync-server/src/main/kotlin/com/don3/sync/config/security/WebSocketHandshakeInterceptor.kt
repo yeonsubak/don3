@@ -29,6 +29,7 @@ class WebSocketHandshakeInterceptor(
         val user = session?.user ?: return false
 
         attributes["user"] = user // Store authenticated user in WebSocket session attributes
+        attributes["userId"] = user.id.toString()
         return true
     }
 

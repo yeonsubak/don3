@@ -13,18 +13,26 @@ import org.springframework.web.socket.config.annotation.WebSocketTransportRegist
 @Configuration
 @EnableWebSocketMessageBroker
 class WebSocketConfig(
-    private val authenticationService: AuthenticationService
+    private val authenticationService: AuthenticationService,
+    private val corsProperties: CorsProperties
 ) : WebSocketMessageBrokerConfigurer {
 
+    companion object {
+        val TOPIC_PREFIX = arrayOf("/topic", "/queue")
+        const val APPLICATION_DESTINATION_PREFIX = "/app"
+        const val USER_DESTINATION_PREFIX = "/user"
+        const val WEBSOCKET_ENDPOINT = "/ws"
+    }
+
     override fun configureMessageBroker(registry: MessageBrokerRegistry) {
-        registry.enableSimpleBroker("/topic")
-        registry.setApplicationDestinationPrefixes("/app")
-        registry.setUserDestinationPrefix("/user")
+        registry.enableSimpleBroker(*TOPIC_PREFIX)
+        registry.setApplicationDestinationPrefixes(APPLICATION_DESTINATION_PREFIX)
+        registry.setUserDestinationPrefix(USER_DESTINATION_PREFIX)
     }
 
     override fun registerStompEndpoints(registry: StompEndpointRegistry) {
-        registry.addEndpoint("/ws")
-            .setAllowedOriginPatterns("*")
+        registry.addEndpoint(WEBSOCKET_ENDPOINT)
+            .setAllowedOriginPatterns(*corsProperties.allowedOrigins.toTypedArray())
             .setHandshakeHandler(WebSocketHandshakeHandler())
             .addInterceptors(WebSocketHandshakeInterceptor(authenticationService))
     }

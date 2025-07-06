@@ -12,24 +12,30 @@ import java.util.*
 @Entity
 @EntityListeners(AuditingEntityListener::class)
 @Table(
-    name = "snapshots", schema = "sync", indexes = [
-        Index(name = "snapshots_idx_user_id_device_id", columnList = "user_id, device_id"),
-        Index(name = "snapshots_idx_create_at_user_id_device_id", columnList = "create_at, user_id, device_id")
+    name = "op_logs",
+    schema = "sync",
+    indexes = [
+        Index(name = "op_logs_idx_user_id_device_id", columnList = "user_id, device_id"),
+        Index(name = "op_logs_idx_create_at_user_id_device_id", columnList = "create_at, user_id, device_id")
     ],
     uniqueConstraints = [
         UniqueConstraint(
-            columnNames = ["local_id", "user_id", "device_id"],
-            name = "snapshots_unq_local_id_user_id_device_id"
+            columnNames = ["user_id", "device_id", "sequence"],
+            name = "op_logs_unq_user_id_device_id_seq"
         ),
+        UniqueConstraint(
+            columnNames = ["local_id", "user_id", "device_id"],
+            name = "op_logs_unq_local_id_user_id_device_id"
+        )
     ]
 )
-class Snapshot {
+class OpLog {
     @Id
     @ColumnDefault("gen_random_uuid()")
     @Column(name = "id", nullable = false)
     var id: UUID? = null
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     var user: User? = null
 
@@ -39,14 +45,17 @@ class Snapshot {
     @Column(name = "local_id", nullable = false)
     var localId: UUID? = null
 
+    @Column(name = "version", nullable = false)
+    var version: String? = null
+
     @Column(name = "schema_version", nullable = false)
     var schemaVersion: String? = null
 
-    @Column(name = "dump", nullable = false)
-    var dump: String? = null
+    @Column(name = "sequence", nullable = false)
+    var sequence: Long? = null
 
-    @Column(name = "meta", nullable = false)
-    var meta: String? = null
+    @Column(name = "data", nullable = false, length = Integer.MAX_VALUE)
+    var data: String? = null
 
     @Column(name = "iv", nullable = false)
     var iv: String? = null
