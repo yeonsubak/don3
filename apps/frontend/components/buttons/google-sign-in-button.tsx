@@ -1,12 +1,60 @@
 import { Button } from '@/components/ui/button';
-import type { ComponentProps } from 'react';
+import { signInWithGoogle, type Session } from '@/lib/better-auth/auth-client';
+import { useMemo, type ComponentProps } from 'react';
 
-type GoogleSignInButtonProps = ComponentProps<typeof Button> & { label?: string };
+type GoogleSignInButtonProps = {
+  session: Session;
+  callbackPath: string;
+} & ComponentProps<typeof Button>;
 
 export const GoogleSignInButton = ({
-  label = 'Continue with Google',
+  session,
+  callbackPath,
   ...props
-}: GoogleSignInButtonProps) => (
+}: GoogleSignInButtonProps) => {
+  const { session: _session, user, isPending, isExpired } = session;
+
+  const status = useMemo(() => {
+    if (isPending) {
+      return 'pending';
+    }
+
+    if (!isExpired) {
+      return 'valid';
+    }
+
+    return 'invalid';
+  }, [isExpired, isPending]);
+
+  const label = useMemo(() => {
+    switch (status) {
+      case 'pending':
+        return 'Checking sign-in status...';
+      case 'valid':
+        return `Signed in as ${user?.email}`;
+      case 'invalid':
+        return 'Continue with Google';
+    }
+  }, [status, user?.email]);
+
+  async function handleSignIn() {
+    await signInWithGoogle(callbackPath);
+  }
+
+  return (
+    <GoogleSignInButtonPrimitive
+      label={label}
+      onClick={handleSignIn}
+      disabled={status !== 'invalid'}
+      {...props}
+    />
+  );
+};
+
+const GoogleSignInButtonPrimitive = ({
+  label,
+  ...props
+}: ComponentProps<typeof Button> & { label: string }) => (
   <Button variant="outline" className="w-full" {...props}>
     <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
       <path

@@ -1,5 +1,8 @@
 import * as syncSchema from './schema';
 
+export const USER_CONFIG_KEYS = ['schemaVersion', 'datasetVersion', 'deviceId'] as const;
+export type UserConfigKey = (typeof USER_CONFIG_KEYS)[number];
+
 export type SyncSchema = typeof syncSchema;
 
 export type KeyRegistryInsert = typeof syncSchema.encryptKeyRegistry.$inferInsert;
@@ -11,11 +14,11 @@ export type EncryptKeySelect = typeof syncSchema.encryptKeys.$inferSelect;
 export type EncryptKeyType = (typeof syncSchema.encryptKeyTypeEnum.enumValues)[number];
 export type Algorithm = (typeof syncSchema.algorithmEnum.enumValues)[number];
 
-export type OperationLogInsert = typeof syncSchema.operationLogs.$inferInsert;
-export type OperationLogSelect = typeof syncSchema.operationLogs.$inferSelect;
+export type OpLogInsert = typeof syncSchema.opLogs.$inferInsert;
+export type OpLogSelect = typeof syncSchema.opLogs.$inferSelect;
 
-export type OperationLogSyncStatusInsert = typeof syncSchema.operationLogSyncStatus.$inferInsert;
-export type OperationLogSyncStatusSelect = typeof syncSchema.operationLogSyncStatus.$inferSelect;
+export type OpLogSyncStatusInsert = typeof syncSchema.opLogSyncStatus.$inferInsert;
+export type OpLogSyncStatusSelect = typeof syncSchema.opLogSyncStatus.$inferSelect;
 
 export type TempKeyStoreInsert = typeof syncSchema.tempKeyStore.$inferInsert;
 export type TempKeyStoreSelect = typeof syncSchema.tempKeyStore.$inferSelect;

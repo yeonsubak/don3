@@ -114,6 +114,8 @@ export class ConfigService extends Service {
 
   public async upsertUserConfig(key: UserConfigKey, value: string) {
     const result = await this.configRepository.updateUserConfig(key, value);
-    return !!result ? result : await this.configRepository.insertUserConfig(key, value);
+    return result.length > 0
+      ? result.at(0)
+      : (await this.configRepository.insertUserConfig(key, value)).at(0);
   }
 }

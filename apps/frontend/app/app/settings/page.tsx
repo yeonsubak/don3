@@ -1,15 +1,15 @@
 'use client';
 
+import {
+  useSettingsDrawerContext,
+  type SettingsDrawerMode,
+} from '@/app/app/settings/settings-drawer-context';
+import { useSearchParams } from 'next/navigation';
+import { useEffect } from 'react';
 import { DefaultCountryCurrencyCard } from './components/default-country-currency-card';
 import { SettingsDrawer } from './components/drawer';
 import { InformationCard } from './components/information-card';
 import { SyncBackupCard } from './components/sync-backup-card';
-import { useSearchParams } from 'next/navigation';
-import {
-  type SettingsDrawerMode,
-  useSettingsDrawerContext,
-} from '@/app/app/settings/settings-drawer-context';
-import { useEffect } from 'react';
 
 export default function SettingsPage() {
   const { setIsProcessing, onClose, setMode, setOpen } = useSettingsDrawerContext();

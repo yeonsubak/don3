@@ -78,7 +78,7 @@ export const APP_SCHEMA_VERSION: VersionTable = {
   '0.1.3': {
     version: '0.1.3',
     fileName: 'ver-0.1.3.sql',
-    nextVersion: '0.2.0',
+    nextVersion: '0.1.4',
     requireMigration: true,
     requireDumpToUpdate: false,
     createAt: new Date('2025-06-22 14:04:28.918000+00'),

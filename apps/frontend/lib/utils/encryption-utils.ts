@@ -1,6 +1,19 @@
+export function plaintextToBase64(plaintext: string) {
+  const utf8Bytes = new TextEncoder().encode(plaintext);
+  return btoa(String.fromCharCode(...utf8Bytes));
+}
+
+export function base64ToPlaintext(base64: string) {
+  const binary = atob(base64);
+  const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+}
+
 export function uInt8ArrayToBase64(bytes: Uint8Array) {
   let binary = '';
-  for (const b of bytes) binary += String.fromCharCode(b);
+  for (const b of bytes) {
+    binary += String.fromCharCode(b);
+  }
   return btoa(binary);
 }
 
@@ -109,4 +122,17 @@ export async function deserializeEncryptionKey(base64Key: string) {
     'decrypt',
   ]);
   return ekKey;
+}
+
+export function stringify(input: unknown) {
+  switch (typeof input) {
+    case 'object':
+      return JSON.stringify(input);
+    case 'symbol':
+      throw new Error('symbol cannot be stringified.');
+    case 'function':
+      throw new Error('function cannot be stringified.');
+    default:
+      return String(input);
+  }
 }

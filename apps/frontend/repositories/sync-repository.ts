@@ -1,7 +1,8 @@
 import type {
   EncryptKeyInsert,
   KeyRegistryInsert,
-  OperationLogInsert,
+  OpLogInsert,
+  OpLogSyncStatusInsert,
   SnapshotInsert,
   SnapshotSelect,
   SnapshotSyncStatusInsert,
@@ -11,7 +12,8 @@ import type {
 import {
   encryptKeyRegistry,
   encryptKeys,
-  operationLogs,
+  opLogs,
+  opLogSyncStatus,
   snapshots,
   snapshotSyncStatus,
   tempKeyStore,
@@ -30,15 +32,21 @@ export class SyncRepository extends Repository<SyncSchema> {
   }
 
   public async insertKeyRegistry(data: KeyRegistryInsert) {
-    return (await this.db.insert(encryptKeyRegistry).values(data).returning()).at(0);
+    return (
+      await this.db
+        .insert(encryptKeyRegistry)
+        .values({ id: crypto.randomUUID(), ...data })
+        .returning()
+    ).at(0);
   }
 
   public async insertEncryptKey(data: EncryptKeyInsert) {
-    return (await this.db.insert(encryptKeys).values(data).returning()).at(0);
-  }
-
-  public async insertOperationLog(data: OperationLogInsert) {
-    return (await this.db.insert(operationLogs).values(data).returning()).at(0);
+    return (
+      await this.db
+        .insert(encryptKeys)
+        .values({ id: crypto.randomUUID(), ...data })
+        .returning()
+    ).at(0);
   }
 
   public async getValidTempKey(currentDate: Date) {
@@ -49,15 +57,11 @@ export class SyncRepository extends Repository<SyncSchema> {
   }
 
   public async insertTempKey(data: TempKeyStoreInsert) {
-    return (await this.db.insert(tempKeyStore).values(data).returning()).at(0);
-  }
-
-  public async getMaxSeq(deviceId: string) {
     return (
       await this.db
-        .select({ value: max(operationLogs.sequence) })
-        .from(operationLogs)
-        .where(eq(operationLogs.deviceId, deviceId))
+        .insert(tempKeyStore)
+        .values({ id: crypto.randomUUID(), ...data })
+        .returning()
     ).at(0);
   }
 
@@ -78,8 +82,13 @@ export class SyncRepository extends Repository<SyncSchema> {
     });
   }
 
-  public async insertSnapshot(data: SnapshotInsert): Promise<SnapshotSelect | undefined> {
-    return (await this.db.insert(snapshots).values(data).returning()).at(0);
+  public async getUploadableSnapshots() {
+    return this.db.query.snapshotSyncStatus.findMany({
+      where: ({ isUploaded }, { eq }) => eq(isUploaded, false),
+      with: {
+        snapshot: true,
+      },
+    });
   }
 
   public async hasSnapshot(): Promise<boolean> {
@@ -87,19 +96,83 @@ export class SyncRepository extends Repository<SyncSchema> {
     return count > 0;
   }
 
-  public async insertSnapshotSyncStatus(data: SnapshotSyncStatusInsert) {
-    return (await this.db.insert(snapshotSyncStatus).values(data).returning()).at(0);
-  }
-
-  public async updateSyncStatus(data: SnapshotInsert) {
+  public async insertSnapshot(data: SnapshotInsert): Promise<SnapshotSelect | undefined> {
     return (
       await this.db
-        .update(snapshotSyncStatus)
-        .set({
-          ...data,
-          id: undefined,
-        })
+        .insert(snapshots)
+        .values({ id: crypto.randomUUID(), ...data })
         .returning()
+    ).at(0);
+  }
+
+  public async insertSnapshotSyncStatus(data: SnapshotSyncStatusInsert) {
+    return (
+      await this.db
+        .insert(snapshotSyncStatus)
+        .values({ id: crypto.randomUUID(), ...data })
+        .returning()
+    ).at(0);
+  }
+
+  public async updateSnapshotSyncStatus(snapshotId: string, isUploaded: boolean, uploadAt: Date) {
+    const res = await this.db
+      .update(snapshotSyncStatus)
+      .set({
+        isUploaded,
+        uploadAt,
+        updateAt: new Date(),
+      })
+      .where(eq(snapshotSyncStatus.snapshotId, snapshotId))
+      .returning();
+    return res.at(0);
+  }
+
+  public async getUploadableOpLogs() {
+    return this.db.query.opLogSyncStatus.findMany({
+      where: ({ isUploaded }, { eq }) => eq(isUploaded, false),
+      with: {
+        opLog: true,
+      },
+    });
+  }
+
+  public async insertOpLog(data: OpLogInsert) {
+    return (
+      await this.db
+        .insert(opLogs)
+        .values({ id: crypto.randomUUID(), ...data })
+        .returning()
+    ).at(0);
+  }
+
+  public async insertOpLogSyncStatus(data: OpLogSyncStatusInsert) {
+    return (
+      await this.db
+        .insert(opLogSyncStatus)
+        .values({ id: crypto.randomUUID(), ...data })
+        .returning()
+    ).at(0);
+  }
+
+  public async updateOpLogSyncStatus(opLogId: string, isUploaded: boolean, uploadAt: Date) {
+    const res = await this.db
+      .update(opLogSyncStatus)
+      .set({
+        isUploaded,
+        uploadAt,
+        updateAt: new Date(),
+      })
+      .where(eq(opLogSyncStatus.logId, opLogId))
+      .returning();
+    return res.at(0);
+  }
+
+  public async getMaxSeq(deviceId: string) {
+    return (
+      await this.db
+        .select({ value: max(opLogs.sequence) })
+        .from(opLogs)
+        .where(eq(opLogs.deviceId, deviceId))
     ).at(0);
   }
 }

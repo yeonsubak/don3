@@ -55,7 +55,7 @@ export const encryptKeysRelations = relations(encryptKeys, ({ one }) => ({
 }));
 
 export const tempKeyStore = syncSchema.table(
-  'tempKeyStore',
+  'temp_key_store',
   {
     id: uuid().primaryKey().default(generateRandomUUID).notNull(),
     serializedKey: text().notNull(),
@@ -66,43 +66,41 @@ export const tempKeyStore = syncSchema.table(
   (t) => [index('temp_key_store_idx_expire_at').on(t.expireAt.desc())],
 );
 
-export const operationLogs = syncSchema.table(
-  'operation_logs',
+export const opLogs = syncSchema.table(
+  'op_logs',
   {
     id: uuid().primaryKey().default(generateRandomUUID).notNull(),
     version: varchar({ length: 255 }).notNull(),
     schemaVersion: varchar({ length: 255 }).notNull(),
     deviceId: uuid().notNull(),
-    sequence: bigint({ mode: 'bigint' }).notNull(),
-    method: varchar({ length: 255 }).notNull(),
-    methodHash: text().notNull(),
-    opData: jsonb().notNull(),
+    sequence: bigint({ mode: 'number' }).notNull(),
+    data: jsonb().notNull(),
     createAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
     updateAt: timestamp({ withTimezone: true }),
   },
-  (t) => [unique('operation_log_unq_device_id_sequence').on(t.deviceId, t.sequence)],
+  (t) => [unique('op_logs_unq_device_id_sequence').on(t.deviceId, t.sequence)],
 );
-export const operationLogsRelations = relations(operationLogs, ({ one }) => ({
-  syncStatus: one(operationLogSyncStatus, {
-    fields: [operationLogs.id],
-    references: [operationLogSyncStatus.logId],
+export const opLogsRelations = relations(opLogs, ({ one }) => ({
+  syncStatus: one(opLogSyncStatus, {
+    fields: [opLogs.id],
+    references: [opLogSyncStatus.logId],
   }),
 }));
 
-export const operationLogSyncStatus = syncSchema.table('operation_log_sync_status', {
+export const opLogSyncStatus = syncSchema.table('op_log_sync_status', {
   id: uuid().primaryKey().default(generateRandomUUID).notNull(),
   logId: uuid()
-    .references(() => operationLogs.id, { onUpdate: 'cascade', onDelete: 'no action' })
+    .references(() => opLogs.id, { onUpdate: 'cascade', onDelete: 'no action' })
     .notNull(),
   isUploaded: boolean().notNull().default(false),
   uploadAt: timestamp({ withTimezone: true }),
   createAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
   updateAt: timestamp({ withTimezone: true }),
 });
-export const operationLogSyncStatusRelations = relations(operationLogSyncStatus, ({ one }) => ({
-  syncStatus: one(operationLogs, {
-    fields: [operationLogSyncStatus.logId],
-    references: [operationLogs.id],
+export const opLogSyncStatusRelations = relations(opLogSyncStatus, ({ one }) => ({
+  opLog: one(opLogs, {
+    fields: [opLogSyncStatus.logId],
+    references: [opLogs.id],
   }),
 }));
 
@@ -111,6 +109,7 @@ export const snapshots = syncSchema.table('snapshots', {
   id: uuid().primaryKey().default(generateRandomUUID).notNull(),
   type: snapshotTypeEnum().notNull(),
   schemaVersion: varchar({ length: 255 }).notNull(),
+  deviceId: uuid().notNull(),
   meta: jsonb().$type<DumpMetaData>().notNull(),
   dump: text().notNull(),
   createAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
@@ -139,6 +138,18 @@ export const snapshotSyncStatusRelations = relations(snapshotSyncStatus, ({ one 
     references: [snapshots.id],
   }),
 }));
+
+export const deviceSyncSequences = syncSchema.table(
+  'device_sync_sequences',
+  {
+    id: uuid().primaryKey().default(generateRandomUUID).notNull(),
+    deviceId: uuid().notNull(),
+    sequence: bigint({ mode: 'number' }).notNull(),
+    createAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+    updateAt: timestamp({ withTimezone: true }),
+  },
+  (t) => [unique('device_sync_sequences_unq_device_id').on(t.deviceId)],
+);
 
 export const configSchema = pgSchema('config');
 

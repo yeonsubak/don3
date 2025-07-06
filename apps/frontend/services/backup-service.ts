@@ -1,6 +1,7 @@
 import { appDrizzle, type AppDrizzle } from '@/db';
 import { AppDBInitializer } from '@/db/app-db/app-db-initializer';
 import type { PGliteAppWorker } from '@/db/pglite/pglite-app-worker';
+import { PGliteClient } from '@/db/pglite/pglite-client';
 import { base64ToUint8Array, uInt8ArrayToBase64 } from '@/lib/utils/encryption-utils';
 import { PGlite, type Results, type Transaction } from '@electric-sql/pglite';
 import { pgDump } from '@electric-sql/pglite-tools/pg_dump';
@@ -15,6 +16,12 @@ export type DumpMetaData = {
   localStorageItems: Record<string, string>;
   compressed: boolean;
   timestamp: number;
+};
+
+export type BackupObject = {
+  dump: string;
+  metaData: DumpMetaData;
+  baseFileName: string;
 };
 
 export class BackupService extends Service {
@@ -38,11 +45,7 @@ export class BackupService extends Service {
     throw new Error('All arguments passed to the constructor are undefined');
   }
 
-  public async createBackup(): Promise<{
-    dump: string;
-    metaData: DumpMetaData;
-    baseFileName: string;
-  }> {
+  public async createBackup(): Promise<BackupObject> {
     const schemaVersion = await this.db?.query.information.findFirst({
       where: ({ name }, { eq }) => eq(name, 'schemaVersion'),
     });
@@ -59,7 +62,7 @@ export class BackupService extends Service {
     // Compress dump file to base64
     const compressedDump = BackupService.compressGzipBase64(dump);
 
-    const sha256Hash = await this.generateSHA256Hash(dump);
+    const sha256Hash = await BackupService.generateSHA256Hash(dump);
 
     const localStorageItems = this.getLocalStorageItems();
 
@@ -93,7 +96,7 @@ export class BackupService extends Service {
   }
 
   public async restoreDB(
-    restoreObj: File | { metaData: DumpMetaData; dump: string },
+    restoreObj: File | Omit<BackupObject, 'baseFileName'>,
     overwrite: boolean,
   ) {
     const { metaData, dump } =
@@ -105,9 +108,25 @@ export class BackupService extends Service {
     return await this.restore(dump, metaData, overwrite);
   }
 
-  private async restore(dump: string, meta: DumpMetaData, overwrite: boolean) {
+  public async migrateDB(newIndexDbName: string, dumpObj?: BackupObject) {
+    const newPg = new PGliteClient(newIndexDbName);
+    const { dump, metaData } = dumpObj ? dumpObj : await this.createBackup();
+    return await this.restore(dump, metaData, false, newPg);
+  }
+
+  private async restore(
+    dump: string,
+    meta: DumpMetaData,
+    overwrite: boolean,
+    pgInstance?: PGlite | PGliteAppWorker,
+  ) {
+    const pg = pgInstance ?? this.pg;
+    if (meta.compressed) {
+      dump = BackupService.decompressGzipBase64(dump);
+    }
+
     if (overwrite) {
-      await this.pg?.transaction(async (tx) => {
+      await pg?.transaction(async (tx) => {
         try {
           await this.dropDatabase(tx);
           await tx.exec(dump);
@@ -121,21 +140,32 @@ export class BackupService extends Service {
         }
       });
     } else {
-      await this.pg?.exec(dump);
+      await pg?.exec(dump);
     }
 
-    localStorage.clear();
-    this.restoreLocalStorage(meta.localStorageItems);
+    // In case of migrating from local
+    if (!pgInstance) {
+      localStorage.clear();
+      this.restoreLocalStorage(meta.localStorageItems);
+    }
 
     if (overwrite) {
       const dbInitializer = await AppDBInitializer.getInstance();
-      await dbInitializer.initialize({ isDBReady: true });
+      await dbInitializer.initialize();
     }
 
     return {
       status: 'success',
       meta,
     };
+  }
+
+  public static async generateSHA256Hash(text: string) {
+    const data = new TextEncoder().encode(text);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArr = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArr.map((b) => b.toString(16).padStart(2, '0')).join('');
+    return hashHex;
   }
 
   public static compressGzipBase64(original: string) {
@@ -221,14 +251,6 @@ export class BackupService extends Service {
     } catch (err) {
       throw new Error(`${err}`);
     }
-  }
-
-  private async generateSHA256Hash(text: string) {
-    const data = new TextEncoder().encode(text);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArr = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArr.map((b) => b.toString(16).padStart(2, '0')).join('');
-    return hashHex;
   }
 
   private bundleToZip(dumpContent: string, metaData: DumpMetaData) {

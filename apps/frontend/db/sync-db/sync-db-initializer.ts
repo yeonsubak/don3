@@ -6,6 +6,7 @@ import type { SyncDrizzle } from '..';
 import { getLatestSchemaVersion } from '../db-helper';
 import { DBInitializer, type InitializationOptions } from '../db-initializer';
 import { PGliteSync } from '../pglite/pglite-sync';
+import { USER_CONFIG_KEYS, type UserConfigKey } from './drizzle-types';
 import { LATEST_CLEAN_VERSION, SYNC_SCHEMA_VERSION } from './version-table';
 
 export class SyncDBInitializer extends DBInitializer {
@@ -32,8 +33,12 @@ export class SyncDBInitializer extends DBInitializer {
       await this.syncSchema();
     }
 
+    const missingConfigKeys = await this.getMissingConfig([...USER_CONFIG_KEYS]);
+    if (missingConfigKeys.length > 0) {
+      await this.insertMissingConfig(missingConfigKeys);
+    }
+
     if (options?.closeAfterInit) {
-      // await PGliteSync.closeInstance();
       SyncDBInitializer.instance = null;
       return;
     }
@@ -117,5 +122,26 @@ export class SyncDBInitializer extends DBInitializer {
     };
 
     await updateSchema(nextVersion);
+  }
+
+  protected async insertMissingConfig(missingKeys: UserConfigKey[]): Promise<void> {
+    for (const key of missingKeys) {
+      switch (key) {
+        case 'deviceId': {
+          const deviceId = crypto.randomUUID();
+
+          await this.db
+            .insert(schema.information)
+            .values({
+              name: key,
+              value: deviceId,
+            })
+            .onConflictDoNothing();
+
+          localStorage.setItem(LOCAL_STORAGE_KEYS.APP.DEVICE_ID, deviceId);
+          break;
+        }
+      }
+    }
   }
 }

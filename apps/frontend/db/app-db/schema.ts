@@ -5,7 +5,6 @@ export const USER_CONFIG_KEYS = [
   'defaultCurrency',
   'defaultLanguage',
   'defaultCountry',
-  'deviceId',
   'username',
   'schemaVersion',
   'datasetVersion',

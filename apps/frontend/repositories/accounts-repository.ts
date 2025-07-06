@@ -1,7 +1,5 @@
-import { accountGroups, accounts, assetLiabilityBalances } from '@/db/app-db/schema';
 import type {
   AccountBalanceInsert,
-  AccountBalanceSelect,
   AccountGroupInsert,
   AccountGroupType,
   AccountInsert,
@@ -9,9 +7,10 @@ import type {
   AccountSelectAllTx,
   AppSchema,
 } from '@/db/app-db/drizzle-types';
+import { accountGroups, accounts, assetLiabilityBalances } from '@/db/app-db/schema';
 import { eq } from 'drizzle-orm';
 import { Repository } from './abstract-repository';
-import { writeOperationLog } from './repository-decorators';
+import { writeOpLog } from './repository-decorators';
 
 export class AccountsRepository extends Repository<AppSchema> {
   public async getAllAccounts(): Promise<AccountSelectAll[]> {
@@ -59,30 +58,30 @@ export class AccountsRepository extends Repository<AppSchema> {
     });
   }
 
-  @writeOperationLog
-  public async insertAccount(insert: AccountInsert) {
-    const result = await this.db.insert(accounts).values(insert).returning();
-    return result.at(0);
+  @writeOpLog
+  public insertAccount(data: AccountInsert) {
+    return this.db
+      .insert(accounts)
+      .values({ id: crypto.randomUUID(), ...data })
+      .returning();
   }
 
-  @writeOperationLog
-  public async updateAccount(update: Partial<AccountInsert>) {
-    const result = await this.db
+  @writeOpLog
+  public updateAccount(data: Partial<AccountInsert>) {
+    return this.db
       .update(accounts)
       .set({
-        ...update,
+        ...data,
         id: undefined,
         updateAt: new Date(),
       })
-      .where(eq(accounts.id, update.id!))
+      .where(eq(accounts.id, data.id!))
       .returning();
-    return result.at(0);
   }
 
-  @writeOperationLog
-  public async deleteAccount(accountId: string) {
-    const result = await this.db.delete(accounts).where(eq(accounts.id, accountId)).returning();
-    return result.at(0);
+  @writeOpLog
+  public deleteAccount(accountId: string) {
+    return this.db.delete(accounts).where(eq(accounts.id, accountId)).returning();
   }
 
   public async getAccountGroup(_id: string) {
@@ -152,9 +151,12 @@ export class AccountsRepository extends Repository<AppSchema> {
     });
   }
 
-  @writeOperationLog
-  public async insertAccountGroup(form: AccountGroupInsert) {
-    return await this.db.insert(accountGroups).values(form).returning();
+  @writeOpLog
+  public insertAccountGroup(data: AccountGroupInsert) {
+    return this.db
+      .insert(accountGroups)
+      .values({ id: crypto.randomUUID(), ...data })
+      .returning();
   }
 
   public async getAccountBalance(targetAccountId: string) {
@@ -163,30 +165,17 @@ export class AccountsRepository extends Repository<AppSchema> {
     });
   }
 
-  @writeOperationLog
-  public async insertAccountBalance(
-    accountBalanceInsert: AccountBalanceInsert,
-  ): Promise<AccountBalanceSelect> {
-    const insertResult = await this.db
+  @writeOpLog
+  public insertAccountBalance(data: AccountBalanceInsert) {
+    return this.db
       .insert(assetLiabilityBalances)
-      .values(accountBalanceInsert)
+      .values({ id: crypto.randomUUID(), ...data })
       .returning();
-    const insertedBalance = insertResult.at(0);
-
-    if (!insertedBalance)
-      throw new Error(
-        `Inserting account balance for accountId=${accountBalanceInsert.accountId} failed.`,
-      );
-
-    return insertedBalance;
   }
 
-  @writeOperationLog
-  public async updateAccountBalance(
-    accountBalanceId: string,
-    amount: number,
-  ): Promise<AccountBalanceSelect> {
-    const updatedAccountBalance: AccountBalanceSelect[] = await this.db
+  @writeOpLog
+  public updateAccountBalance(accountBalanceId: string, amount: number) {
+    return this.db
       .update(assetLiabilityBalances)
       .set({
         balance: amount,
@@ -194,7 +183,5 @@ export class AccountsRepository extends Repository<AppSchema> {
       })
       .where(eq(assetLiabilityBalances.id, accountBalanceId))
       .returning();
-
-    return updatedAccountBalance.at(0)!;
   }
 }

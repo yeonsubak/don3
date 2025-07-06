@@ -39,4 +39,16 @@ export abstract class DBInitializer {
   protected abstract validateSchemaVersion(isDBReady: boolean): Promise<boolean>;
 
   protected abstract syncSchema(): Promise<void>;
+
+  protected async getMissingConfig<T extends string>(userConfigKeys: T[]): Promise<T[]> {
+    const res = await this.pg?.query<{ name: string }>(`
+      SELECT "name" FROM config.information
+    `);
+
+    const storedKeys = res?.rows.map((e) => e.name);
+
+    return userConfigKeys.filter((key) => !storedKeys?.includes(key));
+  }
+
+  protected abstract insertMissingConfig(missingKeys: string[]): Promise<void>;
 }
