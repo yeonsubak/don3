@@ -2,27 +2,12 @@ import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
 import { getSyncService } from '@/services/service-helpers';
 import { LoaderCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CompletionStep } from '../../getting-started/steps/completion-step';
 
 export const StepSync = () => {
   const [status, setStatus] = useState<'idle' | 'inProcess' | 'done'>('idle');
   const router = useRouter();
-
-  const sync = useCallback(async () => {
-    const syncService = await getSyncService();
-    const { status, message } = await syncService.syncFromScratch();
-    if (status === 'success') {
-      console.log(message);
-      router.refresh();
-      return;
-    }
-
-    console.warn(message);
-    const params = new URLSearchParams();
-    params.set('syncSignIn', 'false');
-    router.push(`?${params.toString()}`);
-  }, [router]);
 
   useEffect(() => {
     async function runSync() {
@@ -33,13 +18,25 @@ export const StepSync = () => {
 
       if (status === 'idle') {
         setStatus('inProcess');
-        await sync();
-        setStatus('done');
+
+        const syncService = await getSyncService();
+        const { status, message } = await syncService.syncFromScratch();
+
+        if (status === 'success') {
+          console.log(message);
+          router.refresh();
+          setStatus('done');
+        } else {
+          console.warn(message);
+          const params = new URLSearchParams();
+          params.set('syncSignIn', 'false');
+          router.push(`?${params.toString()}`);
+        }
       }
     }
 
     runSync();
-  }, [status, sync]);
+  }, [router, status]);
 
   return (
     <div className="flex flex-col gap-4">
