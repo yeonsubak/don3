@@ -1,48 +1,48 @@
-import type { Response } from './dto-primitives';
+import { keyofResponse, type Payload, type RestResponse } from './dto-primitives';
 
-export type GetSnapshotResponse = Response<{
-  userId: string;
-  deviceId: string;
-  localId: string;
+export interface SnapshotResponse extends Payload {
   schemaVersion: string;
-  dump: string;
-  meta: string;
   iv: string;
+  meta: string;
+  dump: string;
   createAt: string;
   updateAt: string;
-}>;
+}
 
-export type InsertSnapshotRequest = {
-  userId: string;
-  deviceId: string;
-  localId: string;
+export interface InsertSnapshotRequest extends Payload {
   schemaVersion: string;
   dump: string;
   meta: string;
   iv: string;
-};
+}
 
-export type InsertOpLogRequest = {
-  userId: string;
-  deviceId: string;
-  localId: string;
+export interface InsertOpLogRequest extends Payload {
   version: string;
   schemaVersion: string;
   sequence: number;
   iv: string;
   data: string;
-};
+  queryKeys: string[];
+}
 
-export type OpLogResponse = Response<
-  {
-    id: string;
-    userId: string;
-    deviceId: string;
-    localId: string;
-    version: string;
-    schemaVersion: string;
-    sequence: number;
-    iv: string;
-    data: string;
-  }[]
->;
+export interface OpLogResponse extends Payload {
+  id: string;
+  userId: string;
+  deviceId: string;
+  version: string;
+  schemaVersion: string;
+  sequence: number;
+  iv: string;
+  data: string;
+  queryKeys: string[];
+}
+
+export type OpLogRestResponse = RestResponse<OpLogResponse[]>;
+
+export function isRestResponse(obj: object) {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    keyofResponse.every((key) => Object.keys(obj).includes(key))
+  );
+}

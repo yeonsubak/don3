@@ -50,7 +50,7 @@ export const SyncBackupCard = () => {
       return;
     }
 
-    const deviceId = localStorage.getItem(LOCAL_STORAGE_KEYS.APP.DEVICE_ID);
+    const deviceId = localStorage.getItem(LOCAL_STORAGE_KEYS.SYNC.DEVICE_ID);
     if (!deviceId) throw new Error('deviceId is undefined in local storage');
 
     const backupService = await getBackupService();
@@ -59,13 +59,16 @@ export const SyncBackupCard = () => {
     const { dump, metaData, baseFileName } = await backupService.createBackup();
 
     // Insert the backup to the sync db
-    await syncService.insertSnapshot({
-      type: 'user',
-      schemaVersion: metaData.schemaVersion,
-      meta: metaData,
-      dump,
-      deviceId,
-    });
+    await syncService.insertSnapshot(
+      {
+        type: 'user',
+        schemaVersion: metaData.schemaVersion,
+        meta: metaData,
+        dump,
+        deviceId,
+      },
+      'idle',
+    );
 
     const { fileName, url } = await backupService.exportToZip(dump, metaData, baseFileName);
 

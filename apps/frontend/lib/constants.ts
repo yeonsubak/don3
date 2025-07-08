@@ -8,14 +8,14 @@ export const LOCAL_STORAGE_KEYS = {
     DEFAULT_LANGUAGE: 'app.defaultLanguage',
     INITIALIZED: 'app.initialized',
     DARK_MODE: 'app.darkMode',
-    USER_ID: 'app.userId',
-    DEVICE_ID: 'app.deviceId',
   },
   SYNC: {
     SCHEMA_VERSION: 'sync.schemaVersion',
     DATASET_VERSION: 'sync.datasetVersion',
     SYNC_TIMESTAMP: 'sync.syncTimestamp',
     SYNC_ENABLED: 'sync.syncEnabled',
+    USER_ID: 'sync.userId',
+    DEVICE_ID: 'sync.deviceId',
   },
 } as const;
 
@@ -39,7 +39,7 @@ export const APP_DB_NAME = (userIdArg?: string) => {
 
   const userId =
     typeof localStorage !== 'undefined'
-      ? localStorage.getItem(LOCAL_STORAGE_KEYS.APP.USER_ID)
+      ? localStorage.getItem(LOCAL_STORAGE_KEYS.SYNC.USER_ID)
       : undefined;
   return `${APP_DB_NAME_BASE}${userId ? '_' + userId : ''}`;
 };

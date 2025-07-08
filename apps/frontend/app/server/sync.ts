@@ -2,7 +2,8 @@
 
 import { externalDB } from '@/db/external-db/drizzle-client';
 import { wrappedKeys } from '@/db/external-db/migration/schema';
-import type { GetSnapshotResponse, OpLogResponse } from '@/dto/sync-dto';
+import type { RestResponse } from '@/dto/dto-primitives';
+import type { OpLogRestResponse, SnapshotResponse } from '@/dto/sync-dto';
 import { SYNC_SERVER_URL } from '@/lib/constants';
 import { cookies } from 'next/headers';
 import { serializeCookie } from './server-utils';
@@ -35,7 +36,7 @@ export async function hasSyncServer() {
   return !!SYNC_SERVER_URL;
 }
 
-export async function fetchLatestSnapshot(): Promise<GetSnapshotResponse> {
+export async function fetchLatestSnapshot(): Promise<RestResponse<SnapshotResponse>> {
   if (!SYNC_SERVER_URL) throw new Error('SYNC_SERVER_URL is undefined');
 
   const cookieStore = await cookies();
@@ -55,7 +56,7 @@ export async function fetchLatestSnapshot(): Promise<GetSnapshotResponse> {
     throw new Error('res is invalid.');
   }
 
-  const snapshot: GetSnapshotResponse = await res.json();
+  const snapshot: RestResponse<SnapshotResponse> = await res.json();
   return snapshot;
 }
 
@@ -80,6 +81,6 @@ export async function fetchOpLogsAfterDate(date: Date) {
     throw new Error('res is invalid.');
   }
 
-  const opLogs: OpLogResponse = await res.json();
+  const opLogs: OpLogRestResponse = await res.json();
   return opLogs;
 }

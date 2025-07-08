@@ -1,3 +1,5 @@
+import type { Payload } from './dto-primitives';
+
 export type WebSocketRequestType =
   | 'insertOpLog'
   | 'insertSnapshot'
@@ -13,17 +15,18 @@ export type WebSocketResponseType =
   | 'opLogInserted';
 
 interface WebSocketEntity<T, P = unknown> {
+  requestId: string;
+  userId: string;
+  deviceId: string;
   type: T;
   payload: P;
 }
 
 export interface WebSocketRequest<P = unknown> extends WebSocketEntity<WebSocketRequestType, P> {
-  requestId: string;
   destination?: string;
 }
 
-export interface WebSocketResponse<P = unknown> extends WebSocketEntity<WebSocketResponseType, P> {
-  requestId: string;
+export interface WebSocketResponse<P = Payload> extends WebSocketEntity<WebSocketResponseType, P> {
   message?: string;
   receiveAt: string;
 }
@@ -39,23 +42,3 @@ export type WebSocketInit = WebSocketInternal<
     destinationPaths: string[];
   }
 >;
-
-export type WebSocketClose = WebSocketInternal<'close'>;
-
-export type WebSocketConnectionState = WebSocketInternal<'close'>;
-
-/* Request handling */
-
-export type PromiseHandler<R = unknown> = {
-  resolve: (value: R | PromiseLike<R>) => void;
-  reject: (err: Error) => void;
-};
-
-export type PendingRequest = {
-  type: WebSocketRequestType;
-  handler: PromiseHandler;
-  posthook?: (res: WebSocketResponse) => Promise<void>;
-};
-
-type RequestId = string;
-export type PendingRequests = Map<RequestId, PendingRequest>;

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import type { Session } from '@/lib/better-auth/auth-client';
 import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
 import { QUERIES } from '@/lib/tanstack-queries';
-import { getSyncService } from '@/services/service-helpers';
+import { getEncryptionService } from '@/services/service-helpers';
 import { useMutation, useQuery, type QueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, type ComponentProps } from 'react';
 import { useLocalStorage } from '../hooks/use-local-storage';
@@ -66,8 +66,8 @@ export const PasskeyActivateButton = ({
   const createPasskey = useMutation({
     mutationKey: ['setValidEncryptionKey'],
     mutationFn: async () => {
-      const syncService = await getSyncService();
-      return await syncService.registerPasskey();
+      const encryptionService = await getEncryptionService();
+      return await encryptionService.registerPasskey();
     },
     onSuccess: onSuccess,
   });
@@ -75,8 +75,8 @@ export const PasskeyActivateButton = ({
   const activateSync = useMutation({
     mutationKey: ['setValidEncryptionKey'],
     mutationFn: async () => {
-      const syncService = await getSyncService();
-      const key = await syncService.getValidEncryptionKey(true);
+      const encryptionService = await getEncryptionService();
+      const key = await encryptionService.getValidEncryptionKey(true);
       return key;
     },
     onSuccess: onSuccess,

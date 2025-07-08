@@ -60,7 +60,7 @@ export class ConfigRepository extends Repository<AppSchema> {
     });
   }
 
-  @writeOpLog
+  @writeOpLog('defaultCountry', 'defaultCurrency')
   public insertUserConfig(key: UserConfigKey, value: string) {
     return this.db
       .insert(information)
@@ -68,7 +68,7 @@ export class ConfigRepository extends Repository<AppSchema> {
       .returning();
   }
 
-  @writeOpLog
+  @writeOpLog('defaultCountry', 'defaultCurrency')
   public updateUserConfig(key: UserConfigKey, value: string) {
     return this.db.update(information).set({ value }).where(eq(information.name, key)).returning();
   }

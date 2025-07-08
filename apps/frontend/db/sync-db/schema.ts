@@ -1,5 +1,5 @@
 import type { DumpMetaData } from '@/services/backup-service';
-import { relations } from 'drizzle-orm';
+import { relations, type Query } from 'drizzle-orm';
 import {
   bigint,
   boolean,
@@ -74,7 +74,8 @@ export const opLogs = syncSchema.table(
     schemaVersion: varchar({ length: 255 }).notNull(),
     deviceId: uuid().notNull(),
     sequence: bigint({ mode: 'number' }).notNull(),
-    data: jsonb().notNull(),
+    data: jsonb().$type<Query>().notNull(),
+    queryKeys: jsonb().$type<string[]>().notNull(),
     createAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
     updateAt: timestamp({ withTimezone: true }),
   },
@@ -87,12 +88,14 @@ export const opLogsRelations = relations(opLogs, ({ one }) => ({
   }),
 }));
 
+export const syncStatusEnum = pgEnum('sync_status_enum', ['idle', 'pending', 'done']);
+
 export const opLogSyncStatus = syncSchema.table('op_log_sync_status', {
   id: uuid().primaryKey().default(generateRandomUUID).notNull(),
   logId: uuid()
     .references(() => opLogs.id, { onUpdate: 'cascade', onDelete: 'no action' })
     .notNull(),
-  isUploaded: boolean().notNull().default(false),
+  status: syncStatusEnum().notNull().default('idle'),
   uploadAt: timestamp({ withTimezone: true }),
   createAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
   updateAt: timestamp({ withTimezone: true }),
@@ -127,7 +130,7 @@ export const snapshotSyncStatus = syncSchema.table('snapshot_sync_status', {
   snapshotId: uuid()
     .references(() => snapshots.id, { onUpdate: 'cascade', onDelete: 'no action' })
     .notNull(),
-  isUploaded: boolean().notNull().default(false),
+  status: syncStatusEnum().notNull().default('idle'),
   uploadAt: timestamp({ withTimezone: true }),
   createAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
   updateAt: timestamp({ withTimezone: true }),

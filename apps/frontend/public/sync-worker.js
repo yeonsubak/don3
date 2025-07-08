@@ -27,6 +27,7 @@ async function cleanup() {
     await stomp.deactivate();
   }
   stomp = null;
+  connectionState = RxStompState.CLOSED;
   currentReconnectAttempts = 0;
 }
 
@@ -56,48 +57,34 @@ self.onmessage = async function (event) {
         reconnectDelay: 3000,
         heartbeatIncoming: 0,
         heartbeatOutgoing: 20000,
-        debug: (msg) => {
-          console.debug('[WebSocket]', new Date().toISOString(), msg);
+        beforeConnect: async (client) => {
+          if (currentReconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+            currentReconnectAttempts++;
+            console.warn(`Reconnect attempt #${currentReconnectAttempts}`);
+          } else {
+            console.error(
+              `WebSocket connection failed ${currentReconnectAttempts} times. No further attempts.`,
+            );
+            await cleanup();
+            client.deactivate();
+          }
         },
+        // debug: (msg) => {
+        //   console.debug('[WebSocket]', new Date().toISOString(), msg);
+        // },
       };
 
       stomp = new RxStomp();
       stomp.configure(config);
 
       const stateSub = stomp.connectionState$.subscribe((state) => {
-        connectionState = state;
-        self.postMessage({ type: 'connectionStateUpdate', payload: state });
-
-        switch (state) {
-          case RxStompState.OPEN: {
-            currentReconnectAttempts = 0;
-            console.log('WebSocket connection OPEN.');
-            break;
-          }
-          case RxStompState.CLOSED: {
-            console.warn('WebSocket connection CLOSED.');
-            if (currentReconnectAttempts < MAX_RECONNECT_ATTEMPTS && stomp) {
-              currentReconnectAttempts++;
-              console.warn(
-                `WebSocket reconnect attempt #${currentReconnectAttempts} (state: CLOSED).`,
-              );
-            } else if (stomp && currentReconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-              console.error(
-                `WebSocket connection failed ${currentReconnectAttempts} times. Deactivating.`,
-              );
-              cleanup();
-            }
-            break;
-          }
-          case RxStompState.CLOSING: {
-            console.log('WebSocket connection CLOSING.');
-            break;
-          }
-          case RxStompState.CONNECTING: {
-            console.log('WebSocket connection CONNECTING...');
-            break;
-          }
+        if (currentReconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+          connectionState = state;
+        } else {
+          connectionState = RxStompState.CLOSED;
         }
+
+        self.postMessage({ type: 'connectionStateUpdate', payload: connectionState });
       });
 
       const errorSub = stomp.stompErrors$.subscribe((frame) => {
@@ -146,7 +133,7 @@ self.onmessage = async function (event) {
     }
 
     default: {
-      const { destination, requestId } = event.data;
+      const { destination, requestId, userId, deviceId } = event.data;
 
       if (!stomp || connectionState !== RxStompState.OPEN) {
         console.warn('WebSocket not open. Cannot publish message.', { type, destination, payload });
@@ -160,7 +147,7 @@ self.onmessage = async function (event) {
       }
 
       try {
-        const messageToSend = { requestId, type, payload };
+        const messageToSend = { requestId, userId, deviceId, type, payload };
         stomp.publish({
           destination,
           body: JSON.stringify(messageToSend),

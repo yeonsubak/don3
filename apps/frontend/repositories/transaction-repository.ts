@@ -50,7 +50,7 @@ export class TransactionRepository extends Repository<AppSchema> {
     });
   }
 
-  @writeOpLog
+  @writeOpLog('getJournalEntries', 'getSummary')
   public insertJournalEntry(data: JournalEntryInsert) {
     return this.db
       .insert(journalEntries)
@@ -58,7 +58,7 @@ export class TransactionRepository extends Repository<AppSchema> {
       .returning();
   }
 
-  @writeOpLog
+  @writeOpLog('getJournalEntries', 'getSummary')
   public updateJournalEntry(data: JournalEntryInsert) {
     return this.db
       .update(journalEntries)
@@ -67,7 +67,7 @@ export class TransactionRepository extends Repository<AppSchema> {
       .returning();
   }
 
-  @writeOpLog
+  @writeOpLog('getJournalEntries', 'getSummary')
   public deleteJournalEntries(journalEntryId: string | string[]) {
     if (Array.isArray(journalEntryId)) {
       return this.db
@@ -79,7 +79,7 @@ export class TransactionRepository extends Repository<AppSchema> {
     return this.db.delete(journalEntries).where(eq(journalEntries.id, journalEntryId)).returning();
   }
 
-  @writeOpLog
+  @writeOpLog()
   public insertJournalEntryFxRate(data: JournalEntryFxRatesInsert) {
     return this.db
       .insert(journalEntryFxRates)
@@ -87,7 +87,7 @@ export class TransactionRepository extends Repository<AppSchema> {
       .returning();
   }
 
-  @writeOpLog
+  @writeOpLog()
   public updateJournalEntryFxRate(data: JournalEntryFxRatesInsert) {
     return this.db
       .update(journalEntryFxRates)
@@ -96,7 +96,7 @@ export class TransactionRepository extends Repository<AppSchema> {
       .returning();
   }
 
-  @writeOpLog
+  @writeOpLog('getJournalEntries', 'getSummary')
   public insertTransaction(data: TransactionInsert) {
     return this.db
       .insert(transactions)
@@ -104,7 +104,7 @@ export class TransactionRepository extends Repository<AppSchema> {
       .returning();
   }
 
-  @writeOpLog
+  @writeOpLog('getJournalEntries', 'getSummary')
   public updateTransaction(data: TransactionInsert) {
     return this.db
       .update(transactions)

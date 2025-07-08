@@ -1,4 +1,5 @@
 import { Home, NotebookTabs, PencilLine, Settings, type LucideIcon } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useIsMobile } from '../hooks/use-mobile';
 import {
@@ -14,7 +15,6 @@ import {
   SidebarMenuSubItem,
   useSidebar,
 } from '../ui/sidebar';
-import Image from 'next/image';
 import { SyncIndicator } from './sync-indicator';
 
 type MenuItem = {

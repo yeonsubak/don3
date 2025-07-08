@@ -14,7 +14,7 @@ export const EnableSyncModal = () => {
   const pathname = usePathname();
 
   async function syncPostHook() {
-    const deviceId = localStorage.getItem(LOCAL_STORAGE_KEYS.APP.DEVICE_ID);
+    const deviceId = localStorage.getItem(LOCAL_STORAGE_KEYS.SYNC.DEVICE_ID);
     if (!deviceId) throw new Error('deviceId is undefined in local storage');
     const backupService = await getBackupService();
     const { status, meta } = await backupService.migrateDB(APP_DB_NAME(session.user?.id));

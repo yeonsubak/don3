@@ -27,7 +27,7 @@ export function useSession() {
 
   const [isSyncEnable] = useLocalStorage<boolean>(LOCAL_STORAGE_KEYS.SYNC.SYNC_ENABLED, false);
 
-  const [userId, setUserId] = useLocalStorage<string>(LOCAL_STORAGE_KEYS.APP.USER_ID, '');
+  const [userId, setUserId] = useLocalStorage<string>(LOCAL_STORAGE_KEYS.SYNC.USER_ID, '');
 
   if (isSyncEnable && data?.user.id && data?.user.id !== userId) {
     setUserId(data?.user.id);

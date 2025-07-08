@@ -1,39 +1,43 @@
-import type { InsertOpLogRequest, InsertSnapshotRequest } from '@/dto/sync-dto';
+import type { Payload } from '@/dto/dto-primitives';
+import type { InsertOpLogRequest, InsertSnapshotRequest, OpLogResponse } from '@/dto/sync-dto';
 import type {
-  PendingRequest,
-  PendingRequests,
   WebSocketInit,
   WebSocketInternal,
   WebSocketRequest,
+  WebSocketRequestType,
   WebSocketResponse,
 } from '@/dto/websocket';
-import { getSyncService } from '@/services/service-helpers';
-import type { SyncService } from '@/services/sync-service';
+import { getSyncRepository } from '@/repositories/repository-helpers';
+import { EncryptionService } from '@/services/encryption-service';
+import { SyncService } from '@/services/sync-service';
 import { RxStompState } from '@stomp/rx-stomp';
 import { LOCAL_STORAGE_KEYS, SYNC_WEBSOCKET_URL } from './constants';
 import { generateIV, uInt8ArrayToBase64 } from './utils/encryption-utils';
 
 export class SyncWorker {
   private static instance: SyncWorker | null = null;
-  private websocketWorker: Worker;
-  private syncService: SyncService | null = null;
+  private static initPromise: Promise<SyncWorker> | null = null;
 
-  private userId: string = localStorage.getItem(LOCAL_STORAGE_KEYS.APP.USER_ID) ?? '';
-  private pendingRequests: PendingRequests = new Map();
+  private websocketWorker: Worker;
+  private syncService: SyncService;
+  private encryptionService: EncryptionService;
 
   private _connectionState: RxStompState = RxStompState.CLOSED;
   private connectionStateChangeCallbacks: ((state: RxStompState) => void)[] = [];
 
   private syncIntervalId: ReturnType<typeof setInterval> | null = null;
 
-  private SYNC_INTERVAL = 2000; //ms
+  private SYNC_INTERVAL = 5000; //ms
   private DESTINATION_PATHS = [
     '/user/queue/snapshot/latest',
     '/user/queue/snapshot/insert',
     '/user/queue/opLog/insert',
   ];
 
-  private constructor() {
+  private constructor(syncService: SyncService, encryptionService: EncryptionService) {
+    this.syncService = syncService;
+    this.encryptionService = encryptionService;
+
     const worker = new Worker(new URL('@/public/sync-worker.js', import.meta.url), {
       type: 'module',
     });
@@ -42,99 +46,38 @@ export class SyncWorker {
     this.sendWorkerInitMessage();
   }
 
-  private setWorkerOnMessage() {
-    this.websocketWorker.onmessage = async (
-      event: MessageEvent<WebSocketResponse | WebSocketInternal>,
-    ) => {
-      const { type, payload } = event.data;
-
-      switch (type) {
-        case 'connectionStateUpdate': {
-          this._connectionState = payload as RxStompState;
-          this.connectionStateChangeCallbacks.forEach((cb) => cb(this.connectionState));
-          return;
-        }
-        default: {
-          const { message, requestId } = event.data as WebSocketResponse;
-          const req = this.pendingRequests.get(requestId);
-          if (!req) return;
-
-          const handler = req.handler;
-
-          if (type === 'error') {
-            handler.reject(new Error(message ?? 'Unknown error from worker'));
-          } else {
-            handler.resolve(payload);
-          }
-
-          await req.posthook?.(event.data as WebSocketResponse);
-
-          this.pendingRequests.delete(requestId);
-        }
-      }
-    };
-  }
-
-  private sendWorkerInitMessage() {
-    const payload: WebSocketInit = {
-      type: 'init',
-      payload: {
-        syncWebSocketUrl: SYNC_WEBSOCKET_URL ?? '',
-        destinationPaths: this.DESTINATION_PATHS,
-      },
-    };
-
-    this.websocketWorker.postMessage(payload);
-  }
-
   public static async getInstance(): Promise<SyncWorker> {
-    if (!SyncWorker.instance) {
-      SyncWorker.instance = new SyncWorker();
-      SyncWorker.instance.syncService = await getSyncService();
+    if (SyncWorker.instance) return SyncWorker.instance;
+
+    if (!SyncWorker.initPromise) {
+      SyncWorker.initPromise = (async () => {
+        const syncRepository = await getSyncRepository();
+        const encryptionService = new EncryptionService(syncRepository);
+        const syncService = new SyncService(syncRepository, encryptionService);
+        SyncWorker.instance = new SyncWorker(syncService, encryptionService);
+        return SyncWorker.instance;
+      })();
     }
 
-    return SyncWorker.instance;
+    return SyncWorker.initPromise;
   }
 
   public get connectionState() {
     return this._connectionState;
   }
 
-  public sendRequest({
-    type,
-    destination,
-    payload,
-  }: Omit<WebSocketRequest, 'requestId'>): Promise<unknown> {
-    const requestId = crypto.randomUUID();
-
-    let posthook: ((res: WebSocketResponse) => Promise<void>) | undefined;
-    // Add posthook to certain types
-    switch (type) {
-      case 'insertOpLog': {
-        const { localId } = payload as InsertOpLogRequest;
-        posthook = async (res) => {
-          const status = await this.syncService?.updateOpLogStatus(localId, true, res.receiveAt);
-        };
-        break;
-      }
-      case 'insertSnapshot': {
-        const { localId } = payload as InsertSnapshotRequest;
-        posthook = async (res) => {
-          const status = await this.syncService?.updateSnapshotStatus(localId, true, res.receiveAt);
-        };
-        break;
-      }
-    }
-
-    return new Promise((resolve, reject) => {
-      const pendingRequest: PendingRequest = {
-        type,
-        handler: { resolve, reject },
-        posthook,
-      };
-      this.pendingRequests.set(requestId, pendingRequest);
-      this.websocketWorker.postMessage({ requestId, type, destination, payload });
-    });
+  public sendRequest(_request: {
+    type: WebSocketRequestType;
+    payload: Payload;
+    destination: string;
+  }) {
+    const request: WebSocketRequest = {
+      ..._request,
+      requestId: crypto.randomUUID(),
+      userId: this.getUserId(),
+      deviceId: this.getDeviceId(),
+    };
+    this.websocketWorker.postMessage(request);
   }
 
   public onConnectionStateChange(callback: (state: RxStompState) => void): () => void {
@@ -175,13 +118,11 @@ export class SyncWorker {
     if (snapshots.length === 0) return;
 
     for (const snapshot of snapshots) {
-      const { id, deviceId, schemaVersion, meta, dump } = snapshot.snapshot;
+      const { id, schemaVersion, meta, dump } = snapshot.snapshot;
       const iv = generateIV();
-      const encryptedDump = await this.syncService.encryptData(dump, iv);
-      const encryptedMeta = await this.syncService.encryptData(meta, iv);
+      const encryptedDump = await this.encryptionService.encryptData(dump, iv);
+      const encryptedMeta = await this.encryptionService.encryptData(meta, iv);
       const payload: InsertSnapshotRequest = {
-        userId: this.userId,
-        deviceId,
         localId: id,
         schemaVersion,
         dump: encryptedDump,
@@ -190,7 +131,7 @@ export class SyncWorker {
       };
 
       try {
-        await this.sendRequest({
+        this.sendRequest({
           type: 'insertSnapshot',
           destination: '/app/sync/snapshot/insert',
           payload,
@@ -212,23 +153,22 @@ export class SyncWorker {
     if (opLogs.length === 0) return;
 
     for (const log of opLogs) {
-      const { id, deviceId, schemaVersion, data, sequence, version } = log.opLog;
+      const { id, schemaVersion, data, sequence, version, queryKeys } = log.opLog;
 
       const iv = generateIV();
-      const encryptedData = await this.syncService.encryptData(data, iv);
+      const encryptedData = await this.encryptionService.encryptData(data, iv);
       const payload: InsertOpLogRequest = {
-        userId: this.userId,
-        deviceId,
         localId: id,
         version,
         schemaVersion,
         sequence,
         iv: uInt8ArrayToBase64(iv),
         data: encryptedData,
+        queryKeys,
       };
 
       try {
-        await this.sendRequest({
+        this.sendRequest({
           type: 'insertOpLog',
           destination: '/app/sync/opLog/insert',
           payload,
@@ -246,5 +186,69 @@ export class SyncWorker {
     SyncWorker.instance = null;
     this._connectionState = RxStompState.CLOSED;
     this.connectionStateChangeCallbacks.forEach((cb) => cb(this._connectionState));
+  }
+
+  private setWorkerOnMessage() {
+    this.websocketWorker.onmessage = async (
+      event: MessageEvent<WebSocketResponse | WebSocketInternal>,
+    ) => {
+      const { type, payload, deviceId } = event.data;
+
+      if (type === 'connectionStateUpdate') {
+        this._connectionState = payload as RxStompState;
+        this.connectionStateChangeCallbacks.forEach((cb) => cb(this.connectionState));
+        return;
+      }
+
+      if (deviceId === this.getDeviceId()) {
+        await this.ackUpload(event.data as WebSocketResponse<Payload>);
+        return;
+      }
+
+      if (type === 'opLogInserted') {
+        const opLog = event.data as WebSocketResponse<OpLogResponse>;
+        await this.syncService.insertFetchedOpLogs(opLog.payload);
+        return;
+      }
+    };
+  }
+
+  private sendWorkerInitMessage() {
+    const payload: WebSocketInit = {
+      requestId: crypto.randomUUID(),
+      userId: this.getUserId(),
+      deviceId: this.getDeviceId(),
+      type: 'init',
+      payload: {
+        syncWebSocketUrl: SYNC_WEBSOCKET_URL ?? '',
+        destinationPaths: this.DESTINATION_PATHS,
+      },
+    };
+
+    this.websocketWorker.postMessage(payload);
+  }
+
+  private async ackUpload({ type, receiveAt, payload: { localId } }: WebSocketResponse<Payload>) {
+    if (type === 'opLogInserted') {
+      return await this.syncService.updateOpLogStatus(localId, 'done', receiveAt);
+    }
+
+    if (type === 'snapshotInserted') {
+      return await this.syncService.updateSnapshotStatus(localId, 'done', receiveAt);
+    }
+  }
+
+  private getUserId() {
+    const userId = localStorage.getItem(LOCAL_STORAGE_KEYS.SYNC.USER_ID);
+    if (!userId) throw new Error('userId not found.');
+
+    return userId;
+  }
+
+  private getDeviceId() {
+    const deviceId = localStorage.getItem(LOCAL_STORAGE_KEYS.SYNC.DEVICE_ID);
+    if (!deviceId) throw new Error('userId not found.');
+
+    return deviceId;
   }
 }
