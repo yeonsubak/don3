@@ -20,25 +20,25 @@ import java.time.Instant
 class User {
     @Id
     @Column(name = "id", nullable = false, length = 255)
-    var id: String? = null
+    lateinit var id: String
 
     @Column(name = "name", nullable = false, length = 255)
-    var name: String? = null
+    lateinit var name: String
 
     @Column(name = "email", nullable = false, length = 255)
-    var email: String? = null
+    lateinit var email: String
 
     @Column(name = "email_verified", nullable = false)
-    var emailVerified: Boolean? = false
+    var emailVerified: Boolean = false
 
     @Column(name = "image", length = 255)
     var image: String? = null
 
     @Column(name = "created_at", nullable = false)
-    var createdAt: Instant? = null
+    lateinit var createdAt: Instant
 
     @Column(name = "updated_at", nullable = false)
-    var updatedAt: Instant? = null
+    lateinit var updatedAt: Instant
 
     @OneToMany(mappedBy = "user")
     var accounts: MutableSet<Account> = mutableSetOf()
