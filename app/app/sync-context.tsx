@@ -1,5 +1,6 @@
 'use client';
 
+import { useIsInit } from '@/components/hooks/use-is-init';
 import { useLocalStorage } from '@/components/hooks/use-local-storage';
 import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
 import { SyncWorker } from '@/lib/sync-worker';
@@ -22,6 +23,7 @@ type SyncContextProps = {
 const SyncContext = createContext<SyncContextProps | null>(null);
 
 export const SyncContextProvider = ({ children }: { children: ReactNode }) => {
+  const { isInit } = useIsInit();
   const [isSyncEnable] = useLocalStorage<boolean>(LOCAL_STORAGE_KEYS.SYNC.SYNC_ENABLED, false);
 
   const wsRef = useRef<SyncWorker | null>(null);
@@ -31,7 +33,7 @@ export const SyncContextProvider = ({ children }: { children: ReactNode }) => {
     let unsubscribe: (() => void) | undefined;
 
     async function initSync() {
-      if (!isSyncEnable || wsRef.current) {
+      if (!isInit || !isSyncEnable || wsRef.current) {
         return;
       }
 
@@ -52,7 +54,7 @@ export const SyncContextProvider = ({ children }: { children: ReactNode }) => {
         unsubscribe();
       }
     };
-  }, [isSyncEnable]);
+  }, [isInit, isSyncEnable]);
 
   useEffect(() => {
     switch (syncStatus) {

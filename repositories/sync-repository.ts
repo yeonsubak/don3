@@ -1,4 +1,5 @@
 import type {
+  DeviceSyncSequenceInsert,
   EncryptKeyInsert,
   KeyRegistryInsert,
   OpLogInsert,
@@ -7,9 +8,12 @@ import type {
   SnapshotSelect,
   SnapshotSyncStatusInsert,
   SyncSchema,
+  SyncStatus,
   TempKeyStoreInsert,
+  UserConfigKey,
 } from '@/db/sync-db/drizzle-types';
 import {
+  deviceSyncSequences,
   encryptKeyRegistry,
   encryptKeys,
   opLogs,
@@ -83,8 +87,10 @@ export class SyncRepository extends Repository<SyncSchema> {
   }
 
   public async getUploadableSnapshots() {
+    const before5SecFromNow = new Date(Date.now() - 5000);
     return this.db.query.snapshotSyncStatus.findMany({
-      where: ({ isUploaded }, { eq }) => eq(isUploaded, false),
+      where: ({ status, updateAt }, { or, and, eq, lt }) =>
+        or(eq(status, 'idle'), and(eq(status, 'pending'), lt(updateAt, before5SecFromNow))),
       with: {
         snapshot: true,
       },
@@ -114,11 +120,19 @@ export class SyncRepository extends Repository<SyncSchema> {
     ).at(0);
   }
 
-  public async updateSnapshotSyncStatus(snapshotId: string, isUploaded: boolean, uploadAt: Date) {
+  public async updateSnapshotSyncStatus({
+    snapshotId,
+    status,
+    uploadAt,
+  }: {
+    snapshotId: string;
+    status: SyncStatus;
+    uploadAt?: Date;
+  }) {
     const res = await this.db
       .update(snapshotSyncStatus)
       .set({
-        isUploaded,
+        status,
         uploadAt,
         updateAt: new Date(),
       })
@@ -128,8 +142,10 @@ export class SyncRepository extends Repository<SyncSchema> {
   }
 
   public async getUploadableOpLogs() {
+    const before5SecFromNow = new Date(Date.now() - 5000);
     return this.db.query.opLogSyncStatus.findMany({
-      where: ({ isUploaded }, { eq }) => eq(isUploaded, false),
+      where: ({ status, updateAt }, { or, and, eq, lt }) =>
+        or(eq(status, 'idle'), and(eq(status, 'pending'), lt(updateAt, before5SecFromNow))),
       with: {
         opLog: true,
       },
@@ -154,11 +170,11 @@ export class SyncRepository extends Repository<SyncSchema> {
     ).at(0);
   }
 
-  public async updateOpLogSyncStatus(opLogId: string, isUploaded: boolean, uploadAt: Date) {
+  public async updateOpLogSyncStatus(opLogId: string, status: SyncStatus, uploadAt?: Date) {
     const res = await this.db
       .update(opLogSyncStatus)
       .set({
-        isUploaded,
+        status,
         uploadAt,
         updateAt: new Date(),
       })
@@ -173,6 +189,26 @@ export class SyncRepository extends Repository<SyncSchema> {
         .select({ value: max(opLogs.sequence) })
         .from(opLogs)
         .where(eq(opLogs.deviceId, deviceId))
+    ).at(0);
+  }
+
+  public async getUserConfig(key: UserConfigKey) {
+    return await this.db.query.information.findFirst({
+      where: (information, { eq }) => eq(information.name, key),
+    });
+  }
+
+  public async insertDeviceSyncSequence(data: DeviceSyncSequenceInsert) {
+    return (await this.db.insert(deviceSyncSequences).values(data).returning()).at(0);
+  }
+
+  public async updateDeviceSyncSequence(data: DeviceSyncSequenceInsert) {
+    return (
+      await this.db
+        .update(deviceSyncSequences)
+        .set({ ...data, id: undefined, updateAt: new Date() })
+        .where(eq(deviceSyncSequences.id, data.id!))
+        .returning()
     ).at(0);
   }
 }

@@ -5,6 +5,7 @@ import {
   date,
   index,
   integer,
+  jsonb,
   numeric,
   pgEnum,
   pgPolicy,
@@ -242,6 +243,7 @@ export const opLogs = syncSchema.table(
     sequence: bigint({ mode: 'number' }).notNull(),
     data: text().notNull(),
     iv: text().notNull(),
+    queryKeys: jsonb().default([]).notNull(),
     createAt: timestamp('create_at', { withTimezone: true })
       .$defaultFn(() => /* @__PURE__ */ new Date())
       .notNull(),

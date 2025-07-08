@@ -38,6 +38,8 @@ export class SyncDBInitializer extends DBInitializer {
       await this.insertMissingConfig(missingConfigKeys);
     }
 
+    await this.insertMissingLocalStorageItems();
+
     if (options?.closeAfterInit) {
       SyncDBInitializer.instance = null;
       return;
@@ -138,7 +140,23 @@ export class SyncDBInitializer extends DBInitializer {
             })
             .onConflictDoNothing();
 
-          localStorage.setItem(LOCAL_STORAGE_KEYS.APP.DEVICE_ID, deviceId);
+          localStorage.setItem(LOCAL_STORAGE_KEYS.SYNC.DEVICE_ID, deviceId);
+          break;
+        }
+      }
+    }
+  }
+
+  private async insertMissingLocalStorageItems() {
+    const storageKeys = Object.values(LOCAL_STORAGE_KEYS.SYNC);
+    for (const key of storageKeys) {
+      switch (key) {
+        case 'sync.deviceId': {
+          const deviceId = await this.db.query.information.findFirst({
+            where: ({ name }, { eq }) => eq(name, 'deviceId'),
+          });
+          if (!deviceId) throw new Error('deviceId not found.');
+          localStorage.setItem(key, deviceId.value);
           break;
         }
       }

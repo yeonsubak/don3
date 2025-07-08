@@ -58,7 +58,7 @@ export class AccountsRepository extends Repository<AppSchema> {
     });
   }
 
-  @writeOpLog
+  @writeOpLog('getAccountsByCountry', 'getAllAccounts', 'getAllAccountGroups')
   public insertAccount(data: AccountInsert) {
     return this.db
       .insert(accounts)
@@ -66,7 +66,7 @@ export class AccountsRepository extends Repository<AppSchema> {
       .returning();
   }
 
-  @writeOpLog
+  @writeOpLog('getAccountsByCountry', 'getAllAccounts', 'getAllAccountGroups')
   public updateAccount(data: Partial<AccountInsert>) {
     return this.db
       .update(accounts)
@@ -79,7 +79,7 @@ export class AccountsRepository extends Repository<AppSchema> {
       .returning();
   }
 
-  @writeOpLog
+  @writeOpLog('getAccountsByCountry', 'getAllAccounts', 'getAllAccountGroups')
   public deleteAccount(accountId: string) {
     return this.db.delete(accounts).where(eq(accounts.id, accountId)).returning();
   }
@@ -151,7 +151,7 @@ export class AccountsRepository extends Repository<AppSchema> {
     });
   }
 
-  @writeOpLog
+  @writeOpLog('getAccountsByCountry', 'getAllAccounts', 'getAllAccountGroups')
   public insertAccountGroup(data: AccountGroupInsert) {
     return this.db
       .insert(accountGroups)
@@ -165,7 +165,7 @@ export class AccountsRepository extends Repository<AppSchema> {
     });
   }
 
-  @writeOpLog
+  @writeOpLog('getAccountsByCountry', 'getAllAccounts', 'getAllAccountGroups')
   public insertAccountBalance(data: AccountBalanceInsert) {
     return this.db
       .insert(assetLiabilityBalances)
@@ -173,7 +173,7 @@ export class AccountsRepository extends Repository<AppSchema> {
       .returning();
   }
 
-  @writeOpLog
+  @writeOpLog('getAccountsByCountry', 'getAllAccounts', 'getAllAccountGroups')
   public updateAccountBalance(accountBalanceId: string, amount: number) {
     return this.db
       .update(assetLiabilityBalances)

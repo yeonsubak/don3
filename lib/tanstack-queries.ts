@@ -1,9 +1,10 @@
-import { fetchLatestSnapshot, hasSyncServer } from '@/app/server/sync';
+import { hasSyncServer } from '@/app/server/sync';
 import type { AccountGroupType, CurrencySelect, JournalEntryType } from '@/db/app-db/drizzle-types';
 import { authClient } from '@/lib/better-auth/auth-client';
 import {
   getAccountsService,
   getConfigService,
+  getEncryptionService,
   getSyncService,
   getTransactionService,
 } from '@/services/service-helpers';
@@ -98,8 +99,8 @@ export const QUERIES = {
       queryOptions({
         queryKey: ['validEncryptionKey'],
         queryFn: async () => {
-          const syncService = await getSyncService();
-          return await syncService.getValidEncryptionKey(false);
+          const encryptionService = await getEncryptionService();
+          return await encryptionService.getValidEncryptionKey(false);
         },
       }),
     getAllSnapshots: () =>

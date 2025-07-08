@@ -8,6 +8,7 @@ CREATE TYPE "public"."algorithm_enum" AS ENUM('AES-GCM', 'AES-KW', 'RSA');--> st
 CREATE TYPE "public"."encrypt_key_registry_type_enum" AS ENUM('symmetric', 'asymmetric');--> statement-breakpoint
 CREATE TYPE "public"."encrypt_key_type_enum" AS ENUM('single', 'private', 'public');--> statement-breakpoint
 CREATE TYPE "public"."snapshot_type_enum" AS ENUM('autosave', 'user');--> statement-breakpoint
+CREATE TYPE "public"."sync_status_enum" AS ENUM('idle', 'pending', 'done');--> statement-breakpoint
 CREATE TABLE "sync"."device_sync_sequences" (
 	"id" uuid PRIMARY KEY DEFAULT uuid_generate_v4() NOT NULL,
 	"device_id" uuid NOT NULL,
@@ -47,7 +48,7 @@ CREATE TABLE "config"."information" (
 CREATE TABLE "sync"."op_log_sync_status" (
 	"id" uuid PRIMARY KEY DEFAULT uuid_generate_v4() NOT NULL,
 	"log_id" uuid NOT NULL,
-	"is_uploaded" boolean DEFAULT false NOT NULL,
+	"status" "sync_status_enum" DEFAULT 'idle' NOT NULL,
 	"upload_at" timestamp with time zone,
 	"create_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"update_at" timestamp with time zone
@@ -60,6 +61,7 @@ CREATE TABLE "sync"."op_logs" (
 	"device_id" uuid NOT NULL,
 	"sequence" bigint NOT NULL,
 	"data" jsonb NOT NULL,
+	"query_keys" jsonb NOT NULL,
 	"create_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"update_at" timestamp with time zone,
 	CONSTRAINT "op_logs_unq_device_id_sequence" UNIQUE("device_id","sequence")
@@ -68,7 +70,7 @@ CREATE TABLE "sync"."op_logs" (
 CREATE TABLE "sync"."snapshot_sync_status" (
 	"id" uuid PRIMARY KEY DEFAULT uuid_generate_v4() NOT NULL,
 	"snapshot_id" uuid NOT NULL,
-	"is_uploaded" boolean DEFAULT false NOT NULL,
+	"status" "sync_status_enum" DEFAULT 'idle' NOT NULL,
 	"upload_at" timestamp with time zone,
 	"create_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"update_at" timestamp with time zone

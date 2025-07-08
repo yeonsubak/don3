@@ -1,5 +1,5 @@
 {
-  "id": "8868d351-8ec3-44b5-bb6d-66aa8d8dbaf8",
+  "id": "f9c09c5d-e698-4039-8b1e-c3c2f3683c14",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -268,12 +268,13 @@
           "primaryKey": false,
           "notNull": true
         },
-        "is_uploaded": {
-          "name": "is_uploaded",
-          "type": "boolean",
+        "status": {
+          "name": "status",
+          "type": "sync_status_enum",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
-          "default": false
+          "default": "'idle'"
         },
         "upload_at": {
           "name": "upload_at",
@@ -359,6 +360,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "query_keys": {
+          "name": "query_keys",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
         "create_at": {
           "name": "create_at",
           "type": "timestamp with time zone",
@@ -407,12 +414,13 @@
           "primaryKey": false,
           "notNull": true
         },
-        "is_uploaded": {
-          "name": "is_uploaded",
-          "type": "boolean",
+        "status": {
+          "name": "status",
+          "type": "sync_status_enum",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
-          "default": false
+          "default": "'idle'"
         },
         "upload_at": {
           "name": "upload_at",
@@ -616,6 +624,15 @@
       "values": [
         "autosave",
         "user"
+      ]
+    },
+    "public.sync_status_enum": {
+      "name": "sync_status_enum",
+      "schema": "public",
+      "values": [
+        "idle",
+        "pending",
+        "done"
       ]
     }
   },

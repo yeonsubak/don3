@@ -8,6 +8,7 @@ import {
 import { AccountsService } from './accounts-service';
 import { BackupService } from './backup-service';
 import { ConfigService } from './config-service';
+import { EncryptionService } from './encryption-service';
 import { SyncService } from './sync-service';
 import { TransactionService } from './transaction-service';
 
@@ -30,12 +31,18 @@ export const getTransactionService = async () => {
   return new TransactionService(TransactionRepository, accountsRepository, configService);
 };
 
-export const getSyncService = async () => {
-  const SyncRepository = await getSyncRepository();
-  return new SyncService(SyncRepository);
-};
-
 export const getBackupService = async () => {
   const worker = await PGliteAppWorker.getInstance();
   return new BackupService({ pg: worker });
+};
+
+export const getSyncService = async () => {
+  const syncRepository = await getSyncRepository();
+  const encryptionService = new EncryptionService(syncRepository);
+  return new SyncService(syncRepository, encryptionService);
+};
+
+export const getEncryptionService = async () => {
+  const syncRepository = await getSyncRepository();
+  return new EncryptionService(syncRepository);
 };
