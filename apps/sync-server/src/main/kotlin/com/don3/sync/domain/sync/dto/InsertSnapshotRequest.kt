@@ -3,8 +3,6 @@ package com.don3.sync.domain.sync.dto
 import com.fasterxml.jackson.annotation.JsonProperty
 
 data class InsertSnapshotRequest(
-    @JsonProperty("userId") val userId: String,
-    @JsonProperty("deviceId") val deviceId: String,
     @JsonProperty("localId") val localId: String,
     @JsonProperty("schemaVersion") val schemaVersion: String,
     @JsonProperty("dump") val dump: String,

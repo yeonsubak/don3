@@ -8,8 +8,7 @@ enum class WebSocketRequestType(@get:JsonValue val value: String) {
     CLOSE("close"),
     GET_LATEST_SNAPSHOT("getLatestSnapshot"),
     INSERT_SNAPSHOT("insertSnapshot"),
-    INSERT_OP_LOG("insertOpLog"),
-    SEND_MSG_TO_SERVER("sendMsgToServer");
+    INSERT_OP_LOG("insertOpLog");
 
     companion object {
         @JvmStatic

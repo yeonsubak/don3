@@ -31,15 +31,10 @@ class SyncWebSocketController(
     @SendToUser("/queue/snapshot/latest")
     fun getLatestSnapshot(
         @Payload request: WebSocketRequest<Nothing>, principal: Principal
-    ): WebSocketResponse<GetSnapshotResponse> {
+    ): WebSocketResponse<SnapshotResponse>? {
         val user = authenticationService.findUserByPrincipal(principal)
         val snapshot = syncService.getLatestSnapshot(user)
-        return WebSocketResponse(
-            requestId = request.requestId,
-            type = WebSocketResponseType.GET_SNAPSHOT,
-            payload = snapshot,
-            message = "Latest snapshot retrieved successfully."
-        )
+        return snapshot?.toWebSocketResponse(request)
     }
 
     /**
@@ -54,23 +49,11 @@ class SyncWebSocketController(
     @SendToUser("/queue/snapshot/insert")
     fun insertSnapshot(
         @Payload request: WebSocketRequest<InsertSnapshotRequest>, principal: Principal
-    ): WebSocketResponse<Nothing> {
-        val payload =
-            request.payload ?: throw InvalidPayloadException("Payload for snapshot insertion must not be null.")
-
+    ): WebSocketResponse<SnapshotResponse>? {
         val user = authenticationService.findUserByPrincipal(principal)
-
-        syncService.insertSnapshot(payload, user)
-
-        val res = WebSocketResponse(
-            requestId = request.requestId,
-            type = WebSocketResponseType.SNAPSHOT_INSERTED, // More specific response type
-            payload = null,
-            message = "Snapshot inserted successfully."
-        )
-
+        val snapshot = syncService.insertSnapshot(request, user)
+        val res = snapshot?.toWebSocketResponse(request)
         println("Server sending snapshot insert response to user ${principal.name} on /queue/snapshot/insert: $res")
-
         return res
     }
 
@@ -87,14 +70,29 @@ class SyncWebSocketController(
     fun insertOpLog(
         @Payload request: WebSocketRequest<InsertOpLogRequest>, principal: Principal
     ): WebSocketResponse<OpLogResponse> {
-        val payload = request.payload ?: throw InvalidPayloadException("Payload for opLog insertion must not be null.")
+        val user = this.authenticationService.findUserByPrincipal(principal)
+        val opLog = syncService.insertOpLog(request, user)
+        return opLog.toWebSocketResponse(request)
+    }
+
+    @MessageMapping("/opLog/get")
+    @SendToUser("/queue/opLog/get")
+    fun getOpLogByDeviceIdsAndGreaterThanSequence(
+        @Payload request: WebSocketRequest<GetOpLogRequest>,
+        principal: Principal
+    ): WebSocketResponse<List<OpLogResponse>> {
+        val payload = request.payload ?: throw InvalidPayloadException("Payload for opLog get must not be null.")
         val user = this.authenticationService.findUserByPrincipal(principal)
 
-        val opLog = syncService.insertOpLog(payload, user)
+        val opLogs = syncService.getAllOpLogsByDeviceIdsAndGreaterThanSequence(payload.deviceIdAndSeq, user)
 
         return WebSocketResponse(
-            requestId = request.requestId, type = WebSocketResponseType.OP_LOG_INSERTED, // More specific response type
-            payload = opLog, message = "Operation log inserted successfully."
+            requestId = request.requestId,
+            userId = user.id,
+            deviceId = request.deviceId,
+            type = WebSocketResponseType.GET_OP_LOG,
+            payload = opLogs,
+            message = "Operation logs retrieved successfully."
         )
     }
 }
