@@ -17,6 +17,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { GettingStartedDialog } from './getting-started/getting-started-dialog';
 import { SyncDialog } from './sync/sync-dialog';
+import { Suspense } from 'react';
 
 const WelcomeDialog = () => {
   const [open, setOpen] = useState<boolean>(true);
@@ -96,7 +97,11 @@ export const StartUp = ({ children }: Readonly<{ children: React.ReactNode }>) =
   const { isInit } = useIsInit();
 
   if (!isInit) {
-    return <WelcomeDialog />;
+    return (
+      <Suspense>
+        <WelcomeDialog />
+      </Suspense>
+    );
   }
 
   return children;
