@@ -1,6 +1,6 @@
 import * as syncSchema from './schema';
 
-export const USER_CONFIG_KEYS = ['schemaVersion', 'datasetVersion', 'deviceId'] as const;
+export const USER_CONFIG_KEYS = ['schemaVersion', 'deviceId', 'userId'] as const;
 export type UserConfigKey = (typeof USER_CONFIG_KEYS)[number];
 
 export type SyncSchema = typeof syncSchema;
