@@ -49,7 +49,12 @@ class SyncService(
         }
     }
 
-    fun getAllOpLogsByDeviceIdsAndGreaterThanSequence(list: List<DeviceIdAndSeq>, user: User): List<OpLogResponse> {
+    fun getAllOpLogsByDeviceIdsAndGreaterThanSequence(
+        list: List<DeviceIdAndSeq>,
+        user: User,
+        requestDeviceId: String
+    ): List<OpLogResponse> {
+        // Get OpLogs based on the request
         val logs = list.fold(mutableListOf<OpLog>()) { acc, cur ->
             val opLogs = this.opLogRepository.findAllByUserAndDeviceIdAndSequenceGreaterThan(
                 user, UUID.fromString(cur.deviceId), cur.seq.toLong()
@@ -57,6 +62,14 @@ class SyncService(
             acc.addAll(opLogs)
             acc
         }
+
+        // Get OpLogs of deviceIds omitted in the request
+        val excludingDeviceIds = list.map { UUID.fromString(it.deviceId) }.toMutableList()
+        // Add request's deviceId for exclusion
+        excludingDeviceIds.add(UUID.fromString(requestDeviceId))
+
+        val omittedLogs = this.opLogRepository.findAllByUserAndDeviceIdNotIn(user, excludingDeviceIds)
+        logs.addAll(omittedLogs)
 
         return logs.map { it.toResponse() }.sortedBy { it.createAt }
     }

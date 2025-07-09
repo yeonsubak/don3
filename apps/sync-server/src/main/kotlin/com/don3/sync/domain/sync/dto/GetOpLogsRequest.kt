@@ -7,6 +7,6 @@ data class DeviceIdAndSeq(
     val seq: BigInteger
 )
 
-data class GetOpLogRequest(
+data class GetOpLogsRequest(
     val deviceIdAndSeq: List<DeviceIdAndSeq>
 )

@@ -7,7 +7,9 @@ import java.time.Instant
 import java.util.*
 
 interface OpLogRepository : JpaRepository<OpLog, String> {
-    fun findAllByUserAndCreateAtAfter(user: User, date: Instant): List<OpLog>
-    fun findAllByUserAndDeviceIdAndSequenceGreaterThan(user: User, deviceId: UUID, sequence: Long): List<OpLog>
     fun findByUserAndDeviceIdAndSequence(user: User, deviceId: UUID, sequence: Long): OpLog
+
+    fun findAllByUserAndCreateAtAfter(user: User, date: Instant): List<OpLog>
+    fun findAllByUserAndDeviceIdNotIn(user: User, deviceIds: List<UUID>): List<OpLog>
+    fun findAllByUserAndDeviceIdAndSequenceGreaterThan(user: User, deviceId: UUID, sequence: Long): List<OpLog>
 }

@@ -78,19 +78,20 @@ class SyncWebSocketController(
     @MessageMapping("/opLog/get")
     @SendToUser("/queue/opLog/get")
     fun getOpLogByDeviceIdsAndGreaterThanSequence(
-        @Payload request: WebSocketRequest<GetOpLogRequest>,
+        @Payload request: WebSocketRequest<GetOpLogsRequest>,
         principal: Principal
     ): WebSocketResponse<List<OpLogResponse>> {
         val payload = request.payload ?: throw InvalidPayloadException("Payload for opLog get must not be null.")
         val user = this.authenticationService.findUserByPrincipal(principal)
 
-        val opLogs = syncService.getAllOpLogsByDeviceIdsAndGreaterThanSequence(payload.deviceIdAndSeq, user)
+        val opLogs =
+            syncService.getAllOpLogsByDeviceIdsAndGreaterThanSequence(payload.deviceIdAndSeq, user, request.deviceId)
 
         return WebSocketResponse(
             requestId = request.requestId,
             userId = user.id,
             deviceId = request.deviceId,
-            type = WebSocketResponseType.GET_OP_LOG,
+            type = WebSocketResponseType.GET_OP_LOGS,
             payload = opLogs,
             message = "Operation logs retrieved successfully."
         )
