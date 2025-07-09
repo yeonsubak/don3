@@ -85,11 +85,6 @@ export const QUERIES = {
       }),
   },
   sync: {
-    getSyncWorkerInstance: () =>
-      queryOptions({
-        queryKey: ['syncWorkerInstance'],
-        queryFn: async () => await SyncWorker.getInstance(),
-      }),
     listPasskeys: () =>
       queryOptions({
         queryKey: ['passkeys'],

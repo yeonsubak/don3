@@ -14,6 +14,7 @@ import {
   type ReactNode,
   type RefObject,
 } from 'react';
+import { useGlobalContext } from './global-context';
 
 type SyncContextProps = {
   wsRef: RefObject<SyncWorker | null>;
@@ -23,6 +24,7 @@ type SyncContextProps = {
 const SyncContext = createContext<SyncContextProps | null>(null);
 
 export const SyncContextProvider = ({ children }: { children: ReactNode }) => {
+  const { queryClient } = useGlobalContext();
   const { isInit } = useIsInit();
   const [isSyncEnable] = useLocalStorage<boolean>(LOCAL_STORAGE_KEYS.SYNC.SYNC_ENABLED, false);
 
@@ -38,6 +40,7 @@ export const SyncContextProvider = ({ children }: { children: ReactNode }) => {
       }
 
       const worker = await SyncWorker.getInstance();
+      worker.injectQueryClient(queryClient);
       wsRef.current = worker;
 
       setSyncStatus(worker.connectionState);
@@ -54,7 +57,7 @@ export const SyncContextProvider = ({ children }: { children: ReactNode }) => {
         unsubscribe();
       }
     };
-  }, [isInit, isSyncEnable]);
+  }, [isInit, isSyncEnable, queryClient]);
 
   useEffect(() => {
     switch (syncStatus) {

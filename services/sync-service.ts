@@ -1,7 +1,12 @@
 import { fetchLatestSnapshot, fetchOpLogsAfterDate } from '@/app/server/sync';
 import { appDrizzle } from '@/db';
 import { PGliteAppWorker } from '@/db/pglite/pglite-app-worker';
-import type { OpLogInsert, SnapshotInsert, SyncStatus } from '@/db/sync-db/drizzle-types';
+import type {
+  OpLogInsert,
+  SnapshotInsert,
+  SyncStatus,
+  UserConfigKey,
+} from '@/db/sync-db/drizzle-types';
 import {
   isRestResponse,
   type OpLogResponse,
@@ -210,41 +215,59 @@ export class SyncService extends Service {
     }
   }
 
-  public async insertFetchedOpLogs(opLogRes: OpLogRestResponse | OpLogResponse) {
-    const res: { deviceId: string; seq: number; res: Results<unknown> }[] = [];
+  public async insertFetchedOpLogs(opLogRes: OpLogRestResponse | OpLogResponse[] | OpLogResponse) {
+    function validateType() {
+      if (isRestResponse(opLogRes)) return 'OpLogRestResponse';
+      if (Array.isArray(opLogRes)) return 'OpLogResponse[]';
+      return 'OpLogResponse';
+    }
 
-    const insert = async ({ data, iv: ivBase64, sequence, deviceId }: OpLogResponse) => {
+    const res: { deviceId: string; seq: number; res: Results<unknown>; queryKeys: string[] }[] = [];
+
+    const insert = async ({ data, iv: ivBase64, sequence, deviceId, queryKeys }: OpLogResponse) => {
       const iv = base64ToUint8Array(ivBase64);
       const decryptedData = await this.encryptionService.decryptData(data, iv);
       const { sql, params }: Query = JSON.parse(decryptedData);
       const drizzle = appDrizzle(await PGliteAppWorker.getInstance());
       const queryRes = await drizzle.$client.query(sql, params);
-      res.push({ deviceId, seq: sequence, res: queryRes });
+      res.push({ deviceId, seq: sequence, res: queryRes, queryKeys });
     };
 
-    if (isRestResponse(opLogRes)) {
-      const { data } = opLogRes as OpLogRestResponse;
-      for (const log of data) {
-        await insert(log);
+    switch (validateType()) {
+      case 'OpLogRestResponse': {
+        const { data } = opLogRes as OpLogRestResponse;
+        for (const log of data) {
+          await insert(log);
+        }
+        break;
       }
-    } else {
-      const opLog = opLogRes as OpLogResponse;
-      await insert(opLog);
+      case 'OpLogResponse[]': {
+        const opLog = opLogRes as OpLogResponse[];
+        for (const log of opLog) {
+          await insert(log);
+        }
+        break;
+      }
+      case 'OpLogResponse': {
+        const opLog = opLogRes as OpLogResponse;
+        await insert(opLog);
+      }
     }
 
     const lastLog = res[res.length - 1];
     if (lastLog) {
-      await this.upsertDeviceSyncSequence(lastLog.deviceId, lastLog.seq);
+      const sequenceResult = await this.upsertDeviceSyncSequence(lastLog.deviceId, lastLog.seq);
     }
 
     return res;
   }
 
+  public async getUserConfig(key: UserConfigKey) {
+    return await this.syncRepository.getUserConfig(key);
+  }
+
   private async upsertDeviceSyncSequence(deviceId: string, sequence: number) {
-    const updateResult = await this.syncRepository.updateDeviceSyncSequence({ deviceId, sequence });
-    return updateResult
-      ? updateResult
-      : await this.syncRepository.insertDeviceSyncSequence({ deviceId, sequence });
+    return await this.syncRepository.upsertDeviceSyncSequence({ deviceId, sequence });
   }
 
   private async getLatestSnapshotFromServer() {

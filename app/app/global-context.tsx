@@ -1,3 +1,5 @@
+'use client';
+
 import type {
   AccountGroupSelectAll,
   AccountSelectAll,
@@ -8,17 +10,8 @@ import { DATASET_COUNTRY } from '@/db/dataset/country';
 import { DATASET_CURRENCY_FIAT } from '@/db/dataset/currency';
 import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
 import { QUERIES } from '@/lib/tanstack-queries';
-import { useQueries } from '@tanstack/react-query';
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type Dispatch,
-  type ReactNode,
-  type SetStateAction,
-} from 'react';
+import { useQueries, useQueryClient, type QueryClient } from '@tanstack/react-query';
+import * as React from 'react';
 
 type GlobalContext = {
   countries: CountrySelect[];
@@ -33,14 +26,18 @@ type GlobalContext = {
   defaultLanguage: string;
 
   accountGroups: AccountGroupSelectAll[];
-  setAccountGroups: Dispatch<SetStateAction<AccountGroupSelectAll[]>>;
+  setAccountGroups: React.Dispatch<React.SetStateAction<AccountGroupSelectAll[]>>;
 
   isPending: boolean;
+
+  queryClient: QueryClient;
 };
 
-export const GlobalContext = createContext<GlobalContext | null>(null);
+export const GlobalContext = React.createContext<GlobalContext | null>(null);
 
-export const GlobalContextProvider = ({ children }: { children: ReactNode }) => {
+export const GlobalContextProvider = ({ children }: { children: React.ReactNode }) => {
+  const queryClient = useQueryClient();
+
   const {
     data: {
       fetchedDefaultCurrency,
@@ -74,7 +71,7 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
     }),
   });
 
-  const defaultCurrency: CurrencySelect = useMemo(() => {
+  const defaultCurrency: CurrencySelect = React.useMemo(() => {
     if (fetchedDefaultCurrency) {
       return fetchedDefaultCurrency;
     }
@@ -84,7 +81,7 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
     ) as CurrencySelect;
   }, [fetchedDefaultCurrency]);
 
-  const defaultCountry: CountrySelect = useMemo(() => {
+  const defaultCountry: CountrySelect = React.useMemo(() => {
     if (fetchedDefaultCountry) {
       return fetchedDefaultCountry;
     }
@@ -93,34 +90,37 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
       (e) => e.code === (localStorage.getItem(LOCAL_STORAGE_KEYS.APP.DEFAULT_COUNTRY) ?? 'USA'),
     ) as CountrySelect;
   }, [fetchedDefaultCountry]);
-  const defaultLanguage: string = useMemo(() => 'en', []); // TODO: add fetch logic when i8n is supported.
+  const defaultLanguage: string = React.useMemo(() => 'en', []); // TODO: add fetch logic when i8n is supported.
 
-  const countries: CountrySelect<{ defaultCurrency: true }>[] = useMemo(
+  const countries: CountrySelect<{ defaultCurrency: true }>[] = React.useMemo(
     () => fetchedCountries ?? [],
     [fetchedCountries],
   );
-  const currencies: CurrencySelect[] = useMemo(() => fetchedCurrencies ?? [], [fetchedCurrencies]);
+  const currencies: CurrencySelect[] = React.useMemo(
+    () => fetchedCurrencies ?? [],
+    [fetchedCurrencies],
+  );
 
-  const [accountGroups, setAccountGroups] = useState<AccountGroupSelectAll[]>([]);
-  const accounts = useMemo(
+  const [accountGroups, setAccountGroups] = React.useState<AccountGroupSelectAll[]>([]);
+  const accounts = React.useMemo(
     () => accountGroups.flatMap((group) => group.accounts),
     [accountGroups],
   ) as AccountSelectAll[];
 
-  const countriesInUse = useMemo(() => {
+  const countriesInUse = React.useMemo(() => {
     const countries = accounts.map((account) => account.country);
     const removeDups = new Map(countries.map((e) => [e.id, e]));
     return Array.from(removeDups.values());
   }, [accounts]);
-  const isMultiCountry = useMemo(() => countriesInUse.length > 1, [countriesInUse]);
+  const isMultiCountry = React.useMemo(() => countriesInUse.length > 1, [countriesInUse]);
 
-  const currenciesInUse = useMemo(() => {
+  const currenciesInUse = React.useMemo(() => {
     const currencies = accounts.map((account) => account.currency);
     const removeDups = new Map(currencies.map((e) => [e.id, e]));
     return Array.from(removeDups.values());
   }, [accounts]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     setAccountGroups(fetchedAccountGroups ?? []);
   }, [fetchedAccountGroups]);
 
@@ -147,6 +147,7 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
         accountGroups,
         setAccountGroups,
         isPending,
+        queryClient,
       }}
     >
       {children}
@@ -155,7 +156,7 @@ export const GlobalContextProvider = ({ children }: { children: ReactNode }) => 
 };
 
 export const useGlobalContext = () => {
-  const context = useContext(GlobalContext);
+  const context = React.useContext(GlobalContext);
   if (!context) {
     throw new Error('useGlobalContext must be used within a GlobalContextProvider');
   }
