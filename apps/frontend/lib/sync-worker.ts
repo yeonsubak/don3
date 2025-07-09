@@ -11,6 +11,7 @@ import { getSyncRepository } from '@/repositories/repository-helpers';
 import { EncryptionService } from '@/services/encryption-service';
 import { SyncService } from '@/services/sync-service';
 import { RxStompState } from '@stomp/rx-stomp';
+import type { QueryClient } from '@tanstack/react-query';
 import { LOCAL_STORAGE_KEYS, SYNC_WEBSOCKET_URL } from './constants';
 import { generateIV, uInt8ArrayToBase64 } from './utils/encryption-utils';
 
@@ -19,20 +20,29 @@ export class SyncWorker {
   private static initPromise: Promise<SyncWorker> | null = null;
 
   private websocketWorker: Worker;
+
   private syncService: SyncService;
   private encryptionService: EncryptionService;
+
+  private queryClient: QueryClient | null = null;
+  private opLogInsertBuffer: WebSocketResponse<OpLogResponse>[] = [];
+  private opLogInsertBufferTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private OP_LOG_INSERT_BUFFER_TIMEOUT = 2000; //ms
 
   private _connectionState: RxStompState = RxStompState.CLOSED;
   private connectionStateChangeCallbacks: ((state: RxStompState) => void)[] = [];
 
   private syncIntervalId: ReturnType<typeof setInterval> | null = null;
 
-  private SYNC_INTERVAL = 5000; //ms
+  private SYNC_INTERVAL = 3000; //ms
   private DESTINATION_PATHS = [
     '/user/queue/snapshot/latest',
     '/user/queue/snapshot/insert',
     '/user/queue/opLog/insert',
   ];
+
+  private deviceId: string | null = null;
+  private userId: string | null = null;
 
   private constructor(syncService: SyncService, encryptionService: EncryptionService) {
     this.syncService = syncService;
@@ -62,11 +72,15 @@ export class SyncWorker {
     return SyncWorker.initPromise;
   }
 
+  public injectQueryClient(queryClient: QueryClient) {
+    this.queryClient = queryClient;
+  }
+
   public get connectionState() {
     return this._connectionState;
   }
 
-  public sendRequest(_request: {
+  public async sendRequest(_request: {
     type: WebSocketRequestType;
     payload: Payload;
     destination: string;
@@ -75,7 +89,7 @@ export class SyncWorker {
       ..._request,
       requestId: crypto.randomUUID(),
       userId: this.getUserId(),
-      deviceId: this.getDeviceId(),
+      deviceId: await this.getDeviceId(),
     };
     this.websocketWorker.postMessage(request);
   }
@@ -97,7 +111,7 @@ export class SyncWorker {
 
     this.syncIntervalId = setInterval(async () => {
       await this.insertSnapshots();
-      await this.insertOpLogs();
+      await this.uploadOpLogs();
     }, this.SYNC_INTERVAL);
   }
 
@@ -143,7 +157,7 @@ export class SyncWorker {
     }
   }
 
-  private async insertOpLogs() {
+  private async uploadOpLogs() {
     if (!this.syncService) {
       console.error('SyncService not initialized. Cannot insert operation logs.');
       return;
@@ -200,24 +214,25 @@ export class SyncWorker {
         return;
       }
 
-      if (deviceId === this.getDeviceId()) {
+      if (deviceId === this.deviceId) {
         await this.ackUpload(event.data as WebSocketResponse<Payload>);
         return;
       }
 
       if (type === 'opLogInserted') {
         const opLog = event.data as WebSocketResponse<OpLogResponse>;
-        await this.syncService.insertFetchedOpLogs(opLog.payload);
+        this.opLogInsertBuffer.push(opLog);
+        this.insertOpLogs();
         return;
       }
     };
   }
 
-  private sendWorkerInitMessage() {
+  private async sendWorkerInitMessage() {
     const payload: WebSocketInit = {
       requestId: crypto.randomUUID(),
       userId: this.getUserId(),
-      deviceId: this.getDeviceId(),
+      deviceId: await this.getDeviceId(),
       type: 'init',
       payload: {
         syncWebSocketUrl: SYNC_WEBSOCKET_URL ?? '',
@@ -238,17 +253,49 @@ export class SyncWorker {
     }
   }
 
+  private async insertOpLogs() {
+    if (this.opLogInsertBufferTimeoutId) {
+      clearTimeout(this.opLogInsertBufferTimeoutId);
+    }
+
+    this.opLogInsertBufferTimeoutId = setTimeout(async () => {
+      const sortedBySeqASC = this.opLogInsertBuffer
+        .toSorted((a, b) => a.payload.sequence - b.payload.sequence)
+        .map((e) => e.payload);
+
+      const insertResult = await this.syncService.insertFetchedOpLogs(sortedBySeqASC);
+
+      // Invalidate query keys
+      if (!this.queryClient) throw new Error('this.queryClient is null.');
+      const queryKeySet = new Set(sortedBySeqASC.flatMap((e) => e.queryKeys));
+      const queryKeys = Array.from(queryKeySet);
+      try {
+        await this.queryClient.invalidateQueries({ queryKey: queryKeys });
+        console.log('Query keys has been invalidated:', queryKeys);
+      } catch (err) {
+        console.error('Error invalidating queries:', queryKeys, err);
+      }
+
+      // Clear buffer
+      this.opLogInsertBuffer = [];
+    }, this.OP_LOG_INSERT_BUFFER_TIMEOUT);
+  }
+
   private getUserId() {
+    if (this.userId) return this.userId;
+
     const userId = localStorage.getItem(LOCAL_STORAGE_KEYS.SYNC.USER_ID);
     if (!userId) throw new Error('userId not found.');
-
+    this.userId = userId;
     return userId;
   }
 
-  private getDeviceId() {
-    const deviceId = localStorage.getItem(LOCAL_STORAGE_KEYS.SYNC.DEVICE_ID);
-    if (!deviceId) throw new Error('userId not found.');
+  private async getDeviceId() {
+    if (this.deviceId) return this.deviceId;
 
-    return deviceId;
+    const deviceId = await this.syncService.getUserConfig('deviceId');
+    if (!deviceId) throw new Error('deviceId not found.');
+    this.deviceId = deviceId.value;
+    return deviceId.value;
   }
 }

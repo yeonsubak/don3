@@ -198,16 +198,15 @@ export class SyncRepository extends Repository<SyncSchema> {
     });
   }
 
-  public async insertDeviceSyncSequence(data: DeviceSyncSequenceInsert) {
-    return (await this.db.insert(deviceSyncSequences).values(data).returning()).at(0);
-  }
-
-  public async updateDeviceSyncSequence(data: DeviceSyncSequenceInsert) {
+  public async upsertDeviceSyncSequence(data: DeviceSyncSequenceInsert) {
     return (
       await this.db
-        .update(deviceSyncSequences)
-        .set({ ...data, id: undefined, updateAt: new Date() })
-        .where(eq(deviceSyncSequences.id, data.id!))
+        .insert(deviceSyncSequences)
+        .values(data)
+        .onConflictDoUpdate({
+          target: deviceSyncSequences.deviceId,
+          set: { sequence: data.sequence },
+        })
         .returning()
     ).at(0);
   }
