@@ -223,6 +223,7 @@ export class SyncService extends Service {
     }
 
     const res: { deviceId: string; seq: number; res: Results<unknown>; queryKeys: string[] }[] = [];
+    const deviceIdSeqs: Record<string, number> = {};
 
     const insert = async ({ data, iv: ivBase64, sequence, deviceId, queryKeys }: OpLogResponse) => {
       const iv = base64ToUint8Array(ivBase64);
@@ -231,6 +232,7 @@ export class SyncService extends Service {
       const drizzle = appDrizzle(await PGliteAppWorker.getInstance());
       const queryRes = await drizzle.$client.query(sql, params);
       res.push({ deviceId, seq: sequence, res: queryRes, queryKeys });
+      deviceIdSeqs[deviceId] = sequence;
     };
 
     switch (validateType()) {
@@ -254,12 +256,16 @@ export class SyncService extends Service {
       }
     }
 
-    const lastLog = res[res.length - 1];
-    if (lastLog) {
-      const sequenceResult = await this.upsertDeviceSyncSequence(lastLog.deviceId, lastLog.seq);
+    for (const [deviceId, seq] of Object.entries(deviceIdSeqs)) {
+      await this.upsertDeviceSyncSequence(deviceId, seq);
     }
 
     return res;
+  }
+
+  public async getAllDeviceSyncSequences() {
+    const result = await this.syncRepository.getAllDeviceSyncSequences();
+    return result.map(({ deviceId, sequence }) => ({ deviceId, seq: sequence }));
   }
 
   public async getUserConfig(key: UserConfigKey) {
