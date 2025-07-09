@@ -1,0 +1,97 @@
+name: Deploy to AWS Lightsail Container
+
+on:
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      image_tag:
+        required: true
+        type: string
+
+env:
+  image_tag: ${{inputs.image_tag}}
+
+jobs:
+  deploy-to-aws-lightsail:
+    runs-on: ubuntu-latest
+    container: amazon/aws-cli
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install lightsailctl
+        run: |
+          curl -L "https://s3.us-west-2.amazonaws.com/lightsailctl/latest/linux-amd64/lightsailctl" -o "/usr/local/bin/lightsailctl"
+          chmod +x /usr/local/bin/lightsailctl
+
+      - name: Write AWS access credentials
+        run: |
+          mkdir -p ~/.aws
+          cat <<"EOF" > ~/.aws/credentials
+          [default]
+          aws_access_key_id=${{secrets.AWS_ACCESS_KEY_ID}}
+          aws_secret_access_key=${{secrets.AWS_SECRET_ACCESS_KEY}}
+          EOF
+
+      - name: Debug image_tag
+        run: |
+          echo "Using image tag: ${{ env.image_tag }}"
+
+      - name: Pull Docker image from GHCR
+        run: |
+          docker pull ${{ env.image_tag }}
+
+      - name: Push Docker image to Lightsail Container Service
+        run: |
+          aws lightsail push-container-image \
+            --region ${{ vars.AWS_REGION }}
+            --service-name ${{ vars.AWS_LIGHTSAIL_SERVICE_NAME }} \
+            --label ${{ vars.AWS_LIGHTSAIL_CONTAINER_NAME }}-${{ github.sha }} \
+            --image ${{ env.image_tag }}
+
+      - name: Get latest Lightsail image URL
+        id: get-image-url
+        run: |
+          IMAGE_URL=$(aws lightsail get-container-images \
+            --service-name ${{ vars.AWS_LIGHTSAIL_SERVICE_NAME }} \
+            --query 'containerImages[0].image' \
+            --output text)
+          echo "LIGHTSAIL_IMAGE_URL=$IMAGE_URL" >> $GITHUB_ENV
+          echo "Lightsail Image URL: $IMAGE_URL"
+
+      - name: Create Lightsail deployment configuration JSON
+        run: |
+          cat <<EOF > container-deployment.json
+          {
+            "containers": {
+              "${{ vars.AWS_LIGHTSAIL_CONTAINER_NAME }}": {
+                "image": "${{ env.LIGHTSAIL_IMAGE_URL }}",
+                "ports": {
+                  "${{ secrets.AWS_LIGHTSAIL_CONTAINER_PORT }}": "HTTP"
+                }
+              }
+            },
+            "publicEndpoint": {
+              "containerName": "${{ vars.AWS_LIGHTSAIL_CONTAINER_NAME }}",
+              "containerPort": ${{ secrets.AWS_LIGHTSAIL_CONTAINER_PORT }},
+              "healthCheck": {
+                "path": "/actuator/health",
+                "successCodes": "200-399",
+                "timeoutSeconds": 5,
+                "intervalSeconds": 10,
+                "unhealthyThreshold": 2,
+                "healthyThreshold": 2
+              }
+            }
+          }
+          EOF
+
+      - name: Create new Lightsail Container Service deployment
+        run: |
+          aws lightsail create-container-service-deployment \
+            --service-name ${{ vars.AWS_LIGHTSAIL_SERVICE_NAME }} \
+            --cli-input-json file://container-deployment.json

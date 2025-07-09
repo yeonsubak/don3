@@ -1,0 +1,30 @@
+name: CI/CD for Dev Branch to Lightsail
+
+on:
+  push:
+    branches: [ dev ]
+  pull_request:
+    branches: [ dev ]
+  workflow_dispatch:
+
+env:
+  GHCR_IMAGE_NAME: ${{ github.repository }}/sync-app
+  GHCR_IMAGE_TAG: dev
+
+jobs:
+  build-and-push-to-ghcr:
+    uses: ./.github/workflows/build-and-push-to-GHCR.yml@dev
+    with:
+      environment: Preview
+      GHCR_IMAGE_NAME: ${{ env.GHCR_IMAGE_NAME }}
+      GHCR_IMAGE_TAG: ${{ env.GHCR_IMAGE_TAG }}
+    secrets: inherit
+
+  deploy-to-aws-lightsail:
+    needs: build-and-push-to-ghcr
+    uses: ./.github/workflows/aws-lightsail-deploy.yml@dev
+    with:
+      environment: Preview
+      image_tag: ${{ needs.build-and-push-to-ghcr.outputs.image_tag }}
+    secrets: inherit
+
