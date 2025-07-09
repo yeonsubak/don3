@@ -15,7 +15,6 @@ export const LOCAL_STORAGE_KEYS = {
     SYNC_TIMESTAMP: 'sync.syncTimestamp',
     SYNC_ENABLED: 'sync.syncEnabled',
     USER_ID: 'sync.userId',
-    DEVICE_ID: 'sync.deviceId',
   },
 } as const;
 

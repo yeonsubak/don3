@@ -288,7 +288,7 @@ export class AppDBInitializer extends DBInitializer {
 
     const { dump, metaData } = await backupService.createBackup();
 
-    const deviceId = localStorage.getItem(LOCAL_STORAGE_KEYS.SYNC.DEVICE_ID);
+    const deviceId = await this.syncService.getUserConfig('deviceId');
     if (!deviceId) throw new Error('deviceId is undefined in local storage');
 
     await this.syncService.insertSnapshot(
@@ -296,7 +296,7 @@ export class AppDBInitializer extends DBInitializer {
         type: 'autosave',
         schemaVersion: metaData.schemaVersion,
         meta: metaData,
-        deviceId,
+        deviceId: deviceId.value,
         dump,
       },
       'idle',

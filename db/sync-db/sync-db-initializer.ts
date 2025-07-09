@@ -38,8 +38,6 @@ export class SyncDBInitializer extends DBInitializer {
       await this.insertMissingConfig(missingConfigKeys);
     }
 
-    await this.insertMissingLocalStorageItems();
-
     if (options?.closeAfterInit) {
       SyncDBInitializer.instance = null;
       return;
@@ -50,7 +48,7 @@ export class SyncDBInitializer extends DBInitializer {
 
   protected async validateSchemaVersion(isDBReady?: boolean): Promise<boolean> {
     const latestVersion = getLatestSchemaVersion(SYNC_SCHEMA_VERSION);
-    const localStorageVersion = window.localStorage.getItem(LOCAL_STORAGE_KEYS.SYNC.SCHEMA_VERSION);
+    const localStorageVersion = localStorage.getItem(LOCAL_STORAGE_KEYS.SYNC.SCHEMA_VERSION);
 
     if (localStorageVersion || !isDBReady) {
       return localStorageVersion === latestVersion;
@@ -63,14 +61,14 @@ export class SyncDBInitializer extends DBInitializer {
     )?.value;
 
     if (dbVersion) {
-      window.localStorage.setItem(LOCAL_STORAGE_KEYS.SYNC.SCHEMA_VERSION, dbVersion);
+      localStorage.setItem(LOCAL_STORAGE_KEYS.SYNC.SCHEMA_VERSION, dbVersion);
     }
 
     return dbVersion === latestVersion;
   }
 
   protected async syncSchema() {
-    const currentVersion = window.localStorage.getItem(LOCAL_STORAGE_KEYS.SYNC.SCHEMA_VERSION);
+    const currentVersion = localStorage.getItem(LOCAL_STORAGE_KEYS.SYNC.SCHEMA_VERSION);
     const nextVersion = currentVersion
       ? SYNC_SCHEMA_VERSION[currentVersion]?.nextVersion
       : LATEST_CLEAN_VERSION.version;
@@ -79,7 +77,7 @@ export class SyncDBInitializer extends DBInitializer {
     const updateSchema = async (nextVersion: string | undefined | null): Promise<void> => {
       if (!nextVersion) return;
 
-      const currentVersion = window.localStorage.getItem(LOCAL_STORAGE_KEYS.SYNC.SCHEMA_VERSION);
+      const currentVersion = localStorage.getItem(LOCAL_STORAGE_KEYS.SYNC.SCHEMA_VERSION);
       if (currentVersion === latestVersion) return;
 
       const res = await getSchemaDefinition('sync', nextVersion);
@@ -116,7 +114,7 @@ export class SyncDBInitializer extends DBInitializer {
 
       const storedVersion = version.requireMigration ? version.nextVersion! : version.version;
 
-      window.localStorage.setItem(LOCAL_STORAGE_KEYS.SYNC.SCHEMA_VERSION, storedVersion);
+      localStorage.setItem(LOCAL_STORAGE_KEYS.SYNC.SCHEMA_VERSION, storedVersion);
 
       console.log(`Synchronized sync db to ${storedVersion}`);
 
@@ -131,7 +129,6 @@ export class SyncDBInitializer extends DBInitializer {
       switch (key) {
         case 'deviceId': {
           const deviceId = crypto.randomUUID();
-
           await this.db
             .insert(schema.information)
             .values({
@@ -139,24 +136,23 @@ export class SyncDBInitializer extends DBInitializer {
               value: deviceId,
             })
             .onConflictDoNothing();
-
-          localStorage.setItem(LOCAL_STORAGE_KEYS.SYNC.DEVICE_ID, deviceId);
           break;
         }
       }
-    }
-  }
-
-  private async insertMissingLocalStorageItems() {
-    const storageKeys = Object.values(LOCAL_STORAGE_KEYS.SYNC);
-    for (const key of storageKeys) {
       switch (key) {
-        case 'sync.deviceId': {
-          const deviceId = await this.db.query.information.findFirst({
-            where: ({ name }, { eq }) => eq(name, 'deviceId'),
-          });
-          if (!deviceId) throw new Error('deviceId not found.');
-          localStorage.setItem(key, deviceId.value);
+        case 'userId': {
+          const userId = localStorage.getItem(LOCAL_STORAGE_KEYS.SYNC.USER_ID);
+          if (!userId) {
+            console.warn('userId not found in localStorage.');
+            return;
+          }
+          await this.db
+            .insert(schema.information)
+            .values({ name: key, value: userId })
+            .onConflictDoUpdate({
+              target: schema.information.name,
+              set: { value: userId },
+            });
           break;
         }
       }
