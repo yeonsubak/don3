@@ -1,7 +1,7 @@
 import { GoogleSignInButton } from '@/components/buttons/google-sign-in-button';
 import { PasskeyActivateButton } from '@/components/buttons/passkey-activate-button';
 import { useSession } from '@/lib/better-auth/auth-client';
-import { APP_DB_NAME, LOCAL_STORAGE_KEYS } from '@/lib/constants';
+import { APP_DB_NAME } from '@/lib/constants';
 import { getBackupService } from '@/services/service-helpers';
 import { useQueryClient } from '@tanstack/react-query';
 import { usePathname, useRouter } from 'next/navigation';
@@ -14,8 +14,6 @@ export const EnableSyncModal = () => {
   const pathname = usePathname();
 
   async function syncPostHook() {
-    const deviceId = localStorage.getItem(LOCAL_STORAGE_KEYS.SYNC.DEVICE_ID);
-    if (!deviceId) throw new Error('deviceId is undefined in local storage');
     const backupService = await getBackupService();
     const { status, meta } = await backupService.migrateDB(APP_DB_NAME(session.user?.id));
     router.refresh();
