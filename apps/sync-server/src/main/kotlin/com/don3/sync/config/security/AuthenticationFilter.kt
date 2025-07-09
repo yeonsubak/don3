@@ -25,17 +25,12 @@ class AuthenticationFilter(
         }
 
         val session = authenticationService.findValidSessionByToken(cookieValue)
-        if (session == null) {
-            filterChain.doFilter(request, response)
+        if (session == null || session.user == null) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired session")
             return
         }
 
         val user = session.user
-        if (user == null) {
-            filterChain.doFilter(request, response)
-            return
-        }
-
         val auth = UsernamePasswordAuthenticationToken(user, null, emptyList())
             .apply {
                 details = WebAuthenticationDetailsSource().buildDetails(request)

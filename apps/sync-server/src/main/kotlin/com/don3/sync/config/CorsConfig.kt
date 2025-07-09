@@ -14,7 +14,7 @@ class CorsConfig(private val corsProperties: CorsProperties) {
         override fun addCorsMappings(registry: CorsRegistry) {
             registry.addMapping("/**")
                 .allowedOrigins(*corsProperties.allowedOrigins.toTypedArray())
-                .allowedMethods("*")
+                .allowedMethods("GET", "POST")
                 .allowedHeaders("*")
                 .allowCredentials(true)
         }
