@@ -14,21 +14,19 @@ import { useSession } from '@/lib/better-auth/auth-client';
 import { QUERIES } from '@/lib/tanstack-queries';
 import { useQuery } from '@tanstack/react-query';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
+import { Suspense, useCallback, useEffect, useState } from 'react';
 import { GettingStartedDialog } from './getting-started/getting-started-dialog';
 import { SyncDialog } from './sync/sync-dialog';
-import { Suspense } from 'react';
 
 const WelcomeDialog = () => {
   const [open, setOpen] = useState<boolean>(true);
   const router = useRouter();
   const currentPath = usePathname();
   const searchParams = useSearchParams();
-  const syncParam = searchParams.get('syncSignIn');
-
-  const isSync = syncParam === 'true' ? true : syncParam === 'false' ? false : null;
-
   const session = useSession();
+
+  const [isClientReady, setIsClientReady] = useState(false);
+  const [isSync, setIsSync] = useState<boolean | null>(null);
 
   const handleClose = useCallback(() => {
     setOpen(false);
@@ -37,13 +35,31 @@ const WelcomeDialog = () => {
   const { data: hasSyncServer, isPending } = useQuery(QUERIES.sync.hasSyncServer());
 
   useEffect(() => {
-    if (isSync === null && !session.isExpired) {
-      // Show sync dialog
+    setIsClientReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (isClientReady) {
+      const syncParam = searchParams.get('syncSignIn');
+      const _isSync = syncParam === 'true' ? true : syncParam === 'false' ? false : null;
+      if (_isSync === null && !session.isExpired) {
+        const params = new URLSearchParams();
+        params.set('syncSignIn', 'true');
+        router.push(`?${params.toString()}`);
+        return;
+      }
+
+      setIsSync(_isSync);
+    }
+  }, [isClientReady, router, searchParams, session.isExpired]);
+
+  useEffect(() => {
+    if (isClientReady && isSync === null && !session.isExpired) {
       const params = new URLSearchParams();
       params.set('syncSignIn', 'true');
       router.push(`?${params.toString()}`);
     }
-  }, [isSync, router, session.isExpired]);
+  }, [isClientReady, isSync, router, session.isExpired]);
 
   if (isSync) {
     return <SyncDialog session={session} />;
@@ -93,16 +109,20 @@ const WelcomeDialog = () => {
   );
 };
 
-export const StartUp = ({ children }: Readonly<{ children: React.ReactNode }>) => {
+const StartUpInternal = ({ children }: Readonly<{ children: React.ReactNode }>) => {
   const { isInit } = useIsInit();
 
   if (!isInit) {
-    return (
-      <Suspense>
-        <WelcomeDialog />
-      </Suspense>
-    );
+    return <WelcomeDialog />;
   }
 
   return children;
+};
+
+export const StartUp = ({ children }: Readonly<{ children: React.ReactNode }>) => {
+  return (
+    <Suspense>
+      <StartUpInternal>{children}</StartUpInternal>
+    </Suspense>
+  );
 };
