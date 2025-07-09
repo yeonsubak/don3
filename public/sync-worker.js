@@ -6,7 +6,8 @@ import { RxStomp, RxStompState } from '@stomp/rx-stomp';
  * @typedef {import('../dto/websocket').WebSocketRequest} WebSocketRequest
  * @typedef {import('../dto/websocket').WebSocketResponse} WebSocketResponse
  * @typedef {import('../dto/websocket').WebSocketInternal} WebSocketInternal
- * @typedef {import('../dto/websocket').WebSocketInit} WebSocketInit
+ * @typedef {import('../dto/websocket').WebSocketInitRequest} WebSocketInit
+ * @typedef {import('../dto/websocket').WebSocketInitResponse} WebSocketInitResponse
  */
 
 const MAX_RECONNECT_ATTEMPTS = 5;
@@ -14,6 +15,7 @@ let currentReconnectAttempts = 0;
 
 /** @type {RxStompState} */
 let connectionState = RxStompState.CLOSED;
+let isReady = false;
 
 /** @type {RxStomp | null} */
 let stomp = null;
@@ -29,6 +31,7 @@ async function cleanup() {
   stomp = null;
   connectionState = RxStompState.CLOSED;
   currentReconnectAttempts = 0;
+  isReady = false;
 }
 
 /**
@@ -47,6 +50,8 @@ self.onmessage = async function (event) {
         console.warn('WebSocket already initializing/connecting. Ignoring init request.');
         return;
       }
+
+      isReady = false;
 
       const { syncWebSocketUrl, destinationPaths } = payload;
 
@@ -85,6 +90,19 @@ self.onmessage = async function (event) {
         }
 
         self.postMessage({ type: 'connectionStateUpdate', payload: connectionState });
+
+        if (connectionState === RxStompState.OPEN && !isReady) {
+          /** @type {WebSocketInitResponse} */
+          const postingMessage = { type: 'init', status: 'ready' };
+
+          // Ensure subscribing destinations
+          setTimeout(async () => {
+            self.postMessage(postingMessage);
+          }, 2000);
+          isReady = true;
+        } else if (connectionState !== RxStompState.OPEN && isReady) {
+          isReady = false;
+        }
       });
 
       const errorSub = stomp.stompErrors$.subscribe((frame) => {

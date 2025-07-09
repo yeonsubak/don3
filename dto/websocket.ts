@@ -1,15 +1,13 @@
-import type { Payload } from './dto-primitives';
-
 export type WebSocketRequestType =
   | 'insertOpLog'
   | 'insertSnapshot'
   | 'getLatestSnapshot'
-  | 'sendMsgToServer';
+  | 'getOpLogsRequest';
 
 export type WebSocketResponseType =
   | 'error'
   | 'connectionStateUpdate'
-  | 'getOpLog'
+  | 'getOpLogsResponse'
   | 'getSnapshot'
   | 'snapshotInserted'
   | 'opLogInserted';
@@ -26,7 +24,7 @@ export interface WebSocketRequest<P = unknown> extends WebSocketEntity<WebSocket
   destination?: string;
 }
 
-export interface WebSocketResponse<P = Payload> extends WebSocketEntity<WebSocketResponseType, P> {
+export interface WebSocketResponse<P = unknown> extends WebSocketEntity<WebSocketResponseType, P> {
   message?: string;
   receiveAt: string;
 }
@@ -35,10 +33,18 @@ export interface WebSocketResponse<P = Payload> extends WebSocketEntity<WebSocke
 type WebSocketInternalType = 'init' | 'close' | 'connectionStateUpdate';
 export type WebSocketInternal<T = WebSocketInternalType, P = unknown> = WebSocketEntity<T, P>;
 
-export type WebSocketInit = WebSocketInternal<
+export type WebSocketInitRequest = WebSocketInternal<
   'init',
   {
     syncWebSocketUrl: string;
     destinationPaths: string[];
+  }
+>;
+
+export type WebSocketInitResponse = WebSocketInternal<
+  'init',
+  {
+    type: 'init';
+    status: 'done';
   }
 >;

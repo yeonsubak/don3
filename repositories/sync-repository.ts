@@ -198,6 +198,10 @@ export class SyncRepository extends Repository<SyncSchema> {
     });
   }
 
+  public async getAllDeviceSyncSequences() {
+    return await this.db.query.deviceSyncSequences.findMany();
+  }
+
   public async upsertDeviceSyncSequence(data: DeviceSyncSequenceInsert) {
     return (
       await this.db

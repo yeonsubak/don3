@@ -1,7 +1,14 @@
 import type { Payload } from '@/dto/dto-primitives';
-import type { InsertOpLogRequest, InsertSnapshotRequest, OpLogResponse } from '@/dto/sync-dto';
 import type {
-  WebSocketInit,
+  GetOpLogsRequest,
+  GetOpLogsResponse,
+  InsertOpLogRequest,
+  InsertOpLogResponse,
+  InsertSnapshotRequest,
+  OpLogResponse,
+} from '@/dto/sync-dto';
+import type {
+  WebSocketInitRequest,
   WebSocketInternal,
   WebSocketRequest,
   WebSocketRequestType,
@@ -25,7 +32,7 @@ export class SyncWorker {
   private encryptionService: EncryptionService;
 
   private queryClient: QueryClient | null = null;
-  private opLogInsertBuffer: WebSocketResponse<OpLogResponse>[] = [];
+  private opLogInsertBuffer: OpLogResponse[] = [];
   private opLogInsertBufferTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private OP_LOG_INSERT_BUFFER_TIMEOUT = 2000; //ms
 
@@ -39,6 +46,7 @@ export class SyncWorker {
     '/user/queue/snapshot/latest',
     '/user/queue/snapshot/insert',
     '/user/queue/opLog/insert',
+    '/user/queue/opLog/get',
   ];
 
   private deviceId: string | null = null;
@@ -82,7 +90,7 @@ export class SyncWorker {
 
   public async sendRequest(_request: {
     type: WebSocketRequestType;
-    payload: Payload;
+    payload: unknown;
     destination: string;
   }) {
     const request: WebSocketRequest = {
@@ -206,7 +214,15 @@ export class SyncWorker {
     this.websocketWorker.onmessage = async (
       event: MessageEvent<WebSocketResponse | WebSocketInternal>,
     ) => {
-      const { type, payload, deviceId } = event.data;
+      const res = await this.ackFilter(event.data);
+      if (!res) return;
+
+      const { type, payload } = res;
+
+      if (type === 'init') {
+        await this.fetchStackedOpLogs();
+        return;
+      }
 
       if (type === 'connectionStateUpdate') {
         this._connectionState = payload as RxStompState;
@@ -214,14 +230,16 @@ export class SyncWorker {
         return;
       }
 
-      if (deviceId === this.deviceId) {
-        await this.ackUpload(event.data as WebSocketResponse<Payload>);
+      if (type === 'opLogInserted') {
+        const opLog = event.data as InsertOpLogResponse;
+        this.opLogInsertBuffer.push(opLog.payload);
+        this.insertOpLogs();
         return;
       }
 
-      if (type === 'opLogInserted') {
-        const opLog = event.data as WebSocketResponse<OpLogResponse>;
-        this.opLogInsertBuffer.push(opLog);
+      if (type === 'getOpLogsResponse') {
+        const opLogs = event.data as GetOpLogsResponse;
+        this.opLogInsertBuffer.push(...opLogs.payload);
         this.insertOpLogs();
         return;
       }
@@ -229,7 +247,7 @@ export class SyncWorker {
   }
 
   private async sendWorkerInitMessage() {
-    const payload: WebSocketInit = {
+    const payload: WebSocketInitRequest = {
       requestId: crypto.randomUUID(),
       userId: this.getUserId(),
       deviceId: await this.getDeviceId(),
@@ -243,14 +261,11 @@ export class SyncWorker {
     this.websocketWorker.postMessage(payload);
   }
 
-  private async ackUpload({ type, receiveAt, payload: { localId } }: WebSocketResponse<Payload>) {
-    if (type === 'opLogInserted') {
-      return await this.syncService.updateOpLogStatus(localId, 'done', receiveAt);
-    }
+  private async fetchStackedOpLogs() {
+    const deviceIdAndSeq = await this.syncService.getAllDeviceSyncSequences();
+    const payload: GetOpLogsRequest = { deviceIdAndSeq };
 
-    if (type === 'snapshotInserted') {
-      return await this.syncService.updateSnapshotStatus(localId, 'done', receiveAt);
-    }
+    this.sendRequest({ destination: '/app/sync/opLog/get', type: 'getOpLogsRequest', payload });
   }
 
   private async insertOpLogs() {
@@ -259,18 +274,15 @@ export class SyncWorker {
     }
 
     this.opLogInsertBufferTimeoutId = setTimeout(async () => {
-      const sortedBySeqASC = this.opLogInsertBuffer
-        .toSorted((a, b) => a.payload.sequence - b.payload.sequence)
-        .map((e) => e.payload);
+      const sortedBySeqASC = this.opLogInsertBuffer.toSorted((a, b) => a.sequence - b.sequence);
 
       const insertResult = await this.syncService.insertFetchedOpLogs(sortedBySeqASC);
 
       // Invalidate query keys
-      if (!this.queryClient) throw new Error('this.queryClient is null.');
       const queryKeySet = new Set(sortedBySeqASC.flatMap((e) => e.queryKeys));
       const queryKeys = Array.from(queryKeySet);
       try {
-        await this.queryClient.invalidateQueries({ queryKey: queryKeys });
+        await this.queryClient?.invalidateQueries({ queryKey: queryKeys });
         console.log('Query keys has been invalidated:', queryKeys);
       } catch (err) {
         console.error('Error invalidating queries:', queryKeys, err);
@@ -279,6 +291,27 @@ export class SyncWorker {
       // Clear buffer
       this.opLogInsertBuffer = [];
     }, this.OP_LOG_INSERT_BUFFER_TIMEOUT);
+  }
+
+  private async ackFilter(res: WebSocketResponse | WebSocketInternal) {
+    if (res.deviceId === (await this.getDeviceId())) {
+      if (['opLogInserted', 'snapshotInserted'].includes(res.type)) {
+        this.ack(res as WebSocketResponse<Payload>);
+        return;
+      }
+    }
+
+    return res;
+  }
+
+  private async ack({ type, receiveAt, payload: { localId } }: WebSocketResponse<Payload>) {
+    if (type === 'opLogInserted') {
+      return await this.syncService.updateOpLogStatus(localId, 'done', receiveAt);
+    }
+
+    if (type === 'snapshotInserted') {
+      return await this.syncService.updateSnapshotStatus(localId, 'done', receiveAt);
+    }
   }
 
   private getUserId() {

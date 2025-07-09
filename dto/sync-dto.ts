@@ -1,6 +1,8 @@
-import { keyofResponse, type Payload, type RestResponse } from './dto-primitives';
+import { keyofResponse, type RestResponse } from './dto-primitives';
+import type { WebSocketResponse } from './websocket';
 
-export interface SnapshotResponse extends Payload {
+export interface SnapshotResponse {
+  localId: string;
   schemaVersion: string;
   iv: string;
   meta: string;
@@ -9,14 +11,16 @@ export interface SnapshotResponse extends Payload {
   updateAt: string;
 }
 
-export interface InsertSnapshotRequest extends Payload {
+export interface InsertSnapshotRequest {
+  localId: string;
   schemaVersion: string;
   dump: string;
   meta: string;
   iv: string;
 }
 
-export interface InsertOpLogRequest extends Payload {
+export interface InsertOpLogRequest {
+  localId: string;
   version: string;
   schemaVersion: string;
   sequence: number;
@@ -25,8 +29,11 @@ export interface InsertOpLogRequest extends Payload {
   queryKeys: string[];
 }
 
-export interface OpLogResponse extends Payload {
+export type InsertOpLogResponse = WebSocketResponse<OpLogResponse>;
+
+export interface OpLogResponse {
   id: string;
+  localId: string;
   userId: string;
   deviceId: string;
   version: string;
@@ -46,3 +53,14 @@ export function isRestResponse(obj: object) {
     keyofResponse.every((key) => Object.keys(obj).includes(key))
   );
 }
+
+type DeviceIdAndSeq = {
+  deviceId: string;
+  seq: number;
+};
+
+export type GetOpLogsRequest = {
+  deviceIdAndSeq: DeviceIdAndSeq[];
+};
+
+export type GetOpLogsResponse = WebSocketResponse<OpLogResponse[]>;
