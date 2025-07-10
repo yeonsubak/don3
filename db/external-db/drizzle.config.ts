@@ -1,3 +1,4 @@
+import { EXTERNAL_DATABASE_URL } from '@/lib/constants';
 import { defineConfig } from 'drizzle-kit';
 
 export default defineConfig({
@@ -6,6 +7,7 @@ export default defineConfig({
   dialect: 'postgresql',
   casing: 'snake_case',
   dbCredentials: {
-    url: process.env.EXTERNAL_DATABASE_URL!,
+    url: EXTERNAL_DATABASE_URL!,
   },
+  schemaFilter: ['public', 'app_auth', 'sync'],
 });

@@ -1,6 +1,5 @@
 'use client';
 
-import { GettingStartedDialog } from '@/app/app/getting-started/getting-started-dialog';
 import { AppSidebar } from '@/components/compositions/app-sidebar';
 import { Breadcrumb } from '@/components/compositions/breadcrumb';
 import { Separator } from '@/components/ui/separator';
@@ -9,23 +8,13 @@ import { Toaster } from '@/components/ui/sonner';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { usePathname } from 'next/navigation';
 import { type ReactNode } from 'react';
+import { StartUp } from './(startup)/startup';
 import { GlobalContextProvider } from './global-context';
+import { SyncContextProvider } from './sync-context';
 
 const queryClient = new QueryClient();
 
-export default function AppLayout({ children }: Readonly<{ children: ReactNode }>) {
-  return (
-    <SideBar>
-      <ValidateDefault>
-        <QueryClientProvider client={queryClient}>
-          <GlobalContextProvider>{children}</GlobalContextProvider>
-        </QueryClientProvider>
-      </ValidateDefault>
-    </SideBar>
-  );
-}
-
-function SideBar({ children }: Readonly<{ children: React.ReactNode }>) {
+const SideBar = ({ children }: Readonly<{ children: React.ReactNode }>) => {
   const pathname = usePathname();
 
   return (
@@ -43,8 +32,18 @@ function SideBar({ children }: Readonly<{ children: React.ReactNode }>) {
       </SidebarInset>
     </SidebarProvider>
   );
-}
+};
 
-function ValidateDefault({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <GettingStartedDialog>{children}</GettingStartedDialog>;
+export default function AppLayout({ children }: Readonly<{ children: ReactNode }>) {
+  return (
+    <SideBar>
+      <QueryClientProvider client={queryClient}>
+        <StartUp>
+          <GlobalContextProvider>
+            <SyncContextProvider>{children}</SyncContextProvider>
+          </GlobalContextProvider>
+        </StartUp>
+      </QueryClientProvider>
+    </SideBar>
+  );
 }

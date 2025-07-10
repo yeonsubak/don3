@@ -11,7 +11,7 @@ import {
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { AccountGroupType, AccountSelect } from '@/db/drizzle/types';
+import type { AccountGroupType, AccountSelect } from '@/db/app-db/drizzle-types';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useAccountDrawerContext } from '../account-drawer-context';

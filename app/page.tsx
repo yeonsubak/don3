@@ -8,9 +8,7 @@ export default function Home() {
 
   // TODO: Remove redirection when the landing page is available
   useEffect(() => {
-    if (router) {
-      router.push('/app');
-    }
+    router.push('/app');
   }, [router]);
 
   return <></>;

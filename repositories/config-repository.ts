@@ -1,10 +1,16 @@
-import { accounts, forex, information, type UserConfigKey } from '@/db/drizzle/schema';
-import type { CountrySelect, CurrencySelect, ForexInsert } from '@/db/drizzle/types';
+import type {
+  AppSchema,
+  CountrySelect,
+  CurrencySelect,
+  ForexInsert,
+} from '@/db/app-db/drizzle-types';
+import { accounts, forex, information, type UserConfigKey } from '@/db/app-db/schema';
 import { and, between, desc, eq, inArray } from 'drizzle-orm';
 import { DateTime } from 'luxon';
 import { Repository } from './abstract-repository';
+import { writeOpLog } from './repository-decorators';
 
-export class ConfigRepository extends Repository {
+export class ConfigRepository extends Repository<AppSchema> {
   public async getAllCurrencies() {
     return await this.db.query.currencies.findMany();
   }
@@ -54,18 +60,17 @@ export class ConfigRepository extends Repository {
     });
   }
 
-  public async insertUserConfig(key: UserConfigKey, value: string) {
-    const result = await this.db.insert(information).values({ name: key, value }).returning();
-    return result.at(0);
+  @writeOpLog('defaultCountry', 'defaultCurrency')
+  public insertUserConfig(key: UserConfigKey, value: string) {
+    return this.db
+      .insert(information)
+      .values({ id: crypto.randomUUID(), name: key, value })
+      .returning();
   }
 
-  public async updateUserConfig(key: UserConfigKey, value: string) {
-    const result = await this.db
-      .update(information)
-      .set({ value })
-      .where(eq(information.name, key))
-      .returning();
-    return result.at(0);
+  @writeOpLog('defaultCountry', 'defaultCurrency')
+  public updateUserConfig(key: UserConfigKey, value: string) {
+    return this.db.update(information).set({ value }).where(eq(information.name, key)).returning();
   }
 
   public async getLatestFxRate({
@@ -92,7 +97,8 @@ export class ConfigRepository extends Repository {
       .orderBy(forex.baseCurrency, forex.targetCurrency, desc(forex.createAt));
   }
 
-  public async insertFxRate(inserts: ForexInsert[]) {
-    return await this.db.insert(forex).values(inserts).returning();
+  public async insertFxRate(data: ForexInsert[]) {
+    data = data.map((insert) => ({ id: crypto.randomUUID(), ...insert }));
+    return await this.db.insert(forex).values(data).returning();
   }
 }

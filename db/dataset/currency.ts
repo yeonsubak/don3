@@ -1,4 +1,4 @@
-import type { CurrencyInsert } from '../drizzle/types';
+import type { CurrencyInsert } from '@/db/app-db/drizzle-types';
 
 export const DATASET_CURRENCY_FIAT: CurrencyInsert[] = [
   {

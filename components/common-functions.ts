@@ -1,4 +1,4 @@
-import type { CurrencySelect } from '@/db/drizzle/types';
+import type { CurrencySelect } from '@/db/app-db/drizzle-types';
 import { DateTime } from 'luxon';
 
 export const parseNumber = (input: string, digits?: number): number | null => {

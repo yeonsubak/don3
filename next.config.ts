@@ -1,6 +1,24 @@
+import { SYNC_SERVER_URL } from '@/lib/constants';
 import withSerwistInit from '@serwist/next';
 import type { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
+
+const corsHeaders = SYNC_SERVER_URL
+  ? [
+      {
+        key: 'Access-Control-Allow-Origin',
+        value: SYNC_SERVER_URL,
+      },
+      {
+        key: 'Access-Control-Allow-Methods',
+        value: 'GET, POST, PUT, DELETE',
+      },
+      {
+        key: 'Access-Control-Allow-Headers',
+        value: 'Content-Type, Authorization',
+      },
+    ]
+  : [];
 
 const nextConfig: NextConfig = {
   serverExternalPackages: ['@electric-sql/pglite', '@electric-sql/pglite-react'],
@@ -21,6 +39,7 @@ const nextConfig: NextConfig = {
             key: 'Referrer-Policy',
             value: 'strict-origin-when-cross-origin',
           },
+          ...corsHeaders,
         ],
       },
     ];

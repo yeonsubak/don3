@@ -1,7 +1,7 @@
 'use client';
 
 import { getFirstLastDayInMonth } from '@/components/common-functions';
-import type { ForexSelect } from '@/db/drizzle/types';
+import type { ForexSelect } from '@/db/app-db/drizzle-types';
 import { QUERIES } from '@/lib/tanstack-queries';
 import { useQuery } from '@tanstack/react-query';
 import {

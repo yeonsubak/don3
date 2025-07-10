@@ -5,7 +5,7 @@ import {
   type ComboboxItem,
 } from '@/components/primitives/combobox';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import type { AccountSelect, AccountSelectAll, JournalEntryType } from '@/db/drizzle/types';
+import type { AccountSelect, AccountSelectAll, JournalEntryType } from '@/db/app-db/drizzle-types';
 import { useWatch } from 'react-hook-form';
 import type { AccountComboItem, Form } from '../forms/common';
 import type { FormFieldName } from '../forms/form-schema';

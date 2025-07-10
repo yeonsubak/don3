@@ -9,7 +9,7 @@ import type {
   AccountSelectAll,
   AccountSelectAllTx,
   CountrySelect,
-} from '@/db/drizzle/types';
+} from '@/db/app-db/drizzle-types';
 import type { TransactionRepository } from '@/repositories/transaction-repository';
 import type { DateRange } from 'react-day-picker';
 import { AccountsRepository } from '../repositories/accounts-repository';
@@ -59,14 +59,16 @@ export class AccountsService extends Service {
         const configRepoWithTx = new ConfigRepository(tx);
 
         const countriesInUse = await configRepoWithTx.getContriesInUse();
-        const insertedAccount = await accountsRepoWithTx.insertAccount({
-          accountGroupId: accountGroupId,
-          type: accountType,
-          name: accountName,
-          currencyId: currency.id,
-          countryId: country.id,
-          icon,
-        });
+        const insertedAccount = (
+          await accountsRepoWithTx.insertAccount({
+            accountGroupId: accountGroupId,
+            type: accountType,
+            name: accountName,
+            currencyId: currency.id,
+            countryId: country.id,
+            icon,
+          })
+        ).at(0);
 
         if (!insertedAccount) throw new Error('Insert account failed');
 
@@ -102,15 +104,17 @@ export class AccountsService extends Service {
     if (!currency) throw new Error('Currency not found');
     if (!country) throw new Error('Country not found');
 
-    const result = await this.accountsRepository.updateAccount({
-      id: update.accountId!,
-      accountGroupId: update.accountGroupId,
-      name: update.accountName,
-      type: update.accountType,
-      currencyId: currency.id,
-      countryId: country.id,
-      icon: update.icon,
-    });
+    const result = (
+      await this.accountsRepository.updateAccount({
+        id: update.accountId!,
+        accountGroupId: update.accountGroupId,
+        name: update.accountName,
+        type: update.accountType,
+        currencyId: currency.id,
+        countryId: country.id,
+        icon: update.icon,
+      })
+    ).at(0);
 
     if (!result)
       throw new Error('The result of AccountsRepository.updateAccount() method is null.');
@@ -119,10 +123,12 @@ export class AccountsService extends Service {
   }
 
   public async archiveAccount(accountId: string) {
-    const result = await this.accountsRepository.updateAccount({
-      id: accountId,
-      isArchive: true,
-    });
+    const result = (
+      await this.accountsRepository.updateAccount({
+        id: accountId,
+        isArchive: true,
+      })
+    ).at(0);
 
     if (!result)
       throw new Error('The result of AccountsRepository.updateAccount() method is null.');
@@ -131,10 +137,12 @@ export class AccountsService extends Service {
   }
 
   public async reactivateAccount(accountId: string) {
-    const result = await this.accountsRepository.updateAccount({
-      id: accountId,
-      isArchive: false,
-    });
+    const result = (
+      await this.accountsRepository.updateAccount({
+        id: accountId,
+        isArchive: false,
+      })
+    ).at(0);
 
     if (!result)
       throw new Error('The result of AccountsRepository.updateAccount() method is null.');
@@ -153,7 +161,7 @@ export class AccountsService extends Service {
       await this.transactionRepository.deleteJournalEntries(journalEntryIds);
     }
 
-    const result = await this.accountsRepository.deleteAccount(accountId);
+    const result = (await this.accountsRepository.deleteAccount(accountId)).at(0);
     if (!result)
       throw new Error('The result of AccountsRepository.deleteAccount() method is null.');
 
@@ -248,7 +256,7 @@ export class AccountsService extends Service {
       ? await accountsRepo.insertAccountBalance(insertObj)
       : await this.accountsRepository.insertAccountBalance(insertObj);
 
-    if (!insertedAccountBalance)
+    if (!insertedAccountBalance.at(0))
       throw new Error('The result of AccountsRepository.insertAccountBalance() method is null');
   }
 
@@ -274,16 +282,17 @@ export class AccountsService extends Service {
 
     const targetAccounts = accounts.filter((account) => groupIds.includes(account.accountGroupId));
 
-    await Promise.all(
-      targetAccounts.map((account) =>
-        accountsRepo.insertAccount({
-          ...account,
-          id: undefined,
-          countryId: targetCountry.id,
-          currencyId: targetCountry.defaultCurrencyId!,
-        }),
-      ),
-    );
+    const copyOperations = targetAccounts.map(async (account) => {
+      const res = await accountsRepo.insertAccount({
+        ...account,
+        id: undefined,
+        countryId: targetCountry.id,
+        currencyId: targetCountry.defaultCurrencyId!,
+      });
+      return res.at(0);
+    });
+
+    const res = await Promise.all(copyOperations);
   }
 }
 

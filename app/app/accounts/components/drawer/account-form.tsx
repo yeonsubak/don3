@@ -19,12 +19,12 @@ import {
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { SheetClose, SheetFooter } from '@/components/ui/sheet';
-import { accounts } from '@/db/drizzle/schema';
+import { accounts } from '@/db/app-db/schema';
 import type {
   AccountGroupSelect,
   AccountGroupSelectAll,
   AccountGroupType,
-} from '@/db/drizzle/types';
+} from '@/db/app-db/drizzle-types';
 import { QUERIES } from '@/lib/tanstack-queries';
 import { cn } from '@/lib/utils';
 import { getAccountsService } from '@/services/service-helpers';

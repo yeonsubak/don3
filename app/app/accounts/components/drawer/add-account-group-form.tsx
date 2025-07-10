@@ -10,8 +10,8 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { accountGroups } from '@/db/drizzle/schema';
-import type { AccountGroupSelect, AccountGroupType } from '@/db/drizzle/types';
+import { accountGroups } from '@/db/app-db/schema';
+import type { AccountGroupSelect, AccountGroupType } from '@/db/app-db/drizzle-types';
 import { getAccountsService } from '@/services/service-helpers';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';

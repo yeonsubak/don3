@@ -1,6 +1,6 @@
 'use client';
 
-import type { JournalEntryType } from '@/db/drizzle/types';
+import type { JournalEntryType } from '@/db/app-db/drizzle-types';
 import {
   createContext,
   useCallback,

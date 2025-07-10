@@ -1,6 +1,6 @@
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import type { AccountGroupSelect, AccountGroupType } from '@/db/drizzle/types';
+import type { AccountGroupSelect, AccountGroupType } from '@/db/app-db/drizzle-types';
 import { cn } from '@/lib/utils';
 import { ChevronsDown, ChevronsUp, ChevronsUpDown } from 'lucide-react';
 import { useMemo, useState } from 'react';

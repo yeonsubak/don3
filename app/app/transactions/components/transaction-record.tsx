@@ -1,7 +1,11 @@
 import { parseMoney } from '@/components/common-functions';
 import { useIsMobile } from '@/components/hooks/use-mobile';
 import { AccountIconEmojiOnly } from '@/components/primitives/account-icon-emoji-only';
-import type { AccountSelect, JournalEntrySelect, JournalEntryType } from '@/db/drizzle/types';
+import type {
+  AccountSelect,
+  JournalEntrySelect,
+  JournalEntryType,
+} from '@/db/app-db/drizzle-types';
 import { QUERIES } from '@/lib/tanstack-queries';
 import { cn } from '@/lib/utils';
 import { getTransactionService } from '@/services/service-helpers';

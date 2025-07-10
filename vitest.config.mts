@@ -12,14 +12,14 @@ export default defineConfig({
           include: ['__tests__/node/**'],
         },
       },
-      // {
-      //   extends: true,
-      //   test: {
-      //     name: 'jsdom',
-      //     environment: 'jsdom',
-      //     include: ['__tests__/dom/**'],
-      //   },
-      // },
+      {
+        extends: true,
+        test: {
+          name: 'jsdom',
+          environment: 'jsdom',
+          include: ['__tests__/dom/**'],
+        },
+      },
     ],
   },
   resolve: {

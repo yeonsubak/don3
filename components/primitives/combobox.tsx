@@ -12,7 +12,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { Check, ChevronsUpDown } from 'lucide-react';
-import { useState, type Dispatch, type SetStateAction } from 'react';
+import { type Dispatch, type ReactElement, type SetStateAction, useState } from 'react';
 import type { ControllerRenderProps, FieldValue, FieldValues } from 'react-hook-form';
 import type { TailwindClass } from '../common-types';
 import { useIsMobile } from '../hooks/use-mobile';
@@ -45,6 +45,7 @@ export interface ComboboxProps {
   labelRenderFn?: (itemData: unknown) => string;
   state?: [string, Dispatch<SetStateAction<string>>];
   value?: string;
+  extraComponents?: { component: ReactElement; label?: string }[];
 }
 
 export function flattenComboboxItems<T>(items: ComboboxItem<T>[]): ComboboxItem<T>[] {
@@ -53,95 +54,121 @@ export function flattenComboboxItems<T>(items: ComboboxItem<T>[]): ComboboxItem<
   );
 }
 
-export const Combobox = ({
-  items,
-  placeholder = 'Select',
-  searchPlaceholder = 'Search',
-  notFoundPlaceholder = 'Not found',
-  searchable = true,
-  field,
-  isChevron = true,
+const Item = ({
+  children,
+  label,
+  recursiveCnt = 0,
   value,
-  buttonLabelRenderFn = () => {
-    if (state && state[0].length > 0) {
-      return (
-        flattenComboboxItems(items ?? []).find((item) => item.value === state[0])?.label ??
-        placeholder
-      );
-    }
+  keywords,
+  data,
+  comboboxProps,
+  setOpen,
+}: ComboboxItem & {
+  comboboxProps: Partial<ComboboxProps>;
+  setOpen: Dispatch<SetStateAction<boolean>>;
+}) => {
+  function isSelect() {
+    if (comboboxProps.field) return comboboxProps.field.value === value;
+    if (comboboxProps.state) return comboboxProps.state[0] === value;
+    return comboboxProps.value === value;
+  }
 
-    if (field?.value && field.value.length > 0) {
-      return (
-        flattenComboboxItems(items ?? []).find((item) => item.value === field.value)?.label ??
-        placeholder
-      );
-    }
+  if (children && children.length > 0) {
+    recursiveCnt += 1;
+    return (
+      <>
+        <CommandGroup heading={label} className="this-is-command-group">
+          {children.map((child) => (
+            <Item
+              key={comboboxProps.keyRenderFn ? comboboxProps.keyRenderFn(child) : child.value}
+              recursiveCnt={recursiveCnt}
+              setOpen={setOpen}
+              comboboxProps={comboboxProps}
+              {...child}
+            />
+          ))}
+        </CommandGroup>
+        {recursiveCnt === 1 ? <Separator /> : <></>}
+      </>
+    );
+  }
 
-    if (value) {
-      return (
-        flattenComboboxItems(items ?? []).find((item) => item.value === value)?.label ?? placeholder
-      );
-    }
+  return (
+    <CommandItem
+      value={value}
+      keywords={keywords ?? [label]}
+      onSelect={(currentValue) => {
+        if (comboboxProps.onSelectFn) {
+          comboboxProps.onSelectFn(currentValue);
+        }
 
-    return placeholder;
-  },
-  onSelectFn,
-  popoverButtonClass,
-  popoverContentClass,
-  popoverContentSide = 'bottom',
-  popoverContentAlign = 'center',
-  keyRenderFn,
-  labelRenderFn,
-  state,
-}: ComboboxProps) => {
+        if (comboboxProps.state) {
+          const setValue = comboboxProps.state[1];
+          setValue(currentValue);
+        }
+
+        comboboxProps.field?.onChange(currentValue);
+        setOpen(false);
+      }}
+      data={data}
+    >
+      <Check className={cn('mr-2 h-4 w-4', isSelect() ? 'opacity-100' : 'opacity-0')} />
+      {comboboxProps.labelRenderFn ? comboboxProps.labelRenderFn(data) : label}
+    </CommandItem>
+  );
+};
+
+const ExtraComponent = ({ children, label }: { children: ReactElement; label?: string }) => (
+  <CommandGroup heading={label}>
+    <CommandItem onSelect={() => {}}>{children}</CommandItem>
+  </CommandGroup>
+);
+
+export const Combobox = (comboboxProps: ComboboxProps) => {
+  const {
+    items,
+    placeholder = 'Select',
+    searchPlaceholder = 'Search',
+    notFoundPlaceholder = 'Not found',
+    searchable = true,
+    field,
+    isChevron = true,
+    value,
+    buttonLabelRenderFn = () => {
+      if (state && state[0].length > 0) {
+        return (
+          flattenComboboxItems(items ?? []).find((item) => item.value === state[0])?.label ??
+          placeholder
+        );
+      }
+
+      if (field?.value && field.value.length > 0) {
+        return (
+          flattenComboboxItems(items ?? []).find((item) => item.value === field.value)?.label ??
+          placeholder
+        );
+      }
+
+      if (value) {
+        return (
+          flattenComboboxItems(items ?? []).find((item) => item.value === value)?.label ??
+          placeholder
+        );
+      }
+
+      return placeholder;
+    },
+    popoverButtonClass,
+    popoverContentClass,
+    popoverContentSide = 'bottom',
+    popoverContentAlign = 'center',
+    keyRenderFn,
+    state,
+    extraComponents,
+  } = comboboxProps;
+
   const [open, setOpen] = useState(false);
   const isMobile = useIsMobile();
-
-  const Item = ({ children, label, recursiveCnt = 0, value, keywords, data }: ComboboxItem) => {
-    if (children && children.length > 0) {
-      recursiveCnt += 1;
-      return (
-        <>
-          <CommandGroup heading={label} className="this-is-command-group">
-            {children.map((child) => (
-              <Item
-                key={keyRenderFn ? keyRenderFn(child) : child.value}
-                recursiveCnt={recursiveCnt}
-                {...child}
-              />
-            ))}
-          </CommandGroup>
-          {recursiveCnt === 1 ? <Separator /> : <></>}
-        </>
-      );
-    }
-
-    return (
-      <CommandItem
-        value={value}
-        keywords={keywords ?? [label]}
-        onSelect={(currentValue) => {
-          if (onSelectFn) {
-            onSelectFn(currentValue);
-          }
-
-          if (state) {
-            const [value, setValue] = state;
-            setValue(currentValue);
-          }
-
-          field?.onChange(currentValue);
-          setOpen(false);
-        }}
-        data={data}
-      >
-        <Check
-          className={cn('mr-2 h-4 w-4', field?.value === value ? 'opacity-100' : 'opacity-0')}
-        />
-        {labelRenderFn ? labelRenderFn(data) : label}
-      </CommandItem>
-    );
-  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -149,6 +176,7 @@ export const Combobox = ({
         <Button
           variant="outline"
           role="combobox"
+          aria-expanded={open}
           className={cn('justify-between', popoverButtonClass ? popoverButtonClass : 'w-full')}
         >
           <span className="overflow-hidden text-ellipsis">{buttonLabelRenderFn()}</span>
@@ -160,13 +188,32 @@ export const Combobox = ({
         side={popoverContentSide}
         align={popoverContentAlign}
         onOpenAutoFocus={(e) => isMobile && e.preventDefault()}
+        style={
+          !popoverContentClass
+            ? {
+                width: 'var(--radix-popover-trigger-width)',
+                maxWidth: 'var(--radix-popover-content-available-height)',
+              }
+            : undefined
+        }
       >
         <Command>
-          {searchable ? <CommandInput placeholder={searchPlaceholder} /> : <></>}
+          {searchable && <CommandInput placeholder={searchPlaceholder} />}
+          {extraComponents &&
+            extraComponents.map(({ component, label }, idx) => (
+              <ExtraComponent key={`${idx}`} label={label}>
+                {component}
+              </ExtraComponent>
+            ))}
           <CommandList>
             <CommandEmpty>{notFoundPlaceholder}</CommandEmpty>
             {items?.map((item) => (
-              <Item key={keyRenderFn ? keyRenderFn(item) : item.value} {...item} />
+              <Item
+                key={keyRenderFn ? keyRenderFn(item) : item.value}
+                setOpen={setOpen}
+                comboboxProps={comboboxProps}
+                {...item}
+              />
             ))}
           </CommandList>
         </Command>

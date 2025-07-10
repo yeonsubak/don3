@@ -1,6 +1,6 @@
 'use client';
 
-import { AccountsOverview } from '@/app/app/accounts/components/accounts-overview';
+import { AccountsOverview } from './components/accounts-overview';
 
 export default function AccountsPage() {
   return <AccountsOverview />;
