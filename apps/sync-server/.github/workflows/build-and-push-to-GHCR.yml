@@ -65,6 +65,10 @@ jobs:
             allowed-origins:
               - http://localhost:3000
               - "${{ vars.ALLOWED_ORIGINS }}"
+          
+          server:
+            forward-headers-strategy: framework
+          
           management:
             endpoints:
             web:
