@@ -17,11 +17,14 @@ env:
 jobs:
   deploy-to-aws-lightsail:
     runs-on: ubuntu-latest
-    container: amazon/aws-cli
     environment: ${{ inputs.environment }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Install AWS CLI
+        run: |
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          sudo ./aws/install --update
+          aws --version
 
       - name: Install lightsailctl
         run: |
@@ -41,22 +44,34 @@ jobs:
         run: |
           echo "Using image tag: ${{ env.image_tag }}"
 
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
       - name: Pull Docker image from GHCR
         run: |
           docker pull ${{ env.image_tag }}
 
+      - name: Set short SHA
+        id: vars
+        run: echo "short_sha=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
       - name: Push Docker image to Lightsail Container Service
         run: |
           aws lightsail push-container-image \
-            --region ${{ vars.AWS_REGION }}
+            --region ${{ vars.AWS_REGION }} \
             --service-name ${{ vars.AWS_LIGHTSAIL_SERVICE_NAME }} \
-            --label ${{ vars.AWS_LIGHTSAIL_CONTAINER_NAME }}-${{ github.sha }} \
+            --label ${{ vars.AWS_LIGHTSAIL_CONTAINER_NAME }}-${{ env.short_sha }} \
             --image ${{ env.image_tag }}
 
       - name: Get latest Lightsail image URL
         id: get-image-url
         run: |
           IMAGE_URL=$(aws lightsail get-container-images \
+            --region ${{ vars.AWS_REGION }} \
             --service-name ${{ vars.AWS_LIGHTSAIL_SERVICE_NAME }} \
             --query 'containerImages[0].image' \
             --output text)
@@ -93,5 +108,6 @@ jobs:
       - name: Create new Lightsail Container Service deployment
         run: |
           aws lightsail create-container-service-deployment \
+            --region ${{ vars.AWS_REGION }} \
             --service-name ${{ vars.AWS_LIGHTSAIL_SERVICE_NAME }} \
             --cli-input-json file://container-deployment.json

@@ -49,7 +49,8 @@ class SecurityConfig(
                 it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             }
             .authorizeHttpRequests {
-                it.anyRequest().authenticated()
+                it.requestMatchers("/actuator/health").permitAll()
+                    .anyRequest().authenticated()
             }
             .httpBasic { it.disable() }
             .formLogin { it.disable() }
