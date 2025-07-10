@@ -54,7 +54,7 @@ export async function getSchemaDefinition(
 ): Promise<SchemaDefinition | undefined> {
   if (!schemaVersion) return;
 
-  const env = process.env.ENVIRONMENT ?? 'DEV';
+  const env = process.env.DEPLOYED_ENVIRONMENT ?? 'local';
   const version =
     type === 'app' ? APP_SCHEMA_VERSION[schemaVersion] : SYNC_SCHEMA_VERSION[schemaVersion];
   return env === 'PROD' ? await fetchRemote(type, version) : await fetchLocal(type, version);
