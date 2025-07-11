@@ -45,15 +45,6 @@ CREATE TABLE "config"."information" (
 	CONSTRAINT "information_unq_name" UNIQUE("name")
 );
 --> statement-breakpoint
-CREATE TABLE "sync"."op_log_sync_status" (
-	"id" uuid PRIMARY KEY DEFAULT uuid_generate_v4() NOT NULL,
-	"log_id" uuid NOT NULL,
-	"status" "sync_status_enum" DEFAULT 'idle' NOT NULL,
-	"upload_at" timestamp with time zone,
-	"create_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"update_at" timestamp with time zone
-);
---> statement-breakpoint
 CREATE TABLE "sync"."op_logs" (
 	"id" uuid PRIMARY KEY DEFAULT uuid_generate_v4() NOT NULL,
 	"version" varchar(255) NOT NULL,
@@ -62,27 +53,21 @@ CREATE TABLE "sync"."op_logs" (
 	"sequence" bigint NOT NULL,
 	"data" jsonb NOT NULL,
 	"query_keys" jsonb NOT NULL,
-	"create_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"update_at" timestamp with time zone,
-	CONSTRAINT "op_logs_unq_device_id_sequence" UNIQUE("device_id","sequence")
-);
---> statement-breakpoint
-CREATE TABLE "sync"."snapshot_sync_status" (
-	"id" uuid PRIMARY KEY DEFAULT uuid_generate_v4() NOT NULL,
-	"snapshot_id" uuid NOT NULL,
 	"status" "sync_status_enum" DEFAULT 'idle' NOT NULL,
 	"upload_at" timestamp with time zone,
 	"create_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"update_at" timestamp with time zone
+	"update_at" timestamp with time zone,
+	CONSTRAINT "op_logs_unq_device_id_sequence" UNIQUE("device_id","sequence")
 );
 --> statement-breakpoint
 CREATE TABLE "sync"."snapshots" (
 	"id" uuid PRIMARY KEY DEFAULT uuid_generate_v4() NOT NULL,
 	"type" "snapshot_type_enum" NOT NULL,
 	"schema_version" varchar(255) NOT NULL,
-	"device_id" uuid NOT NULL,
 	"meta" jsonb NOT NULL,
 	"dump" text NOT NULL,
+	"status" "sync_status_enum" DEFAULT 'idle' NOT NULL,
+	"upload_at" timestamp with time zone,
 	"create_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"update_at" timestamp with time zone
 );
@@ -96,7 +81,14 @@ CREATE TABLE "sync"."temp_key_store" (
 );
 --> statement-breakpoint
 ALTER TABLE "sync"."encrypt_keys" ADD CONSTRAINT "encrypt_keys_registry_id_encrypt_key_registry_id_fk" FOREIGN KEY ("registry_id") REFERENCES "sync"."encrypt_key_registry"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
-ALTER TABLE "sync"."op_log_sync_status" ADD CONSTRAINT "op_log_sync_status_log_id_op_logs_id_fk" FOREIGN KEY ("log_id") REFERENCES "sync"."op_logs"("id") ON DELETE no action ON UPDATE cascade;--> statement-breakpoint
-ALTER TABLE "sync"."snapshot_sync_status" ADD CONSTRAINT "snapshot_sync_status_snapshot_id_snapshots_id_fk" FOREIGN KEY ("snapshot_id") REFERENCES "sync"."snapshots"("id") ON DELETE no action ON UPDATE cascade;--> statement-breakpoint
 CREATE INDEX "information_idx_name_value" ON "config"."information" USING btree ("name","value");--> statement-breakpoint
 CREATE INDEX "temp_key_store_idx_expire_at" ON "sync"."temp_key_store" USING btree ("expire_at" DESC NULLS LAST);
+
+--> statement-breakpoint
+CREATE TABLE "sync"."snapshot_sync_sequences" (
+	"id" uuid PRIMARY KEY DEFAULT uuid_generate_v4() NOT NULL,
+	"sequence" bigint NOT NULL,
+	"create_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"update_at" timestamp with time zone,
+	CONSTRAINT "snapshot_sync_sequences_unq_sequence" UNIQUE("sequence")
+);

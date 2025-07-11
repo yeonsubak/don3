@@ -200,6 +200,8 @@ export const wrappedKeyRelations = relations(wrappedKeys, ({ one }) => ({
   }),
 }));
 
+/* Sync Schema */
+
 export const syncSchema = pgSchema('sync');
 
 export const snapshots = syncSchema.table(
@@ -210,11 +212,11 @@ export const snapshots = syncSchema.table(
     userId: text()
       .notNull()
       .references(() => user.id),
-    deviceId: uuid().notNull(),
     schemaVersion: varchar({ length: 255 }).notNull(),
     dump: text().notNull(),
     meta: text().notNull(),
     iv: text().notNull(),
+    sequence: bigint({ mode: 'number' }).notNull(),
     createAt: timestamp('create_at', { withTimezone: true })
       .$defaultFn(() => /* @__PURE__ */ new Date())
       .notNull(),
@@ -223,9 +225,9 @@ export const snapshots = syncSchema.table(
     ),
   },
   (t) => [
-    index('snapshots_idx_user_id_device_id').on(t.userId, t.deviceId),
-    index('snapshots_idx_create_at_user_id_device_id').on(t.createAt.desc(), t.userId, t.deviceId),
-    unique('snapshots_unq_local_id_user_id_device_id').on(t.localId, t.userId, t.deviceId),
+    index('snapshots_idx_create_at_user_id').on(t.createAt.desc(), t.userId),
+    unique('snapshots_unq_local_id_user_id').on(t.localId, t.userId),
+    unique('snapshots_unq_user_id_sequence').on(t.userId, t.sequence),
   ],
 );
 

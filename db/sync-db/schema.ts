@@ -15,6 +15,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { generateRandomUUID } from '../db-helper';
 
+/* Sync Schema */
 export const syncSchema = pgSchema('sync');
 
 export const encryptKeyRegistryTypeEnum = pgEnum('encrypt_key_registry_type_enum', [
@@ -66,6 +67,8 @@ export const tempKeyStore = syncSchema.table(
   (t) => [index('temp_key_store_idx_expire_at').on(t.expireAt.desc())],
 );
 
+export const syncStatusEnum = pgEnum('sync_status_enum', ['idle', 'pending', 'done']);
+
 export const opLogs = syncSchema.table(
   'op_logs',
   {
@@ -76,71 +79,26 @@ export const opLogs = syncSchema.table(
     sequence: bigint({ mode: 'number' }).notNull(),
     data: jsonb().$type<Query>().notNull(),
     queryKeys: jsonb().$type<string[]>().notNull(),
+    status: syncStatusEnum().notNull().default('idle'),
+    uploadAt: timestamp({ withTimezone: true }),
     createAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
     updateAt: timestamp({ withTimezone: true }),
   },
   (t) => [unique('op_logs_unq_device_id_sequence').on(t.deviceId, t.sequence)],
 );
-export const opLogsRelations = relations(opLogs, ({ one }) => ({
-  syncStatus: one(opLogSyncStatus, {
-    fields: [opLogs.id],
-    references: [opLogSyncStatus.logId],
-  }),
-}));
-
-export const syncStatusEnum = pgEnum('sync_status_enum', ['idle', 'pending', 'done']);
-
-export const opLogSyncStatus = syncSchema.table('op_log_sync_status', {
-  id: uuid().primaryKey().default(generateRandomUUID).notNull(),
-  logId: uuid()
-    .references(() => opLogs.id, { onUpdate: 'cascade', onDelete: 'no action' })
-    .notNull(),
-  status: syncStatusEnum().notNull().default('idle'),
-  uploadAt: timestamp({ withTimezone: true }),
-  createAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
-  updateAt: timestamp({ withTimezone: true }),
-});
-export const opLogSyncStatusRelations = relations(opLogSyncStatus, ({ one }) => ({
-  opLog: one(opLogs, {
-    fields: [opLogSyncStatus.logId],
-    references: [opLogs.id],
-  }),
-}));
 
 export const snapshotTypeEnum = pgEnum('snapshot_type_enum', ['autosave', 'user']);
 export const snapshots = syncSchema.table('snapshots', {
   id: uuid().primaryKey().default(generateRandomUUID).notNull(),
   type: snapshotTypeEnum().notNull(),
   schemaVersion: varchar({ length: 255 }).notNull(),
-  deviceId: uuid().notNull(),
   meta: jsonb().$type<DumpMetaData>().notNull(),
   dump: text().notNull(),
-  createAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
-  updateAt: timestamp({ withTimezone: true }),
-});
-export const snapshotsRelations = relations(snapshots, ({ one }) => ({
-  syncStatus: one(snapshotSyncStatus, {
-    fields: [snapshots.id],
-    references: [snapshotSyncStatus.snapshotId],
-  }),
-}));
-
-export const snapshotSyncStatus = syncSchema.table('snapshot_sync_status', {
-  id: uuid().primaryKey().default(generateRandomUUID).notNull(),
-  snapshotId: uuid()
-    .references(() => snapshots.id, { onUpdate: 'cascade', onDelete: 'no action' })
-    .notNull(),
   status: syncStatusEnum().notNull().default('idle'),
   uploadAt: timestamp({ withTimezone: true }),
   createAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
   updateAt: timestamp({ withTimezone: true }),
 });
-export const snapshotSyncStatusRelations = relations(snapshotSyncStatus, ({ one }) => ({
-  snapshot: one(snapshots, {
-    fields: [snapshotSyncStatus.snapshotId],
-    references: [snapshots.id],
-  }),
-}));
 
 export const deviceSyncSequences = syncSchema.table(
   'device_sync_sequences',
@@ -153,6 +111,19 @@ export const deviceSyncSequences = syncSchema.table(
   },
   (t) => [unique('device_sync_sequences_unq_device_id').on(t.deviceId)],
 );
+
+export const snapshotSyncSequences = syncSchema.table(
+  'snapshot_sync_sequences',
+  {
+    id: uuid().primaryKey().default(generateRandomUUID).notNull(),
+    sequence: bigint({ mode: 'number' }).notNull(),
+    createAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+    updateAt: timestamp({ withTimezone: true }),
+  },
+  (t) => [unique('snapshot_sync_sequences_unq_sequence').on(t.sequence)],
+);
+
+/* Config Schema */
 
 export const configSchema = pgSchema('config');
 
