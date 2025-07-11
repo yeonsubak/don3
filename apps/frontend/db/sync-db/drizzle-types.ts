@@ -17,9 +17,6 @@ export type Algorithm = (typeof syncSchema.algorithmEnum.enumValues)[number];
 export type OpLogInsert = typeof syncSchema.opLogs.$inferInsert;
 export type OpLogSelect = typeof syncSchema.opLogs.$inferSelect;
 
-export type OpLogSyncStatusInsert = typeof syncSchema.opLogSyncStatus.$inferInsert;
-export type OpLogSyncStatusSelect = typeof syncSchema.opLogSyncStatus.$inferSelect;
-
 export type TempKeyStoreInsert = typeof syncSchema.tempKeyStore.$inferInsert;
 export type TempKeyStoreSelect = typeof syncSchema.tempKeyStore.$inferSelect;
 
@@ -28,9 +25,6 @@ export type SyncStatus = (typeof syncSchema.syncStatusEnum.enumValues)[number];
 export type SnapshotInsert = typeof syncSchema.snapshots.$inferInsert;
 export type SnapshotSelect = typeof syncSchema.snapshots.$inferSelect;
 export type SnapshotType = (typeof syncSchema.snapshotTypeEnum.enumValues)[number];
-
-export type SnapshotSyncStatusInsert = typeof syncSchema.snapshotSyncStatus.$inferInsert;
-export type SnapshotSyncStatusSelect = typeof syncSchema.snapshotSyncStatus.$inferSelect;
 
 export type DeviceSyncSequenceInsert = typeof syncSchema.deviceSyncSequences.$inferInsert;
 export type DeviceSyncSequenceSelect = typeof syncSchema.deviceSyncSequences.$inferSelect;

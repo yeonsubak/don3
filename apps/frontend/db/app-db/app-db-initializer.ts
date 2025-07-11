@@ -291,16 +291,13 @@ export class AppDBInitializer extends DBInitializer {
     const deviceId = await this.syncService.getUserConfig('deviceId');
     if (!deviceId) throw new Error('deviceId is undefined in local storage');
 
-    await this.syncService.insertSnapshot(
-      {
-        type: 'autosave',
-        schemaVersion: metaData.schemaVersion,
-        meta: metaData,
-        deviceId: deviceId.value,
-        dump,
-      },
-      'idle',
-    );
+    await this.syncService.insertSnapshot({
+      type: 'autosave',
+      schemaVersion: metaData.schemaVersion,
+      meta: metaData,
+      dump,
+      status: 'idle',
+    });
   }
 
   private async isDBReady() {

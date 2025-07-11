@@ -140,7 +140,7 @@ export class SyncWorker {
     if (snapshots.length === 0) return;
 
     for (const snapshot of snapshots) {
-      const { id, schemaVersion, meta, dump } = snapshot.snapshot;
+      const { id, schemaVersion, meta, dump } = snapshot;
       const iv = generateIV();
       const encryptedDump = await this.encryptionService.encryptData(dump, iv);
       const encryptedMeta = await this.encryptionService.encryptData(meta, iv);
@@ -174,8 +174,8 @@ export class SyncWorker {
     const opLogs = await this.syncService.getUploadableOpLogs();
     if (opLogs.length === 0) return;
 
-    for (const log of opLogs) {
-      const { id, schemaVersion, data, sequence, version, queryKeys } = log.opLog;
+    for (const opLog of opLogs) {
+      const { id, schemaVersion, data, sequence, version, queryKeys } = opLog;
 
       const iv = generateIV();
       const encryptedData = await this.encryptionService.encryptData(data, iv);

@@ -49,11 +49,8 @@ export class SyncService extends Service {
 
   public async getUploadableSnapshots() {
     const snapshots = await this.syncRepository.getUploadableSnapshots();
-    for (const { snapshot } of snapshots) {
-      await this.syncRepository.updateSnapshotSyncStatus({
-        snapshotId: snapshot.id,
-        status: 'pending',
-      });
+    for (const { id } of snapshots) {
+      await this.updateSnapshotStatus(id, 'pending');
     }
 
     return snapshots;
@@ -63,22 +60,13 @@ export class SyncService extends Service {
     return this.syncRepository.hasSnapshot();
   }
 
-  public async insertSnapshot(data: SnapshotInsert, status: SyncStatus) {
+  public async insertSnapshot(data: SnapshotInsert) {
     const res = await this.syncRepository.withTx(async (tx) => {
       try {
         const syncRepo = new SyncRepository(tx);
         const snapshot = await syncRepo.insertSnapshot(data);
         if (!snapshot) throw new Error('snapshot is undefined');
-
-        const syncStatus = await syncRepo.insertSnapshotSyncStatus({
-          snapshotId: snapshot.id,
-          status,
-        });
-
-        return {
-          ...snapshot,
-          syncStatus,
-        };
+        return snapshot;
       } catch (err) {
         console.error(err);
         tx.rollback();
@@ -88,12 +76,12 @@ export class SyncService extends Service {
     return res;
   }
 
-  public async updateSnapshotStatus(snapshotId: string, status: SyncStatus, receiveAt: string) {
-    return await this.syncRepository.updateSnapshotSyncStatus({
+  public async updateSnapshotStatus(snapshotId: string, status: SyncStatus, receiveAt?: string) {
+    return await this.syncRepository.updateSnapshotStatus(
       snapshotId,
       status,
-      uploadAt: new Date(receiveAt),
-    });
+      receiveAt ? new Date(receiveAt) : undefined,
+    );
   }
 
   public async insertOpLog(
@@ -118,19 +106,10 @@ export class SyncService extends Service {
             sequence: nextSeq,
             data: query,
             queryKeys: tanstackQueryKeys,
-          });
-
-          if (!opLog) throw new Error('Result of insertOpLog is undefined');
-
-          const syncStatus = await repo.insertOpLogSyncStatus({
-            logId: opLog.id,
             status: 'idle',
           });
 
-          return {
-            ...opLog,
-            syncStatus,
-          };
+          return opLog;
         } catch (err) {
           console.error(err);
           tx.rollback();
@@ -141,14 +120,18 @@ export class SyncService extends Service {
     });
   }
 
-  public async updateOpLogStatus(logId: string, status: SyncStatus, receiveAt: string) {
-    return await this.syncRepository.updateOpLogSyncStatus(logId, status, new Date(receiveAt));
+  public async updateOpLogStatus(opLogId: string, status: SyncStatus, receiveAt?: string) {
+    return await this.syncRepository.updateOpLogStatus(
+      opLogId,
+      status,
+      receiveAt ? new Date(receiveAt) : undefined,
+    );
   }
 
   public async getUploadableOpLogs() {
     const opLogs = await this.syncRepository.getUploadableOpLogs();
-    for (const { opLog } of opLogs) {
-      await this.syncRepository.updateOpLogSyncStatus(opLog.id, 'pending');
+    for (const opLog of opLogs) {
+      await this.updateOpLogStatus(opLog.id, 'pending');
     }
     return opLogs;
   }
@@ -175,16 +158,13 @@ export class SyncService extends Service {
           : decryptedDump;
         decryptedMeta.compressed = false;
 
-        const insertedSnapshot = await this.insertSnapshot(
-          {
-            schemaVersion,
-            type: 'autosave',
-            meta: decryptedMeta,
-            dump: decompressedDump,
-            deviceId: deviceId.value,
-          },
-          'done',
-        );
+        const insertedSnapshot = await this.insertSnapshot({
+          schemaVersion,
+          type: 'autosave',
+          meta: decryptedMeta,
+          dump: decompressedDump,
+          status: 'done',
+        });
 
         const backupService = await getBackupService();
         const restoreRes = await backupService.restoreDB(

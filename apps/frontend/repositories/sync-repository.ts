@@ -3,10 +3,7 @@ import type {
   EncryptKeyInsert,
   KeyRegistryInsert,
   OpLogInsert,
-  OpLogSyncStatusInsert,
   SnapshotInsert,
-  SnapshotSelect,
-  SnapshotSyncStatusInsert,
   SyncSchema,
   SyncStatus,
   TempKeyStoreInsert,
@@ -17,9 +14,7 @@ import {
   encryptKeyRegistry,
   encryptKeys,
   opLogs,
-  opLogSyncStatus,
   snapshots,
-  snapshotSyncStatus,
   tempKeyStore,
 } from '@/db/sync-db/schema';
 import { eq, max } from 'drizzle-orm';
@@ -69,6 +64,11 @@ export class SyncRepository extends Repository<SyncSchema> {
     ).at(0);
   }
 
+  public async hasSnapshot(): Promise<boolean> {
+    const count = await this.db.$count(snapshots);
+    return count > 0;
+  }
+
   public async getAllSnapshots() {
     return await this.db.query.snapshots.findMany({
       with: {
@@ -88,21 +88,13 @@ export class SyncRepository extends Repository<SyncSchema> {
 
   public async getUploadableSnapshots() {
     const before5SecFromNow = new Date(Date.now() - 5000);
-    return this.db.query.snapshotSyncStatus.findMany({
+    return this.db.query.snapshots.findMany({
       where: ({ status, updateAt }, { or, and, eq, lt }) =>
         or(eq(status, 'idle'), and(eq(status, 'pending'), lt(updateAt, before5SecFromNow))),
-      with: {
-        snapshot: true,
-      },
     });
   }
 
-  public async hasSnapshot(): Promise<boolean> {
-    const count = await this.db.$count(snapshots);
-    return count > 0;
-  }
-
-  public async insertSnapshot(data: SnapshotInsert): Promise<SnapshotSelect | undefined> {
+  public async insertSnapshot(data: SnapshotInsert) {
     return (
       await this.db
         .insert(snapshots)
@@ -111,44 +103,25 @@ export class SyncRepository extends Repository<SyncSchema> {
     ).at(0);
   }
 
-  public async insertSnapshotSyncStatus(data: SnapshotSyncStatusInsert) {
+  public async updateSnapshotStatus(snapshotId: string, status: SyncStatus, uploadAt?: Date) {
     return (
       await this.db
-        .insert(snapshotSyncStatus)
-        .values({ id: crypto.randomUUID(), ...data })
+        .update(snapshots)
+        .set({
+          status,
+          updateAt: new Date(),
+          uploadAt,
+        })
+        .where(eq(snapshots.id, snapshotId))
         .returning()
     ).at(0);
   }
 
-  public async updateSnapshotSyncStatus({
-    snapshotId,
-    status,
-    uploadAt,
-  }: {
-    snapshotId: string;
-    status: SyncStatus;
-    uploadAt?: Date;
-  }) {
-    const res = await this.db
-      .update(snapshotSyncStatus)
-      .set({
-        status,
-        uploadAt,
-        updateAt: new Date(),
-      })
-      .where(eq(snapshotSyncStatus.snapshotId, snapshotId))
-      .returning();
-    return res.at(0);
-  }
-
   public async getUploadableOpLogs() {
     const before5SecFromNow = new Date(Date.now() - 5000);
-    return this.db.query.opLogSyncStatus.findMany({
+    return this.db.query.opLogs.findMany({
       where: ({ status, updateAt }, { or, and, eq, lt }) =>
         or(eq(status, 'idle'), and(eq(status, 'pending'), lt(updateAt, before5SecFromNow))),
-      with: {
-        opLog: true,
-      },
     });
   }
 
@@ -161,24 +134,15 @@ export class SyncRepository extends Repository<SyncSchema> {
     ).at(0);
   }
 
-  public async insertOpLogSyncStatus(data: OpLogSyncStatusInsert) {
-    return (
-      await this.db
-        .insert(opLogSyncStatus)
-        .values({ id: crypto.randomUUID(), ...data })
-        .returning()
-    ).at(0);
-  }
-
-  public async updateOpLogSyncStatus(opLogId: string, status: SyncStatus, uploadAt?: Date) {
+  public async updateOpLogStatus(opLogId: string, status: SyncStatus, uploadAt?: Date) {
     const res = await this.db
-      .update(opLogSyncStatus)
+      .update(opLogs)
       .set({
         status,
         uploadAt,
         updateAt: new Date(),
       })
-      .where(eq(opLogSyncStatus.logId, opLogId))
+      .where(eq(opLogs.id, opLogId))
       .returning();
     return res.at(0);
   }

@@ -1,5 +1,5 @@
 {
-  "id": "f9c09c5d-e698-4039-8b1e-c3c2f3683c14",
+  "id": "d3670fef-9014-4a10-b725-f34c4a63475b",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -251,74 +251,6 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "sync.op_log_sync_status": {
-      "name": "op_log_sync_status",
-      "schema": "sync",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "uuid_generate_v4()"
-        },
-        "log_id": {
-          "name": "log_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "status": {
-          "name": "status",
-          "type": "sync_status_enum",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'idle'"
-        },
-        "upload_at": {
-          "name": "upload_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "create_at": {
-          "name": "create_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "update_at": {
-          "name": "update_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "op_log_sync_status_log_id_op_logs_id_fk": {
-          "name": "op_log_sync_status_log_id_op_logs_id_fk",
-          "tableFrom": "op_log_sync_status",
-          "tableTo": "op_logs",
-          "schemaTo": "sync",
-          "columnsFrom": [
-            "log_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "cascade"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
     "sync.op_logs": {
       "name": "op_logs",
       "schema": "sync",
@@ -366,6 +298,20 @@
           "primaryKey": false,
           "notNull": true
         },
+        "status": {
+          "name": "status",
+          "type": "sync_status_enum",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'idle'"
+        },
+        "upload_at": {
+          "name": "upload_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
         "create_at": {
           "name": "create_at",
           "type": "timestamp with time zone",
@@ -397,74 +343,6 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "sync.snapshot_sync_status": {
-      "name": "snapshot_sync_status",
-      "schema": "sync",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "uuid_generate_v4()"
-        },
-        "snapshot_id": {
-          "name": "snapshot_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "status": {
-          "name": "status",
-          "type": "sync_status_enum",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'idle'"
-        },
-        "upload_at": {
-          "name": "upload_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "create_at": {
-          "name": "create_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "update_at": {
-          "name": "update_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "snapshot_sync_status_snapshot_id_snapshots_id_fk": {
-          "name": "snapshot_sync_status_snapshot_id_snapshots_id_fk",
-          "tableFrom": "snapshot_sync_status",
-          "tableTo": "snapshots",
-          "schemaTo": "sync",
-          "columnsFrom": [
-            "snapshot_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "cascade"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
     "sync.snapshots": {
       "name": "snapshots",
       "schema": "sync",
@@ -489,12 +367,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "device_id": {
-          "name": "device_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
         "meta": {
           "name": "meta",
           "type": "jsonb",
@@ -506,6 +378,20 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "sync_status_enum",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'idle'"
+        },
+        "upload_at": {
+          "name": "upload_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
         },
         "create_at": {
           "name": "create_at",
