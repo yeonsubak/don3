@@ -19,7 +19,7 @@ import {
   snapshots,
   tempKeyStore,
 } from '@/db/sync-db/schema';
-import { eq, max } from 'drizzle-orm';
+import { and, eq, inArray, max } from 'drizzle-orm';
 import { Repository } from './abstract-repository';
 
 export class SyncRepository extends Repository<SyncSchema> {
@@ -127,6 +127,16 @@ export class SyncRepository extends Repository<SyncSchema> {
     });
   }
 
+  public async getUploadedOpLogIds() {
+    const res = await this.db.query.opLogs.findMany({
+      columns: {
+        id: true,
+      },
+      where: ({ status }, { eq }) => eq(status, 'done'),
+    });
+    return res.map((e) => e.id);
+  }
+
   public async insertOpLog(data: OpLogInsert) {
     return (
       await this.db
@@ -147,6 +157,13 @@ export class SyncRepository extends Repository<SyncSchema> {
       .where(eq(opLogs.id, opLogId))
       .returning();
     return res.at(0);
+  }
+
+  public async deleteOpLogs(opLogIds: string[], status: SyncStatus) {
+    const res = await this.db
+      .delete(opLogs)
+      .where(and(inArray(opLogs.id, opLogIds), eq(opLogs.status, status)));
+    return res;
   }
 
   public async getMaxSeq(deviceId: string) {
