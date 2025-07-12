@@ -108,7 +108,7 @@ class Snapshot {
     )
 
     companion object {
-        fun fromMessage(request: Message<Command<SnapshotDTO>>, user: User): Snapshot {
+        fun fromMessage(request: Message<Command<SnapshotDTO>>, user: User, sequence: Long): Snapshot {
             val dto = request.body.data
             return Snapshot().apply {
                 this.localId = dto.localId
@@ -117,6 +117,7 @@ class Snapshot {
                 this.dump = dto.dump ?: ""
                 this.meta = dto.meta
                 this.iv = dto.iv
+                this.sequence = sequence
             }
         }
     }

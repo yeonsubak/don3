@@ -29,7 +29,8 @@ class SyncService(
     }
 
     fun insertSnapshot(request: Message<Command<SnapshotDTO>>, user: User): Event<SnapshotDTO> {
-        val snapshot = Snapshot.fromMessage(request, user)
+        val currentSeq = this.snapshotRepository.findMaxSequenceByUserId(user.id)
+        val snapshot = Snapshot.fromMessage(request, user, currentSeq + 1L)
         try {
             val createdSnapshot = this.snapshotRepository.save<Snapshot>(snapshot)
             return createdSnapshot.toEvent(true, request.requestInfo?.requestId)
