@@ -1,12 +1,13 @@
 package com.don3.sync.domain.sync.entity
 
 import com.don3.sync.domain.auth.entity.User
-import com.don3.sync.domain.sync.dto.InsertOpLogRequest
-import com.don3.sync.domain.sync.dto.OpLogResponse
-import com.don3.sync.domain.sync.dto.WebSocketRequest
-import com.don3.sync.domain.sync.dto.WebSocketResponse
-import com.don3.sync.domain.sync.enums.WebSocketRequestType
-import com.don3.sync.domain.sync.enums.WebSocketResponseType
+import com.don3.sync.domain.sync.message.Command
+import com.don3.sync.domain.sync.message.Document
+import com.don3.sync.domain.sync.message.Event
+import com.don3.sync.domain.sync.message.Message
+import com.don3.sync.domain.sync.message.dto.OpLogDTO
+import com.don3.sync.domain.sync.message.enums.DocumentType
+import com.don3.sync.domain.sync.message.enums.EventType
 import jakarta.persistence.*
 import org.hibernate.annotations.ColumnDefault
 import org.hibernate.annotations.JdbcTypeCode
@@ -15,7 +16,7 @@ import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.Instant
-import java.util.*
+import java.util.UUID
 
 @Entity
 @EntityListeners(AuditingEntityListener::class)
@@ -39,15 +40,15 @@ class OpLog {
     @Column(name = "id", nullable = false)
     var id: UUID = UUID.randomUUID()
 
+    @Column(name = "local_id", nullable = false)
+    lateinit var localId: UUID
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     lateinit var user: User
 
     @Column(name = "device_id", nullable = false)
     lateinit var deviceId: UUID
-
-    @Column(name = "local_id", nullable = false)
-    lateinit var localId: UUID
 
     @Column(name = "version", nullable = false)
     lateinit var version: String
@@ -77,51 +78,48 @@ class OpLog {
     @Column(name = "update_at")
     var updateAt: Instant? = null
 
-    fun toResponse(): OpLogResponse = OpLogResponse(
-        id = this.id,
-        userId = this.user.id,
+    fun toDTO(): OpLogDTO = OpLogDTO(
         deviceId = this.deviceId,
         localId = this.localId,
         version = this.version,
         schemaVersion = this.schemaVersion,
-        sequence = this.sequence.toBigInteger(),
+        sequence = this.sequence,
         iv = this.iv,
         data = this.data,
         queryKeys = this.queryKeys,
-        createAt = this.createAt,
-        updateAt = this.updateAt
     )
 
-    fun <P> toWebSocketResponse(request: WebSocketRequest<P>): WebSocketResponse<OpLogResponse> {
-        if (request.type === WebSocketRequestType.INSERT_OP_LOG) {
-            return WebSocketResponse(
-                requestId = request.requestId,
-                userId = request.userId,
-                deviceId = request.deviceId,
-                type = WebSocketResponseType.OP_LOG_INSERTED,
-                payload = this.toResponse(),
-                message = "Snapshot inserted successfully."
-            )
-        }
+    fun toDocument(correlationId: UUID?): Document<OpLogDTO> = Document(
+        type = DocumentType.OP_LOG,
+        timestamp = Instant.now(),
+        correlationId = correlationId,
+        data = this.toDTO()
+    )
 
-        throw IllegalArgumentException("Invalid request type")
-    }
+    fun toDocument(): Document<OpLogDTO> = this.toDocument(null)
+
+    fun toEvent(correlationId: UUID?) = Event(
+        eventId = UUID.randomUUID(),
+        timestamp = Instant.now(),
+        correlationId = correlationId,
+        type = EventType.OP_LOG_CREATED,
+        data = this.toDTO()
+    )
+
 
     companion object {
-        fun fromRequest(request: WebSocketRequest<InsertOpLogRequest>, user: User): OpLog {
-            val payload =
-                request.payload ?: throw IllegalArgumentException("Payload for opLog insertion must not be null.")
-
+        fun fromMessage(request: Message<Command<OpLogDTO>>, user: User): OpLog {
+            val dto = request.body.data
             return OpLog().apply {
                 this.user = user
-                this.deviceId = UUID.fromString(request.deviceId)
-                this.localId = UUID.fromString(payload.localId)
-                this.version = payload.version
-                this.schemaVersion = payload.schemaVersion
-                this.sequence = payload.sequence.toLong()
-                this.data = payload.data
-                this.iv = payload.iv
-                this.queryKeys = payload.queryKeys
+                this.deviceId = dto.deviceId
+                this.localId = dto.localId
+                this.version = dto.version
+                this.schemaVersion = dto.schemaVersion
+                this.sequence = dto.sequence
+                this.data = dto.data
+                this.iv = dto.iv
+                this.queryKeys = dto.queryKeys
             }
         }
     }

@@ -1,14 +1,14 @@
-package com.don3.sync.domain.sync.dto
+package com.don3.sync.domain.sync.message.dto
 
 import java.time.Instant
 import java.util.UUID
 
-data class SnapshotResponse(
+data class SnapshotDTO(
     val localId: UUID,
     val schemaVersion: String,
     val iv: String,
     val meta: String,
-    val dump: String,
-    val createAt: Instant,
-    val updateAt: Instant?
+    val dump: String?,
+    val sequence: Long?,
+    val createAt: Instant
 )

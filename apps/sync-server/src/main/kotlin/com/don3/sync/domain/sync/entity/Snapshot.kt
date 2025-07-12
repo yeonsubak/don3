@@ -1,18 +1,19 @@
 package com.don3.sync.domain.sync.entity
 
 import com.don3.sync.domain.auth.entity.User
-import com.don3.sync.domain.sync.dto.InsertSnapshotRequest
-import com.don3.sync.domain.sync.dto.SnapshotResponse
-import com.don3.sync.domain.sync.dto.WebSocketRequest
-import com.don3.sync.domain.sync.dto.WebSocketResponse
-import com.don3.sync.domain.sync.enums.WebSocketRequestType
-import com.don3.sync.domain.sync.enums.WebSocketResponseType
+import com.don3.sync.domain.sync.message.Command
+import com.don3.sync.domain.sync.message.Document
+import com.don3.sync.domain.sync.message.Event
+import com.don3.sync.domain.sync.message.Message
+import com.don3.sync.domain.sync.message.dto.SnapshotDTO
+import com.don3.sync.domain.sync.message.enums.DocumentType
+import com.don3.sync.domain.sync.message.enums.EventType
 import jakarta.persistence.*
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.Instant
-import java.util.*
+import java.util.UUID
 
 @Entity
 @EntityListeners(AuditingEntityListener::class)
@@ -20,13 +21,16 @@ import java.util.*
     name = "snapshots",
     schema = "sync",
     indexes = [
-        Index(name = "snapshots_idx_user_id_device_id", columnList = "user_id, device_id"),
-        Index(name = "snapshots_idx_create_at_user_id_device_id", columnList = "create_at, user_id, device_id")
+        Index(name = "snapshots_idx_create_at_user_id", columnList = "create_at, user_id")
     ],
     uniqueConstraints = [
         UniqueConstraint(
-            name = "snapshots_unq_local_id_user_id_device_id",
-            columnNames = ["local_id", "user_id", "device_id"]
+            name = "snapshots_unq_local_id_user_id",
+            columnNames = ["local_id", "user_id"]
+        ),
+        UniqueConstraint(
+            name = "snapshots_unq_user_id_sequence",
+            columnNames = ["user_id", "sequence"]
         )
     ]
 )
@@ -35,15 +39,15 @@ class Snapshot {
     @Column(name = "id", nullable = false)
     var id: UUID = UUID.randomUUID()
 
+    @Column(name = "local_id", nullable = false)
+    lateinit var localId: UUID
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     lateinit var user: User
 
-    @Column(name = "device_id", nullable = false)
-    lateinit var deviceId: UUID
-
-    @Column(name = "local_id", nullable = false)
-    lateinit var localId: UUID
+    @Column(name = "sequence", nullable = false)
+    var sequence: Long = 0
 
     @Column(name = "schema_version", nullable = false)
     lateinit var schemaVersion: String
@@ -65,53 +69,55 @@ class Snapshot {
     @Column(name = "update_at")
     var updateAt: Instant? = null
 
-    fun toResponse(): SnapshotResponse = SnapshotResponse(
+    fun toDTO(): SnapshotDTO = SnapshotDTO(
         localId = this.localId,
         schemaVersion = this.schemaVersion,
         iv = this.iv,
         meta = this.meta,
         dump = this.dump,
-        createAt = this.createAt,
-        updateAt = this.updateAt
+        sequence = this.sequence,
+        createAt = this.createAt
     )
 
-    fun <P> toWebSocketResponse(request: WebSocketRequest<P>): WebSocketResponse<SnapshotResponse> {
-        if (request.type === WebSocketRequestType.INSERT_SNAPSHOT) {
-            return WebSocketResponse(
-                requestId = request.requestId,
-                userId = this.user.id,
-                deviceId = request.deviceId,
-                type = WebSocketResponseType.SNAPSHOT_INSERTED,
-                payload = this.toResponse(),
-                message = "Snapshot inserted successfully."
-            )
-        }
+    fun toDTOWithoutDump() = SnapshotDTO(
+        localId = this.localId,
+        schemaVersion = this.schemaVersion,
+        iv = this.iv,
+        meta = this.meta,
+        dump = null,
+        sequence = this.sequence,
+        createAt = this.createAt
+    )
 
-        if (request.type === WebSocketRequestType.GET_LATEST_SNAPSHOT) {
-            return WebSocketResponse(
-                requestId = request.requestId,
-                userId = this.user.id,
-                deviceId = request.deviceId,
-                type = WebSocketResponseType.GET_SNAPSHOT,
-                payload = this.toResponse(),
-                message = "Latest snapshot retrieved successfully."
-            )
-        }
 
-        throw IllegalArgumentException("Invalid request type")
-    }
+    fun toDocument(correlationId: UUID?): Document<SnapshotDTO> = Document(
+        type = DocumentType.SNAPSHOT,
+        timestamp = Instant.now(),
+        correlationId = correlationId,
+        data = this.toDTO()
+    )
+
+    fun toDocument(): Document<SnapshotDTO> = this.toDocument(null)
+
+    fun toEvent(withoutDump: Boolean, correlationId: UUID?) = Event(
+        eventId = UUID.randomUUID(),
+        timestamp = Instant.now(),
+        correlationId = correlationId,
+        type = EventType.SNAPSHOT_CREATED,
+        data = if (withoutDump) this.toDTOWithoutDump() else this.toDTO()
+    )
 
     companion object {
-        fun fromRequest(request: WebSocketRequest<InsertSnapshotRequest>, user: User): Snapshot = Snapshot().apply {
-            val payload =
-                request.payload ?: throw IllegalArgumentException("Payload for snapshot insertion must not be null.")
-            this.user = user
-            this.deviceId = UUID.fromString(request.deviceId)
-            this.localId = UUID.fromString(payload.localId)
-            this.schemaVersion = payload.schemaVersion
-            this.dump = payload.dump
-            this.iv = payload.iv
-            this.meta = payload.meta
+        fun fromMessage(request: Message<Command<SnapshotDTO>>, user: User): Snapshot {
+            val dto = request.body.data
+            return Snapshot().apply {
+                this.localId = dto.localId
+                this.user = user
+                this.schemaVersion = dto.schemaVersion
+                this.dump = dto.dump ?: ""
+                this.meta = dto.meta
+                this.iv = dto.iv
+            }
         }
     }
 }

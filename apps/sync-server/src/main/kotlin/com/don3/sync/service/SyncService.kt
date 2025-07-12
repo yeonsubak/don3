@@ -1,9 +1,12 @@
 package com.don3.sync.service
 
 import com.don3.sync.domain.auth.entity.User
-import com.don3.sync.domain.sync.dto.*
 import com.don3.sync.domain.sync.entity.OpLog
 import com.don3.sync.domain.sync.entity.Snapshot
+import com.don3.sync.domain.sync.message.*
+import com.don3.sync.domain.sync.message.dto.DeviceSyncState
+import com.don3.sync.domain.sync.message.dto.OpLogDTO
+import com.don3.sync.domain.sync.message.dto.SnapshotDTO
 import com.don3.sync.domain.sync.repository.OpLogRepository
 import com.don3.sync.domain.sync.repository.SnapshotRepository
 import org.slf4j.Logger
@@ -11,7 +14,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import java.time.Instant
-import java.util.*
 
 @Service
 class SyncService(
@@ -23,85 +25,75 @@ class SyncService(
 
     fun getLatestSnapshot(user: User): Snapshot? {
         val snapshot = snapshotRepository.findFirstByUserEqualsOrderByCreateAtDesc(user)
-
-        if (snapshot == null) {
-            return null
-        }
-
         return snapshot
     }
 
-    fun insertSnapshot(request: WebSocketRequest<InsertSnapshotRequest>, user: User): Snapshot? {
-        val snapshot = Snapshot.fromRequest(request, user)
+    fun insertSnapshot(request: Message<Command<SnapshotDTO>>, user: User): Event<SnapshotDTO> {
+        val snapshot = Snapshot.fromMessage(request, user)
         try {
-            return this.snapshotRepository.save<Snapshot>(snapshot)
+            val createdSnapshot = this.snapshotRepository.save<Snapshot>(snapshot)
+            return createdSnapshot.toEvent(true, request.requestInfo?.requestId)
         } catch (e: DataIntegrityViolationException) {
             logger.warn("DataIntegrityViolationException: possibly attempting to insert a duplicated Snapshot entity. ${e.message}")
-            return snapshot
+            val storedSnapshot = this.snapshotRepository.findFirstByUserAndLocalId(user, snapshot.localId)
+                ?: throw IllegalStateException("DataIntegrityViolationException triggered but the matched snapshot does not exist in the DB. (user.id=${user.id}, snapshot.localId=${snapshot.localId})")
+            return storedSnapshot.toEvent(true, request.requestInfo?.requestId)
         }
     }
 
-    fun getOpLogsAfterDate(date: Instant, user: User): List<OpLogResponse> {
+    fun getOpLogsAfterDate(date: Instant, user: User): List<Document<OpLogDTO>> {
         val opLogs = this.opLogRepository.findAllByUserAndCreateAtAfter(user, date)
         val sorted = this.sortOpLogsByDeviceIdAndSeq(opLogs)
         return sorted.map {
-            it.toResponse()
+            it.toDocument()
         }
     }
 
     fun getAllOpLogsByDeviceIdsAndGreaterThanSequence(
-        list: List<DeviceIdAndSeq>,
+        request: Message<Query<List<DeviceSyncState>>>,
         user: User,
-        requestDeviceId: String
-    ): List<OpLogResponse> {
-        // Get OpLogs based on the request
-        val logs = list.fold(mutableListOf<OpLog>()) { acc, cur ->
-            val opLogs = this.opLogRepository.findAllByUserAndDeviceIdAndSequenceGreaterThan(
-                user, UUID.fromString(cur.deviceId), cur.seq.toLong()
-            )
-            acc.addAll(opLogs)
-            acc
+    ): List<Document<OpLogDTO>> {
+        val (requestInfo, body) = request
+        if (requestInfo == null) {
+            throw IllegalArgumentException("RequestInfo is null.")
         }
 
-        // Get OpLogs of deviceIds omitted in the request
-        val excludingDeviceIds = list.map { UUID.fromString(it.deviceId) }.toMutableList()
+        // Get OpLogs based on the request
+        val logs = body.parameters.flatMap {
+            this.opLogRepository.findAllByUserAndDeviceIdAndSequenceGreaterThan(
+                user, it.deviceId, it.seq
+            )
+        }
+
+        // Get OpLogs of omitted deviceIds in the request
+        val excludingDeviceIds = body.parameters.map { it.deviceId }.toMutableList()
         // Add request's deviceId for exclusion
-        excludingDeviceIds.add(UUID.fromString(requestDeviceId))
-
+        excludingDeviceIds.add(requestInfo.deviceId)
         val omittedLogs = this.opLogRepository.findAllByUserAndDeviceIdNotIn(user, excludingDeviceIds)
-        logs.addAll(omittedLogs)
 
-        return logs.map { it.toResponse() }.sortedBy { it.createAt }
+        return (logs + omittedLogs).map {
+            it.toDocument(requestInfo.requestId)
+        }
     }
 
-    fun insertOpLog(request: WebSocketRequest<InsertOpLogRequest>, user: User): OpLog {
-        val opLog = OpLog.fromRequest(request, user)
+    fun insertOpLog(request: Message<Command<OpLogDTO>>, user: User): Event<OpLogDTO> {
+        val opLog = OpLog.fromMessage(request, user)
         try {
-            return this.opLogRepository.save<OpLog>(opLog)
+            val createResult = this.opLogRepository.save<OpLog>(opLog)
+            return createResult.toEvent(request.requestInfo?.requestId)
         } catch (e: DataIntegrityViolationException) {
             logger.warn("DataIntegrityViolationException: possibly attempting to insert a duplicated OpLog entity. ${e.message}")
-            if (request.payload == null) throw IllegalArgumentException("Payload not found.")
-            return this.opLogRepository.findByUserAndDeviceIdAndSequence(
+            val storedOpLog = this.opLogRepository.findByUserAndDeviceIdAndSequence(
                 user,
-                UUID.fromString(request.deviceId),
-                request.payload.sequence.toLong()
+                request.requestInfo?.deviceId!!,
+                request.body.data.sequence
             )
+            return storedOpLog.toEvent(request.requestInfo.requestId)
         }
     }
 
     private fun sortOpLogsByDeviceIdAndSeq(opLogs: List<OpLog>): List<OpLog> {
-        val deviceIdSet = opLogs.map { it.deviceId }.toMutableSet()
-        val deviceIdEarliestOplog: MutableList<Pair<UUID, OpLog>> = mutableListOf()
-
-        opLogs.sortedBy { it.sequence }.forEach {
-            if (deviceIdSet.contains(it.deviceId)) {
-                deviceIdEarliestOplog.add(Pair(it.deviceId, it))
-                deviceIdSet.remove(it.deviceId)
-            }
-        }
-
-        val deviceIdOrder = deviceIdEarliestOplog.sortedBy { it.second.createAt }.map { it.first }
-
+        val deviceIdOrder = opLogs.distinctBy { it.deviceId }.sortedBy { it.createAt }.map { it.deviceId }
         return opLogs.sortedWith(compareBy<OpLog> { deviceIdOrder.indexOf(it.deviceId) }.thenBy { it.sequence })
     }
 }
