@@ -52,7 +52,6 @@ export class SyncService extends Service {
 
     return snapshots;
   }
-
   public async hasSnapshot() {
     return this.syncRepository.hasSnapshot();
   }
@@ -79,6 +78,14 @@ export class SyncService extends Service {
       status,
       receiveAt ? new Date(receiveAt) : undefined,
     );
+  }
+
+  public async getUploadableOpLogs(): Promise<OpLogSelect[]> {
+    const opLogs = await this.syncRepository.getUploadableOpLogs();
+    for (const opLog of opLogs) {
+      await this.updateOpLogStatus(opLog.id, 'pending');
+    }
+    return opLogs;
   }
 
   public async insertOpLog(
@@ -117,20 +124,17 @@ export class SyncService extends Service {
     });
   }
 
+  public async deleteUploadedOpLogs() {
+    const opLogIds = await this.syncRepository.getUploadedOpLogIds();
+    return await this.syncRepository.deleteOpLogs(opLogIds, 'done');
+  }
+
   public async updateOpLogStatus(opLogId: string, status: SyncStatus, timestamp?: string) {
     return await this.syncRepository.updateOpLogStatus(
       opLogId,
       status,
       timestamp ? new Date(timestamp) : undefined,
     );
-  }
-
-  public async getUploadableOpLogs(): Promise<OpLogSelect[]> {
-    const opLogs = await this.syncRepository.getUploadableOpLogs();
-    for (const opLog of opLogs) {
-      await this.updateOpLogStatus(opLog.id, 'pending');
-    }
-    return opLogs;
   }
 
   public async syncFromScratch(): Promise<{ status: 'success' | 'fail'; message: string }> {

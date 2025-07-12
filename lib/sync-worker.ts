@@ -171,6 +171,9 @@ export class SyncWorker {
       for (const opLog of opLogs) {
         await this.uploadOpLog(opLog);
       }
+
+      // Delete uploaded opLogs
+      await this.syncService.deleteUploadedOpLogs();
     }, this.SYNC_INTERVAL);
   }
 
