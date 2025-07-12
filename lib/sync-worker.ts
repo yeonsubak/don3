@@ -1,19 +1,18 @@
-import type { Payload } from '@/dto/dto-primitives';
+import type { OpLogSelect, SnapshotSelect } from '@/db/sync-db/drizzle-types';
 import type {
-  GetOpLogsRequest,
-  GetOpLogsResponse,
-  InsertOpLogRequest,
-  InsertOpLogResponse,
-  InsertSnapshotRequest,
-  OpLogResponse,
-} from '@/dto/sync-dto';
-import type {
-  WebSocketInitRequest,
-  WebSocketInternal,
-  WebSocketRequest,
-  WebSocketRequestType,
-  WebSocketResponse,
-} from '@/dto/websocket';
+  Command,
+  CommandType,
+  DeviceSyncState,
+  Document,
+  Event,
+  Internal,
+  Message,
+  MessageType,
+  OpLogDTO,
+  Query,
+  QueryType,
+  SnapshotDTO,
+} from '@/message';
 import { getSyncRepository } from '@/repositories/repository-helpers';
 import { EncryptionService } from '@/services/encryption-service';
 import { SyncService } from '@/services/sync-service';
@@ -32,16 +31,16 @@ export class SyncWorker {
   private encryptionService: EncryptionService;
 
   private queryClient: QueryClient | null = null;
-  private opLogInsertBuffer: OpLogResponse[] = [];
+  private opLogInsertBuffer: OpLogDTO[] = [];
   private opLogInsertBufferTimeoutId: ReturnType<typeof setTimeout> | null = null;
-  private OP_LOG_INSERT_BUFFER_TIMEOUT = 2000; //ms
+  private OP_LOG_INSERT_BUFFER_TIMEOUT = 1500; //ms
 
   private _connectionState: RxStompState = RxStompState.CLOSED;
   private connectionStateChangeCallbacks: ((state: RxStompState) => void)[] = [];
 
   private syncIntervalId: ReturnType<typeof setInterval> | null = null;
+  private SYNC_INTERVAL = 5000; //ms
 
-  private SYNC_INTERVAL = 3000; //ms
   private DESTINATION_PATHS = [
     '/user/queue/snapshot/latest',
     '/user/queue/snapshot/insert',
@@ -88,20 +87,6 @@ export class SyncWorker {
     return this._connectionState;
   }
 
-  public async sendRequest(_request: {
-    type: WebSocketRequestType;
-    payload: unknown;
-    destination: string;
-  }) {
-    const request: WebSocketRequest = {
-      ..._request,
-      requestId: crypto.randomUUID(),
-      userId: this.getUserId(),
-      deviceId: await this.getDeviceId(),
-    };
-    this.websocketWorker.postMessage(request);
-  }
-
   public onConnectionStateChange(callback: (state: RxStompState) => void): () => void {
     this.connectionStateChangeCallbacks.push(callback);
     callback(this._connectionState);
@@ -112,75 +97,46 @@ export class SyncWorker {
     };
   }
 
-  public startIntervalSync(): void {
-    if (this.syncIntervalId) {
-      clearInterval(this.syncIntervalId);
-    }
-
-    this.syncIntervalId = setInterval(async () => {
-      await this.insertSnapshots();
-      await this.uploadOpLogs();
-    }, this.SYNC_INTERVAL);
-  }
-
-  public stopPeriodicSync(): void {
-    if (this.syncIntervalId) {
-      clearInterval(this.syncIntervalId);
-      this.syncIntervalId = null;
-    }
-  }
-
-  private async insertSnapshots() {
-    if (!this.syncService) {
-      console.error('SyncService not initialized. Cannot insert snapshots.');
-      return;
-    }
-
-    const snapshots = await this.syncService.getUploadableSnapshots();
-    if (snapshots.length === 0) return;
-
-    for (const snapshot of snapshots) {
-      const { id, schemaVersion, meta, dump } = snapshot;
+  public async uploadSnapshot(snapshot: SnapshotSelect) {
+    const toSnapshotDTO = async ({ id, schemaVersion, meta, dump, createAt }: SnapshotSelect) => {
       const iv = generateIV();
       const encryptedDump = await this.encryptionService.encryptData(dump, iv);
       const encryptedMeta = await this.encryptionService.encryptData(meta, iv);
-      const payload: InsertSnapshotRequest = {
+      return {
         localId: id,
         schemaVersion,
-        dump: encryptedDump,
-        meta: encryptedMeta,
         iv: uInt8ArrayToBase64(iv),
+        meta: encryptedMeta,
+        dump: encryptedDump,
+        createAt: createAt.toISOString(),
       };
+    };
 
-      try {
-        this.sendRequest({
-          type: 'insertSnapshot',
-          destination: '/app/sync/snapshot/insert',
-          payload,
-        });
-        console.log(`Snapshot ${id} sent for insertion.`);
-      } catch (error) {
-        console.error(`Failed to send snapshot ${id} for insertion:`, error);
-      }
+    const snapshotDTO = await toSnapshotDTO(snapshot);
+
+    try {
+      await this.sendCommand('/app/sync/snapshot/insert', 'createSnapshot', snapshotDTO);
+      console.log(`Snapshot ${snapshot.id} sent for upload.`);
+    } catch (error) {
+      console.error(`Failed to send snapshot ${snapshot.id} for upload:`, error);
     }
   }
 
-  private async uploadOpLogs() {
-    if (!this.syncService) {
-      console.error('SyncService not initialized. Cannot insert operation logs.');
-      return;
-    }
-
-    const opLogs = await this.syncService.getUploadableOpLogs();
-    if (opLogs.length === 0) return;
-
-    for (const opLog of opLogs) {
-      const { id, schemaVersion, data, sequence, version, queryKeys } = opLog;
-
+  public async uploadOpLog(opLog: OpLogSelect) {
+    const toOpLogDTO = async ({
+      id,
+      schemaVersion,
+      data,
+      sequence,
+      version,
+      queryKeys,
+    }: OpLogSelect) => {
       const iv = generateIV();
       const encryptedData = await this.encryptionService.encryptData(data, iv);
-      const payload: InsertOpLogRequest = {
+      const deviceId = await this.getDeviceId();
+      return {
         localId: id,
+        deviceId,
         version,
         schemaVersion,
         sequence,
@@ -188,17 +144,40 @@ export class SyncWorker {
         data: encryptedData,
         queryKeys,
       };
+    };
 
-      try {
-        this.sendRequest({
-          type: 'insertOpLog',
-          destination: '/app/sync/opLog/insert',
-          payload,
-        });
-        console.log(`OpLog ${id} sent for insertion.`);
-      } catch (error) {
-        console.error(`Failed to send opLog ${id} for insertion:`, error);
+    const opLogDTO = await toOpLogDTO(opLog);
+
+    try {
+      await this.sendCommand('/app/sync/opLog/insert', 'createOpLog', opLogDTO);
+      console.log(`OpLog ${opLog.id} sent for upload.`);
+    } catch (error) {
+      console.error(`Failed to send opLog ${opLog.id} for upload:`, error);
+    }
+  }
+
+  public startIntervalSync(): void {
+    if (this.syncIntervalId) {
+      clearInterval(this.syncIntervalId);
+    }
+
+    this.syncIntervalId = setInterval(async () => {
+      const snapshots = await this.syncService.getUploadableSnapshots();
+      for (const snapshot of snapshots) {
+        await this.uploadSnapshot(snapshot);
       }
+
+      const opLogs = await this.syncService.getUploadableOpLogs();
+      for (const opLog of opLogs) {
+        await this.uploadOpLog(opLog);
+      }
+    }, this.SYNC_INTERVAL);
+  }
+
+  public stopPeriodicSync(): void {
+    if (this.syncIntervalId) {
+      clearInterval(this.syncIntervalId);
+      this.syncIntervalId = null;
     }
   }
 
@@ -211,61 +190,117 @@ export class SyncWorker {
   }
 
   private setWorkerOnMessage() {
-    this.websocketWorker.onmessage = async (
-      event: MessageEvent<WebSocketResponse | WebSocketInternal>,
-    ) => {
-      const res = await this.ackFilter(event.data);
-      if (!res) return;
+    this.websocketWorker.onmessage = async (event: MessageEvent<Message<unknown>>) => {
+      const { type } = event.data;
 
-      const { type, payload } = res;
+      if (type === 'internal') {
+        const body = event.data.body as Internal;
+        if (body.type === 'init' && body.state === 'ready') {
+          await this.fetchStackedOpLogs();
+          return;
+        }
 
-      if (type === 'init') {
-        await this.fetchStackedOpLogs();
+        if (body.type === 'connectionStateUpdate') {
+          this._connectionState = body.state as RxStompState;
+          this.connectionStateChangeCallbacks.forEach((cb) => cb(this.connectionState));
+          return;
+        }
+      }
+
+      if (type === 'event') {
+        this.handleEventReceived(event.data);
         return;
       }
 
-      if (type === 'connectionStateUpdate') {
-        this._connectionState = payload as RxStompState;
-        this.connectionStateChangeCallbacks.forEach((cb) => cb(this.connectionState));
-        return;
-      }
-
-      if (type === 'opLogInserted') {
-        const opLog = event.data as InsertOpLogResponse;
-        this.opLogInsertBuffer.push(opLog.payload);
-        this.insertOpLogs();
-        return;
-      }
-
-      if (type === 'getOpLogsResponse') {
-        const opLogs = event.data as GetOpLogsResponse;
-        this.opLogInsertBuffer.push(...opLogs.payload);
-        this.insertOpLogs();
+      if (type === 'document') {
+        this.handleDocumentReceived(event.data);
         return;
       }
     };
   }
 
   private async sendWorkerInitMessage() {
-    const payload: WebSocketInitRequest = {
-      requestId: crypto.randomUUID(),
-      userId: this.getUserId(),
-      deviceId: await this.getDeviceId(),
+    this.websocketWorker.postMessage({
       type: 'init',
-      payload: {
+      body: {
+        type: 'init',
         syncWebSocketUrl: SYNC_WEBSOCKET_URL ?? '',
         destinationPaths: this.DESTINATION_PATHS,
       },
-    };
-
-    this.websocketWorker.postMessage(payload);
+    });
   }
 
   private async fetchStackedOpLogs() {
-    const deviceIdAndSeq = await this.syncService.getAllDeviceSyncSequences();
-    const payload: GetOpLogsRequest = { deviceIdAndSeq };
+    const deviceIdAndSeq: DeviceSyncState[] = await this.syncService.getAllDeviceSyncSequences();
+    this.sendQuery('/app/sync/opLog/get', 'getOpLogs', deviceIdAndSeq);
+  }
 
-    this.sendRequest({ destination: '/app/sync/opLog/get', type: 'getOpLogsRequest', payload });
+  private async sendCommand(destination: string, type: CommandType, data: unknown) {
+    const command: Command<unknown> = {
+      commandId: crypto.randomUUID(),
+      timestamp: new Date().toISOString(),
+      type: type,
+      data,
+    };
+    await this.sendMessage(destination, 'command', command);
+  }
+
+  private async sendQuery(destination: string, type: QueryType, parameters: unknown) {
+    const query: Query<unknown> = {
+      queryId: crypto.randomUUID(),
+      timestamp: new Date().toISOString(),
+      type: type,
+      parameters,
+    };
+    await this.sendMessage(destination, 'query', query);
+  }
+
+  private async sendMessage(destination: string, type: MessageType, body: unknown) {
+    const deviceId = await this.getDeviceId();
+    const message: Message<unknown> = {
+      destination,
+      type,
+      requestInfo: {
+        requestId: crypto.randomUUID(),
+        userId: this.getUserId(),
+        deviceId,
+      },
+      body,
+      sentAt: new Date().toISOString(),
+    };
+    this.websocketWorker.postMessage(message);
+  }
+
+  private async handleEventReceived(message: Message<unknown>) {
+    const requestInfo = message.requestInfo;
+    const body = message.body as Event<OpLogDTO | SnapshotDTO>;
+    if (requestInfo?.deviceId === (await this.getDeviceId())) {
+      const ack = await this.ack(body);
+      return;
+    }
+
+    if (body.type === 'opLogCreated') {
+      const opLog = body.data as OpLogDTO;
+      this.opLogInsertBuffer.push(opLog);
+      this.insertOpLogs();
+      return;
+    }
+  }
+
+  private async handleDocumentReceived(message: Message<unknown>) {
+    const requestInfo = message.requestInfo;
+    if (requestInfo?.deviceId !== (await this.getDeviceId())) {
+      return;
+    }
+
+    const body = message.body as Document<OpLogDTO | SnapshotDTO>;
+
+    if (body.type === 'opLog') {
+      const opLog = body.data as OpLogDTO;
+      this.opLogInsertBuffer.push(opLog);
+      this.insertOpLogs();
+      return;
+    }
   }
 
   private async insertOpLogs() {
@@ -293,24 +328,13 @@ export class SyncWorker {
     }, this.OP_LOG_INSERT_BUFFER_TIMEOUT);
   }
 
-  private async ackFilter(res: WebSocketResponse | WebSocketInternal) {
-    if (res.deviceId === (await this.getDeviceId())) {
-      if (['opLogInserted', 'snapshotInserted'].includes(res.type)) {
-        this.ack(res as WebSocketResponse<Payload>);
-        return;
-      }
+  private async ack({ type, timestamp, data: { localId } }: Event<OpLogDTO | SnapshotDTO>) {
+    if (type === 'opLogCreated') {
+      return await this.syncService.updateOpLogStatus(localId, 'done', timestamp);
     }
 
-    return res;
-  }
-
-  private async ack({ type, receiveAt, payload: { localId } }: WebSocketResponse<Payload>) {
-    if (type === 'opLogInserted') {
-      return await this.syncService.updateOpLogStatus(localId, 'done', receiveAt);
-    }
-
-    if (type === 'snapshotInserted') {
-      return await this.syncService.updateSnapshotStatus(localId, 'done', receiveAt);
+    if (type === 'snapshotCreated') {
+      return await this.syncService.updateSnapshotStatus(localId, 'done', timestamp);
     }
   }
 

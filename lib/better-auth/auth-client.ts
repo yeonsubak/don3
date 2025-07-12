@@ -2,7 +2,6 @@ import { useLocalStorage } from '@/components/hooks/use-local-storage';
 import { passkeyClient } from 'better-auth/client/plugins';
 import { createAuthClient } from 'better-auth/react';
 import { DateTime } from 'luxon';
-import { useMemo } from 'react';
 import { LOCAL_STORAGE_KEYS } from '../constants';
 
 export const authClient = createAuthClient({
@@ -10,23 +9,31 @@ export const authClient = createAuthClient({
   plugins: [passkeyClient()],
 });
 
+function isSessionExpired(data: _Session | null) {
+  if (data && data.session && data.user) {
+    const expireAt = DateTime.fromJSDate(data.session.expiresAt);
+    const now = DateTime.now();
+    if (now < expireAt) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+export async function getSession() {
+  const { data, ...rest } = await authClient.getSession();
+  return {
+    session: data?.session,
+    user: data?.user,
+    isExpired: isSessionExpired(data),
+    ...rest,
+  };
+}
+
 export function useSession() {
   const { data, ...rest } = authClient.useSession();
-
-  const isExpired = useMemo(() => {
-    if (data && data.session && data.user) {
-      const expireAt = DateTime.fromJSDate(data.session.expiresAt);
-      const now = DateTime.now();
-      if (now < expireAt) {
-        return false;
-      }
-    }
-
-    return true;
-  }, [data]);
-
   const [isSyncEnable] = useLocalStorage<boolean>(LOCAL_STORAGE_KEYS.SYNC.SYNC_ENABLED, false);
-
   const [userId, setUserId] = useLocalStorage<string>(LOCAL_STORAGE_KEYS.SYNC.USER_ID, '');
 
   if (isSyncEnable && data?.user.id && data?.user.id !== userId) {
@@ -36,7 +43,7 @@ export function useSession() {
   return {
     session: data?.session,
     user: data?.user,
-    isExpired,
+    isExpired: isSessionExpired(data),
     ...rest,
   };
 }
@@ -63,6 +70,6 @@ export async function addPasskey() {
       .catch(reject);
   });
 }
-
+type _Session = typeof authClient.$Infer.Session;
 export type Session = ReturnType<typeof useSession>;
 export type Passkey = typeof authClient.$Infer.Passkey;

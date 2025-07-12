@@ -3,19 +3,16 @@ import { appDrizzle } from '@/db';
 import { PGliteAppWorker } from '@/db/pglite/pglite-app-worker';
 import type {
   OpLogInsert,
+  OpLogSelect,
   SnapshotInsert,
+  SnapshotSelect,
   SyncStatus,
   UserConfigKey,
 } from '@/db/sync-db/drizzle-types';
-import {
-  isRestResponse,
-  type OpLogResponse,
-  type OpLogRestResponse,
-  type SnapshotResponse,
-} from '@/dto/sync-dto';
 import { insertOperationLogMutex } from '@/lib/async-mutex';
 import { LOCAL_STORAGE_KEYS, OPERATION_LOG_VERSION } from '@/lib/constants';
 import { base64ToUint8Array, decryptWithEK } from '@/lib/utils/encryption-utils';
+import type { OpLogDTO } from '@/message';
 import { SyncRepository } from '@/repositories/sync-repository';
 import type { Results } from '@electric-sql/pglite';
 import type { Query } from 'drizzle-orm';
@@ -47,7 +44,7 @@ export class SyncService extends Service {
     return this.syncRepository.getLatestSnapshot();
   }
 
-  public async getUploadableSnapshots() {
+  public async getUploadableSnapshots(): Promise<SnapshotSelect[]> {
     const snapshots = await this.syncRepository.getUploadableSnapshots();
     for (const { id } of snapshots) {
       await this.updateSnapshotStatus(id, 'pending');
@@ -120,15 +117,15 @@ export class SyncService extends Service {
     });
   }
 
-  public async updateOpLogStatus(opLogId: string, status: SyncStatus, receiveAt?: string) {
+  public async updateOpLogStatus(opLogId: string, status: SyncStatus, timestamp?: string) {
     return await this.syncRepository.updateOpLogStatus(
       opLogId,
       status,
-      receiveAt ? new Date(receiveAt) : undefined,
+      timestamp ? new Date(timestamp) : undefined,
     );
   }
 
-  public async getUploadableOpLogs() {
+  public async getUploadableOpLogs(): Promise<OpLogSelect[]> {
     const opLogs = await this.syncRepository.getUploadableOpLogs();
     for (const opLog of opLogs) {
       await this.updateOpLogStatus(opLog.id, 'pending');
@@ -147,7 +144,14 @@ export class SyncService extends Service {
 
     switch (snapshotRes.statusCode) {
       case 200: {
-        const { dump, meta, iv: ivBase64, schemaVersion } = snapshotRes.data;
+        const {
+          dump,
+          meta,
+          iv: ivBase64,
+          schemaVersion,
+          createAt,
+        } = snapshotRes.message!.body.data;
+
         const iv = base64ToUint8Array(ivBase64);
 
         const decryptedDump = await decryptWithEK(dump, iv, ek);
@@ -175,8 +179,11 @@ export class SyncService extends Service {
           false,
         );
 
-        const opLogs = await this.getOpLogsAfterSnapshotDate(snapshotRes.data);
-        const opLogRestoreRes = await this.insertFetchedOpLogs(opLogs);
+        const opLogRes = await this.getOpLogsAfterSnapshotDate(createAt!);
+        if (opLogRes.statusCode === 200) {
+          const opLogs = opLogRes.message?.body.map((opLog) => opLog.data) ?? [];
+          const opLogRestoreRes = await this.insertFetchedOpLogs(opLogs);
+        }
 
         return {
           status: 'success',
@@ -195,17 +202,11 @@ export class SyncService extends Service {
     }
   }
 
-  public async insertFetchedOpLogs(opLogRes: OpLogRestResponse | OpLogResponse[] | OpLogResponse) {
-    function validateType() {
-      if (isRestResponse(opLogRes)) return 'OpLogRestResponse';
-      if (Array.isArray(opLogRes)) return 'OpLogResponse[]';
-      return 'OpLogResponse';
-    }
-
+  public async insertFetchedOpLogs(opLogRes: OpLogDTO | OpLogDTO[]) {
     const res: { deviceId: string; seq: number; res: Results<unknown>; queryKeys: string[] }[] = [];
     const deviceIdSeqs: Record<string, number> = {};
 
-    const insert = async ({ data, iv: ivBase64, sequence, deviceId, queryKeys }: OpLogResponse) => {
+    const insert = async ({ data, iv: ivBase64, sequence, deviceId, queryKeys }: OpLogDTO) => {
       const iv = base64ToUint8Array(ivBase64);
       const decryptedData = await this.encryptionService.decryptData(data, iv);
       const { sql, params }: Query = JSON.parse(decryptedData);
@@ -215,25 +216,12 @@ export class SyncService extends Service {
       deviceIdSeqs[deviceId] = sequence;
     };
 
-    switch (validateType()) {
-      case 'OpLogRestResponse': {
-        const { data } = opLogRes as OpLogRestResponse;
-        for (const log of data) {
-          await insert(log);
-        }
-        break;
+    if (Array.isArray(opLogRes)) {
+      for (const log of opLogRes) {
+        await insert(log);
       }
-      case 'OpLogResponse[]': {
-        const opLog = opLogRes as OpLogResponse[];
-        for (const log of opLog) {
-          await insert(log);
-        }
-        break;
-      }
-      case 'OpLogResponse': {
-        const opLog = opLogRes as OpLogResponse;
-        await insert(opLog);
-      }
+    } else {
+      await insert(opLogRes);
     }
 
     for (const [deviceId, seq] of Object.entries(deviceIdSeqs)) {
@@ -260,8 +248,8 @@ export class SyncService extends Service {
     return fetchLatestSnapshot();
   }
 
-  private async getOpLogsAfterSnapshotDate(snapshotRes: SnapshotResponse) {
-    const date = new Date(snapshotRes.createAt);
+  private async getOpLogsAfterSnapshotDate(snapshotDate: string) {
+    const date = new Date(snapshotDate);
     return fetchOpLogsAfterDate(date);
   }
 }

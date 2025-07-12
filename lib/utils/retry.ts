@@ -1,8 +1,8 @@
 export interface RetryOptions {
-  retries?: number;
-  baseDelayMs?: number;
-  jitter?: boolean;
-  onError?: (err: unknown, attempt: number) => void;
+  retries: number;
+  baseDelayMs: number;
+  jitter: boolean;
+  onError: (err: unknown, attempt: number) => void;
 }
 
 function getExponentialDelay(attempt: number, base: number, jitter: boolean): number {
@@ -14,9 +14,17 @@ function getExponentialDelay(attempt: number, base: number, jitter: boolean): nu
   return Math.round(delay);
 }
 
-export async function retry<T>(fn: () => Promise<T>, options: RetryOptions = {}): Promise<T> {
-  const { retries = 2, baseDelayMs = 100, jitter = true, onError = () => {} } = options;
+const defaultOption: RetryOptions = {
+  retries: 2,
+  baseDelayMs: 100,
+  jitter: true,
+  onError: () => {},
+};
 
+export async function retry<T>(
+  fn: () => Promise<T>,
+  { retries, baseDelayMs, jitter, onError }: RetryOptions = defaultOption,
+): Promise<T> {
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       return await fn();
