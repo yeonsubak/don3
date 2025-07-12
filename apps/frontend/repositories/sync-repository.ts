@@ -3,7 +3,9 @@ import type {
   EncryptKeyInsert,
   KeyRegistryInsert,
   OpLogInsert,
+  OpLogSelect,
   SnapshotInsert,
+  SnapshotSelect,
   SyncSchema,
   SyncStatus,
   TempKeyStoreInsert,
@@ -86,7 +88,7 @@ export class SyncRepository extends Repository<SyncSchema> {
     });
   }
 
-  public async getUploadableSnapshots() {
+  public async getUploadableSnapshots(): Promise<SnapshotSelect[]> {
     const before5SecFromNow = new Date(Date.now() - 5000);
     return this.db.query.snapshots.findMany({
       where: ({ status, updateAt }, { or, and, eq, lt }) =>
@@ -117,11 +119,11 @@ export class SyncRepository extends Repository<SyncSchema> {
     ).at(0);
   }
 
-  public async getUploadableOpLogs() {
-    const before5SecFromNow = new Date(Date.now() - 5000);
+  public async getUploadableOpLogs(): Promise<OpLogSelect[]> {
+    const before10SecFromNow = new Date(Date.now() - 10000);
     return this.db.query.opLogs.findMany({
       where: ({ status, updateAt }, { or, and, eq, lt }) =>
-        or(eq(status, 'idle'), and(eq(status, 'pending'), lt(updateAt, before5SecFromNow))),
+        or(eq(status, 'idle'), and(eq(status, 'pending'), lt(updateAt, before10SecFromNow))),
     });
   }
 

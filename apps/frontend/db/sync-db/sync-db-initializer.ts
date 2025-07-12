@@ -1,5 +1,6 @@
 import { getSchemaDefinition } from '@/app/server/db';
 import * as schema from '@/db/sync-db/schema';
+import { getSession } from '@/lib/better-auth/auth-client';
 import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
 import { drizzle } from 'drizzle-orm/pglite';
 import type { SyncDrizzle } from '..';
@@ -141,11 +142,18 @@ export class SyncDBInitializer extends DBInitializer {
       }
       switch (key) {
         case 'userId': {
-          const userId = localStorage.getItem(LOCAL_STORAGE_KEYS.SYNC.USER_ID);
+          let userId = localStorage.getItem(LOCAL_STORAGE_KEYS.SYNC.USER_ID);
+
           if (!userId) {
             console.warn('userId not found in localStorage.');
-            return;
+            const session = await getSession();
+            userId = session.user?.id ?? null;
+            if (!userId) {
+              console.warn('userId not found in session.');
+              return;
+            }
           }
+
           await this.db
             .insert(schema.information)
             .values({ name: key, value: userId })
