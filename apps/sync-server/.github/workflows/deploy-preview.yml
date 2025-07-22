@@ -1,0 +1,26 @@
+name: Deploy Preview
+
+on:
+  push:
+    branches: [ dev ]
+  pull_request:
+    branches: [ dev ]
+  workflow_dispatch:
+
+jobs:
+  build-and-push-to-ghcr:
+    uses: ./.github/workflows/build-and-push-to-GHCR.yml
+    with:
+      environment: Preview
+      GHCR_IMAGE_NAME: ${{ github.repository }}/sync-app
+      GHCR_IMAGE_TAG: dev
+    secrets: inherit
+
+  deploy-to-aws-lightsail:
+    needs: build-and-push-to-ghcr
+    uses: ./.github/workflows/aws-lightsail-deploy.yml
+    with:
+      environment: Preview
+      image_tag: ${{ needs.build-and-push-to-ghcr.outputs.image_tag }}
+    secrets: inherit
+
