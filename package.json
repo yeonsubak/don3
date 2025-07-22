@@ -7,6 +7,16 @@
     "apps/*"
   ],
   "scripts": {
+    "dev": "pnpm --filter @don3/frontend dev",
+    "build": "pnpm --filter @don3/frontend build",
+    "start": "pnpm --filter @don3/frontend start",
+    "lint": "pnpm --filter @don3/frontend lint",
+    "test": "pnpm --filter @don3/frontend test",
+    "coverage": "pnpm --filter @don3/frontend coverage",
+    "shadcn": "pnpm --filter @don3/frontend add",
+    "drk:app": "pnpm --filter @don3/frontend drk:app",
+    "drk:sync": "pnpm --filter @don3/frontend drk:sync",
+    "drk:external": "pnpm --filter @don3/frontend drk:external",
     "prepare": "husky"
   },
   "devDependencies": {
