@@ -49,6 +49,7 @@ const nextConfig: NextConfig = {
 const withSerwist = withSerwistInit({
   swSrc: 'app/sw.ts',
   swDest: 'public/sw.js',
+  maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10MB
 });
 
 const withNextIntl = createNextIntlPlugin('./app/i18n/request.ts');
