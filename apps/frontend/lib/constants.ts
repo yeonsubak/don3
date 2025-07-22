@@ -48,8 +48,10 @@ export const APP_DB_MIGRATION_PATH = 'db/app-db/migration' as const;
 export const SYNC_DB_NAME = 'don3_sync' as const;
 export const SYNC_DB_MIGRATION_PATH = 'db/sync-db/migration' as const;
 
-export const BETTER_AUTH_URL = process.env.BETTER_AUTH_URL;
+export const BETTER_AUTH_URL = process.env.NEXT_PUBLIC_BETTER_AUTH_URL;
 
 export const SYNC_SERVER_URL = process.env.SYNC_SERVER_URL;
 
 export const SYNC_WEBSOCKET_URL = process.env.NEXT_PUBLIC_SYNC_WEBSOCKET_URL;
+
+export const RP_ID = process.env.RP_ID;

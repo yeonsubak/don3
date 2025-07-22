@@ -3,7 +3,7 @@ import * as schema from '@/db/external-db/migration/schema';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { passkey } from 'better-auth/plugins/passkey';
-import { PASSKEY_PRF_SALT_FIRST } from '../constants';
+import { BETTER_AUTH_URL, PASSKEY_PRF_SALT_FIRST, RP_ID } from '../constants';
 
 const passkeyPrfSalt = new TextEncoder().encode(PASSKEY_PRF_SALT_FIRST);
 const passkeyPrfSaltBuffer = passkeyPrfSalt.buffer.slice(
@@ -24,9 +24,9 @@ export const auth = betterAuth({
   },
   plugins: [
     passkey({
-      rpID: 'localhost',
+      rpID: RP_ID,
       rpName: 'Don3',
-      origin: 'http://localhost:3000',
+      origin: BETTER_AUTH_URL,
       authenticatorSelection: {
         authenticatorAttachment: 'cross-platform',
       },
