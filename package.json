@@ -29,7 +29,8 @@
       "@babel/runtime": ">=7.26.10",
       "@babel/helpers": ">=7.26.10",
       "react-is": "^19.0.0",
-      "brace-expansion": ">=2.0.2"
+      "brace-expansion": ">=2.0.2",
+      "@eslint/plugin-kit": ">=0.3.3"
     },
     "onlyBuiltDependencies": [
       "@biomejs/biome",
