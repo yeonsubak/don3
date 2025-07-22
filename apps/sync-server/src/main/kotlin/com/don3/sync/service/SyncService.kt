@@ -1,107 +1,149 @@
 package com.don3.sync.service
 
 import com.don3.sync.domain.auth.entity.User
-import com.don3.sync.domain.sync.dto.*
 import com.don3.sync.domain.sync.entity.OpLog
 import com.don3.sync.domain.sync.entity.Snapshot
+import com.don3.sync.domain.sync.message.*
+import com.don3.sync.domain.sync.message.dto.oplog.DeviceSyncState
+import com.don3.sync.domain.sync.message.dto.oplog.OpLogChunkDTO
+import com.don3.sync.domain.sync.message.dto.snapshot.SnapshotDTO
+import com.don3.sync.domain.sync.message.enums.DocumentType
+import com.don3.sync.domain.sync.message.enums.EventType
 import com.don3.sync.domain.sync.repository.OpLogRepository
 import com.don3.sync.domain.sync.repository.SnapshotRepository
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import com.don3.sync.exception.DuplicateEntityExistException
+import com.don3.sync.exception.ValueNotFoundException
+import jakarta.persistence.EntityNotFoundException
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
+import org.springframework.transaction.PlatformTransactionManager
+import org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW
+import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionTemplate
 import java.time.Instant
-import java.util.*
+import java.util.UUID
 
 @Service
 class SyncService(
-    private val snapshotRepository: SnapshotRepository, private val opLogRepository: OpLogRepository
+    private val snapshotRepository: SnapshotRepository,
+    private val opLogRepository: OpLogRepository,
+    platformTransactionManager: PlatformTransactionManager
 ) {
-    companion object {
-        private val logger: Logger = LoggerFactory.getLogger(SyncService::class.java)
+    private val newTxTemplate: TransactionTemplate = TransactionTemplate(platformTransactionManager).apply {
+        propagationBehavior = PROPAGATION_REQUIRES_NEW
     }
 
     fun getLatestSnapshot(user: User): Snapshot? {
-        val snapshot = snapshotRepository.findFirstByUserEqualsOrderByCreateAtDesc(user)
-
-        if (snapshot == null) {
-            return null
-        }
-
-        return snapshot
+        return snapshotRepository.findFirstByUserEqualsOrderByCreateAtDesc(user)
     }
 
-    fun insertSnapshot(request: WebSocketRequest<InsertSnapshotRequest>, user: User): Snapshot? {
-        val snapshot = Snapshot.fromRequest(request, user)
+    fun getLatestSnapshotChecksum(user: User): String? {
+        return snapshotRepository.findChecksumByUserId(user.id)
+    }
+
+    @Transactional
+    fun insertSnapshot(request: Message<Command<SnapshotDTO>>, user: User): Event<SnapshotDTO> {
+        val snapshotInsert = Snapshot.fromDTO(request.body.data, user)
+
         try {
-            return this.snapshotRepository.save<Snapshot>(snapshot)
+            val createdSnapshot = snapshotRepository.save<Snapshot>(snapshotInsert)
+
+            // Clean previous snapshot and opLogs
+            snapshotRepository.clearSnapshots(user.id, createdSnapshot.checksum)
+            opLogRepository.clearOpLogs(user.id)
+
+            return createdSnapshot.toEvent(true, request.requestInfo?.requestId)
         } catch (e: DataIntegrityViolationException) {
-            logger.warn("DataIntegrityViolationException: possibly attempting to insert a duplicated Snapshot entity. ${e.message}")
-            return snapshot
+            throw DuplicateEntityExistException("Snapshot", e)
         }
     }
 
-    fun getOpLogsAfterDate(date: Instant, user: User): List<OpLogResponse> {
-        val opLogs = this.opLogRepository.findAllByUserAndCreateAtAfter(user, date)
-        val sorted = this.sortOpLogsByDeviceIdAndSeq(opLogs)
-        return sorted.map {
-            it.toResponse()
+    fun findExistingSnapshot(request: Message<Command<SnapshotDTO>>, user: User): Event<SnapshotDTO> {
+        val checksum = request.body.data.checksum
+
+        val storedSnapshot = newTxTemplate.execute { transactionStatus ->
+            snapshotRepository.findFirstByUserAndChecksum(user, checksum)
         }
+
+        if (storedSnapshot == null) {
+            throw EntityNotFoundException("Expected Snapshot (checksum=$checksum) to exist after duplicate insertion attempt, but it was not found.${user.id}, checksum=${checksum})")
+        }
+
+        return storedSnapshot.toEvent(true, request.requestInfo?.requestId)
+    }
+
+    fun getOpLogsAfterDate(date: Instant, user: User): Document<List<OpLogChunkDTO>> {
+        val opLogs = opLogRepository.findAllByUserAndCreateAtAfter(user, date)
+        val chunks = OpLogChunkDTO.groupOpLog(opLogs)
+        return Document.create(DocumentType.OP_LOG, chunks)
     }
 
     fun getAllOpLogsByDeviceIdsAndGreaterThanSequence(
-        list: List<DeviceIdAndSeq>,
+        request: Message<Query<List<DeviceSyncState>>>,
         user: User,
-        requestDeviceId: String
-    ): List<OpLogResponse> {
+    ): Document<List<OpLogChunkDTO>> {
+        val (requestInfo, body) = request
+        if (requestInfo == null) {
+            throw ValueNotFoundException("requestInfo")
+        }
+
         // Get OpLogs based on the request
-        val logs = list.fold(mutableListOf<OpLog>()) { acc, cur ->
-            val opLogs = this.opLogRepository.findAllByUserAndDeviceIdAndSequenceGreaterThan(
-                user, UUID.fromString(cur.deviceId), cur.seq.toLong()
+        val logs = body.parameters.flatMap {
+            opLogRepository.findAllByUserAndDeviceIdAndSequenceGreaterThan(
+                user, UUID.fromString(it.deviceId), it.seq
             )
-            acc.addAll(opLogs)
-            acc
         }
 
-        // Get OpLogs of deviceIds omitted in the request
-        val excludingDeviceIds = list.map { UUID.fromString(it.deviceId) }.toMutableList()
+        // Get OpLogs of omitted deviceIds in the request
+        val excludingDeviceIds = body.parameters.map { UUID.fromString(it.deviceId) }.toMutableList()
         // Add request's deviceId for exclusion
-        excludingDeviceIds.add(UUID.fromString(requestDeviceId))
+        excludingDeviceIds.add(UUID.fromString(requestInfo.deviceId))
+        val omittedLogs = opLogRepository.findAllByUserAndDeviceIdNotIn(user, excludingDeviceIds.toList())
+        val chunks = OpLogChunkDTO.groupOpLog(logs + omittedLogs)
 
-        val omittedLogs = this.opLogRepository.findAllByUserAndDeviceIdNotIn(user, excludingDeviceIds)
-        logs.addAll(omittedLogs)
-
-        return logs.map { it.toResponse() }.sortedBy { it.createAt }
+        return Document.create(DocumentType.OP_LOG, chunks, requestInfo.requestId)
     }
 
-    fun insertOpLog(request: WebSocketRequest<InsertOpLogRequest>, user: User): OpLog {
-        val opLog = OpLog.fromRequest(request, user)
-        try {
-            return this.opLogRepository.save<OpLog>(opLog)
-        } catch (e: DataIntegrityViolationException) {
-            logger.warn("DataIntegrityViolationException: possibly attempting to insert a duplicated OpLog entity. ${e.message}")
-            if (request.payload == null) throw IllegalArgumentException("Payload not found.")
-            return this.opLogRepository.findByUserAndDeviceIdAndSequence(
-                user,
-                UUID.fromString(request.deviceId),
-                request.payload.sequence.toLong()
-            )
-        }
-    }
+    @Transactional
+    fun insertOpLogs(request: Message<Command<OpLogChunkDTO>>, user: User): Event<List<OpLogChunkDTO>> {
+        val insertedOpLogs: MutableList<OpLog> = mutableListOf()
+        val chunk = request.body.data
 
-    private fun sortOpLogsByDeviceIdAndSeq(opLogs: List<OpLog>): List<OpLog> {
-        val deviceIdSet = opLogs.map { it.deviceId }.toMutableSet()
-        val deviceIdEarliestOplog: MutableList<Pair<UUID, OpLog>> = mutableListOf()
+        chunk.opLogs.forEach {
+            val entity = OpLog.fromDTO(it, user)
 
-        opLogs.sortedBy { it.sequence }.forEach {
-            if (deviceIdSet.contains(it.deviceId)) {
-                deviceIdEarliestOplog.add(Pair(it.deviceId, it))
-                deviceIdSet.remove(it.deviceId)
+            val createdOpLog = try {
+                opLogRepository.save<OpLog>(entity)
+            } catch (e: DataIntegrityViolationException) {
+                throw DuplicateEntityExistException("OpLog", e)
             }
+
+            insertedOpLogs.add(createdOpLog)
         }
 
-        val deviceIdOrder = deviceIdEarliestOplog.sortedBy { it.second.createAt }.map { it.first }
+        val eventData = OpLogChunkDTO.groupOpLog(insertedOpLogs)
 
-        return opLogs.sortedWith(compareBy<OpLog> { deviceIdOrder.indexOf(it.deviceId) }.thenBy { it.sequence })
+        return Event.create(EventType.OP_LOG_CREATED, eventData, chunk.chunkId)
+    }
+
+    fun findExistingOpLogs(request: Message<Command<OpLogChunkDTO>>, user: User): Event<List<OpLogChunkDTO>> {
+        val chunkId = request.body.data.chunkId
+        val storedOpLogs = newTxTemplate.execute { transactionStatus ->
+            opLogRepository.findAllByUserAndChunkId(user, UUID.fromString(chunkId))
+        }
+
+        if (storedOpLogs == null) {
+            throw EntityNotFoundException("Expected OpLog chunk (chunkId=$chunkId) to exist after duplicate insertion attempt, but it was not found.")
+        }
+
+        val eventData = OpLogChunkDTO.groupOpLog(storedOpLogs)
+
+        return Event.create(EventType.OP_LOG_CREATED, eventData, chunkId)
+    }
+
+
+    fun requireNewSnapshot(user: User): Boolean {
+        val maxSeq = this.opLogRepository.countOpLogsByUserId(user.id)
+        return maxSeq > 500L
     }
 }

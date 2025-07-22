@@ -1,18 +1,17 @@
 package com.don3.sync.domain.sync.entity
 
 import com.don3.sync.domain.auth.entity.User
-import com.don3.sync.domain.sync.dto.InsertSnapshotRequest
-import com.don3.sync.domain.sync.dto.SnapshotResponse
-import com.don3.sync.domain.sync.dto.WebSocketRequest
-import com.don3.sync.domain.sync.dto.WebSocketResponse
-import com.don3.sync.domain.sync.enums.WebSocketRequestType
-import com.don3.sync.domain.sync.enums.WebSocketResponseType
+import com.don3.sync.domain.sync.message.Document
+import com.don3.sync.domain.sync.message.Event
+import com.don3.sync.domain.sync.message.dto.snapshot.SnapshotDTO
+import com.don3.sync.domain.sync.message.enums.DocumentType
+import com.don3.sync.domain.sync.message.enums.EventType
 import jakarta.persistence.*
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.Instant
-import java.util.*
+import java.util.UUID
 
 @Entity
 @EntityListeners(AuditingEntityListener::class)
@@ -20,13 +19,12 @@ import java.util.*
     name = "snapshots",
     schema = "sync",
     indexes = [
-        Index(name = "snapshots_idx_user_id_device_id", columnList = "user_id, device_id"),
-        Index(name = "snapshots_idx_create_at_user_id_device_id", columnList = "create_at, user_id, device_id")
+        Index(name = "snapshots_idx_create_at_user_id", columnList = "create_at, user_id")
     ],
     uniqueConstraints = [
         UniqueConstraint(
-            name = "snapshots_unq_local_id_user_id_device_id",
-            columnNames = ["local_id", "user_id", "device_id"]
+            name = "snapshots_unq_checksum_user_id",
+            columnNames = ["checksum", "user_id"]
         )
     ]
 )
@@ -38,12 +36,6 @@ class Snapshot {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     lateinit var user: User
-
-    @Column(name = "device_id", nullable = false)
-    lateinit var deviceId: UUID
-
-    @Column(name = "local_id", nullable = false)
-    lateinit var localId: UUID
 
     @Column(name = "schema_version", nullable = false)
     lateinit var schemaVersion: String
@@ -57,6 +49,9 @@ class Snapshot {
     @Column(name = "iv", nullable = false)
     lateinit var iv: String
 
+    @Column(name = "checksum", nullable = false)
+    lateinit var checksum: String // sha256
+
     @CreatedDate
     @Column(name = "create_at", nullable = false, updatable = false)
     lateinit var createAt: Instant
@@ -65,53 +60,49 @@ class Snapshot {
     @Column(name = "update_at")
     var updateAt: Instant? = null
 
-    fun toResponse(): SnapshotResponse = SnapshotResponse(
-        localId = this.localId,
+    fun toDTO(): SnapshotDTO = SnapshotDTO(
         schemaVersion = this.schemaVersion,
         iv = this.iv,
         meta = this.meta,
         dump = this.dump,
-        createAt = this.createAt,
-        updateAt = this.updateAt
+        checksum = this.checksum,
+        createAt = this.createAt
     )
 
-    fun <P> toWebSocketResponse(request: WebSocketRequest<P>): WebSocketResponse<SnapshotResponse> {
-        if (request.type === WebSocketRequestType.INSERT_SNAPSHOT) {
-            return WebSocketResponse(
-                requestId = request.requestId,
-                userId = this.user.id,
-                deviceId = request.deviceId,
-                type = WebSocketResponseType.SNAPSHOT_INSERTED,
-                payload = this.toResponse(),
-                message = "Snapshot inserted successfully."
-            )
-        }
+    fun toDTOWithoutDump() = SnapshotDTO(
+        schemaVersion = this.schemaVersion,
+        iv = this.iv,
+        meta = this.meta,
+        dump = null,
+        checksum = this.checksum,
+        createAt = this.createAt
+    )
 
-        if (request.type === WebSocketRequestType.GET_LATEST_SNAPSHOT) {
-            return WebSocketResponse(
-                requestId = request.requestId,
-                userId = this.user.id,
-                deviceId = request.deviceId,
-                type = WebSocketResponseType.GET_SNAPSHOT,
-                payload = this.toResponse(),
-                message = "Latest snapshot retrieved successfully."
-            )
-        }
 
-        throw IllegalArgumentException("Invalid request type")
-    }
+    fun toDocument(correlationId: String?): Document<SnapshotDTO> = Document(
+        type = DocumentType.SNAPSHOT,
+        timestamp = Instant.now(),
+        correlationId = correlationId,
+        data = this.toDTO()
+    )
+
+    fun toDocument(): Document<SnapshotDTO> = this.toDocument(null)
+
+    fun toEvent(withoutDump: Boolean, correlationId: String?) = Event(
+        timestamp = Instant.now(),
+        correlationId = correlationId,
+        type = EventType.SNAPSHOT_CREATED,
+        data = if (withoutDump) this.toDTOWithoutDump() else this.toDTO()
+    )
 
     companion object {
-        fun fromRequest(request: WebSocketRequest<InsertSnapshotRequest>, user: User): Snapshot = Snapshot().apply {
-            val payload =
-                request.payload ?: throw IllegalArgumentException("Payload for snapshot insertion must not be null.")
+        fun fromDTO(dto: SnapshotDTO, user: User): Snapshot = Snapshot().apply {
             this.user = user
-            this.deviceId = UUID.fromString(request.deviceId)
-            this.localId = UUID.fromString(payload.localId)
-            this.schemaVersion = payload.schemaVersion
-            this.dump = payload.dump
-            this.iv = payload.iv
-            this.meta = payload.meta
+            this.schemaVersion = dto.schemaVersion
+            this.dump = dto.dump ?: ""
+            this.meta = dto.meta
+            this.iv = dto.iv
+            this.checksum = dto.checksum
         }
     }
 }
