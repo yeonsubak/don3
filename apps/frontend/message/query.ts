@@ -1,7 +1,6 @@
-export type QueryType = 'getLatestSnapshot' | 'getOpLogs';
+export type QueryType = 'getLatestSnapshot' | 'getOpLogs' | 'getLastSnapshotSequence';
 
 export type Query<T> = {
-  queryId: string;
   type: QueryType;
   timestamp: string;
   parameters: T;

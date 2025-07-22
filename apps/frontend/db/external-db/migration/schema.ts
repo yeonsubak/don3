@@ -208,7 +208,6 @@ export const snapshots = syncSchema.table(
   'snapshots',
   {
     id: uuid().primaryKey().notNull().defaultRandom(),
-    localId: uuid().notNull(),
     userId: text()
       .notNull()
       .references(() => user.id),
@@ -216,7 +215,7 @@ export const snapshots = syncSchema.table(
     dump: text().notNull(),
     meta: text().notNull(),
     iv: text().notNull(),
-    sequence: bigint({ mode: 'number' }).notNull(),
+    checksum: text().notNull(), // sha256
     createAt: timestamp('create_at', { withTimezone: true })
       .$defaultFn(() => /* @__PURE__ */ new Date())
       .notNull(),
@@ -226,8 +225,7 @@ export const snapshots = syncSchema.table(
   },
   (t) => [
     index('snapshots_idx_create_at_user_id').on(t.createAt.desc(), t.userId),
-    unique('snapshots_unq_local_id_user_id').on(t.localId, t.userId),
-    unique('snapshots_unq_user_id_sequence').on(t.userId, t.sequence),
+    unique('snapshots_unq_checksum_user_id').on(t.checksum, t.userId),
   ],
 );
 
@@ -235,11 +233,12 @@ export const opLogs = syncSchema.table(
   'op_logs',
   {
     id: uuid().primaryKey().notNull().defaultRandom(),
-    localId: uuid().notNull(),
+    chunkId: uuid().notNull(),
     userId: text()
       .notNull()
       .references(() => user.id),
     deviceId: uuid().notNull(),
+    localId: uuid().notNull(),
     version: varchar({ length: 255 }).notNull(),
     schemaVersion: varchar({ length: 255 }).notNull(),
     sequence: bigint({ mode: 'number' }).notNull(),
@@ -257,6 +256,5 @@ export const opLogs = syncSchema.table(
     index('op_logs_idx_user_id_device_id').on(t.userId, t.deviceId),
     index('op_logs_idx_create_at_user_id_device_id').on(t.createAt.desc(), t.userId, t.deviceId),
     unique('op_logs_unq_user_id_device_id_seq').on(t.userId, t.deviceId, t.sequence),
-    unique('op_logs_unq_local_id_user_id_device_id').on(t.localId, t.userId, t.deviceId),
   ],
 );

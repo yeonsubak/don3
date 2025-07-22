@@ -150,8 +150,7 @@ export class BackupService extends Service {
     }
 
     if (overwrite) {
-      const dbInitializer = await AppDBInitializer.getInstance();
-      await dbInitializer.initialize();
+      window.location.reload();
     }
 
     return {
@@ -218,14 +217,14 @@ export class BackupService extends Service {
         `);
     const schemaNames = schemaQueryResult.rows.map(({ schemaname }) => schemaname);
 
-    const dropSchemas = async (schemaName: string) => {
+    const dropSchema = async (schemaName: string) => {
       const queryString = `DROP SCHEMA IF EXISTS ${schemaName} CASCADE;`;
-      return tx.query(queryString);
+      return await tx.exec(queryString);
       // return this.db.execute(sql.raw(`DROP SCHEMA IF EXISTS ${schemaName} CASCADE`));
     };
 
     const dropTypes = async () => {
-      await tx.query(`
+      return await tx.exec(`
           DO
           $$
           DECLARE
@@ -246,7 +245,9 @@ export class BackupService extends Service {
     };
 
     try {
-      await Promise.all(schemaNames.map(dropSchemas));
+      for (const name of schemaNames) {
+        const dropResult = await dropSchema(name);
+      }
       await dropTypes();
     } catch (err) {
       throw new Error(`${err}`);

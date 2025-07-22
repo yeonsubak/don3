@@ -1,5 +1,5 @@
 {
-  "id": "d3670fef-9014-4a10-b725-f34c4a63475b",
+  "id": "a2163404-c34a-4453-bc98-d01ccae02ea3",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -379,6 +379,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "checksum": {
+          "name": "checksum",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
         "status": {
           "name": "status",
           "type": "sync_status_enum",
@@ -407,7 +413,38 @@
           "notNull": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "snapshots_idx_checksum": {
+          "name": "snapshots_idx_checksum",
+          "columns": [
+            {
+              "expression": "checksum",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "snapshots_idx_status": {
+          "name": "snapshots_idx_status",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},

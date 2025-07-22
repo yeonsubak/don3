@@ -1,5 +1,5 @@
 import { generatePasskeyAuthenticationOptions } from '@/app/server/authenticate';
-import { fetchPasskey, insertWrappedKey } from '@/app/server/sync';
+import { fetchPasskey, insertWrappedKey } from '@/app/server/passkey';
 import type { Algorithm, EncryptKeyType, KeyRegistryType } from '@/db/sync-db/drizzle-types';
 import { addPasskey } from '@/lib/better-auth/auth-client';
 import {

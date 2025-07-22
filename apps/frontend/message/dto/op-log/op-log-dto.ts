@@ -1,6 +1,7 @@
 export type OpLogDTO = {
-  deviceId: string;
   localId: string;
+  deviceId: string;
+  chunkId: string;
   version: string;
   schemaVersion: string;
   sequence: number;
