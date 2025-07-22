@@ -5,7 +5,6 @@ import { DateTime } from 'luxon';
 import { LOCAL_STORAGE_KEYS } from '../constants';
 
 export const authClient = createAuthClient({
-  baseURL: process.env.BETTER_AUTH_URL,
   plugins: [passkeyClient()],
 });
 
