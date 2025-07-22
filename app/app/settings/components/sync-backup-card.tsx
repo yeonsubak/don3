@@ -56,16 +56,6 @@ export const SyncBackupCard = () => {
     const backupService = await getBackupService();
 
     const { dump, metaData, baseFileName } = await backupService.createBackup();
-
-    // Insert the backup to the sync db
-    await syncService.insertSnapshot({
-      type: 'user',
-      schemaVersion: metaData.schemaVersion,
-      meta: metaData,
-      dump,
-      status: 'idle',
-    });
-
     const { fileName, url } = await backupService.exportToZip(dump, metaData, baseFileName);
 
     downloadAnchorRef.current.href = url;

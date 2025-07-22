@@ -88,17 +88,25 @@ export const opLogs = syncSchema.table(
 );
 
 export const snapshotTypeEnum = pgEnum('snapshot_type_enum', ['autosave', 'user']);
-export const snapshots = syncSchema.table('snapshots', {
-  id: uuid().primaryKey().default(generateRandomUUID).notNull(),
-  type: snapshotTypeEnum().notNull(),
-  schemaVersion: varchar({ length: 255 }).notNull(),
-  meta: jsonb().$type<DumpMetaData>().notNull(),
-  dump: text().notNull(),
-  status: syncStatusEnum().notNull().default('idle'),
-  uploadAt: timestamp({ withTimezone: true }),
-  createAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
-  updateAt: timestamp({ withTimezone: true }),
-});
+export const snapshots = syncSchema.table(
+  'snapshots',
+  {
+    id: uuid().primaryKey().default(generateRandomUUID).notNull(),
+    type: snapshotTypeEnum().notNull(),
+    schemaVersion: varchar({ length: 255 }).notNull(),
+    meta: jsonb().$type<DumpMetaData>().notNull(),
+    dump: text().notNull(),
+    checksum: text().notNull(), // sha256
+    status: syncStatusEnum().notNull().default('idle'),
+    uploadAt: timestamp({ withTimezone: true }),
+    createAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+    updateAt: timestamp({ withTimezone: true }),
+  },
+  (t) => [
+    index('snapshots_idx_checksum').on(t.checksum),
+    index('snapshots_idx_status').on(t.status),
+  ],
+);
 
 export const deviceSyncSequences = syncSchema.table(
   'device_sync_sequences',
@@ -110,17 +118,6 @@ export const deviceSyncSequences = syncSchema.table(
     updateAt: timestamp({ withTimezone: true }),
   },
   (t) => [unique('device_sync_sequences_unq_device_id').on(t.deviceId)],
-);
-
-export const snapshotSyncSequences = syncSchema.table(
-  'snapshot_sync_sequences',
-  {
-    id: uuid().primaryKey().default(generateRandomUUID).notNull(),
-    sequence: bigint({ mode: 'number' }).notNull(),
-    createAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
-    updateAt: timestamp({ withTimezone: true }),
-  },
-  (t) => [unique('snapshot_sync_sequences_unq_sequence').on(t.sequence)],
 );
 
 /* Config Schema */

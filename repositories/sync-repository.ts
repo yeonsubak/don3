@@ -15,6 +15,7 @@ import {
   deviceSyncSequences,
   encryptKeyRegistry,
   encryptKeys,
+  information,
   opLogs,
   snapshots,
   tempKeyStore,
@@ -105,7 +106,7 @@ export class SyncRepository extends Repository<SyncSchema> {
     ).at(0);
   }
 
-  public async updateSnapshotStatus(snapshotId: string, status: SyncStatus, uploadAt?: Date) {
+  public async updateSnapshotStatus(checksum: string, status: SyncStatus, uploadAt?: Date) {
     return (
       await this.db
         .update(snapshots)
@@ -114,7 +115,7 @@ export class SyncRepository extends Repository<SyncSchema> {
           updateAt: new Date(),
           uploadAt,
         })
-        .where(eq(snapshots.id, snapshotId))
+        .where(eq(snapshots.checksum, checksum))
         .returning()
     ).at(0);
   }
@@ -146,24 +147,24 @@ export class SyncRepository extends Repository<SyncSchema> {
     ).at(0);
   }
 
-  public async updateOpLogStatus(opLogId: string, status: SyncStatus, uploadAt?: Date) {
-    const res = await this.db
+  public async updateOpLogStatusByIds(
+    ids: string[],
+    status: SyncStatus,
+    uploadAt?: Date,
+  ): Promise<OpLogSelect[]> {
+    return await this.db
       .update(opLogs)
       .set({
         status,
         uploadAt,
         updateAt: new Date(),
       })
-      .where(eq(opLogs.id, opLogId))
+      .where(inArray(opLogs.id, ids))
       .returning();
-    return res.at(0);
   }
 
-  public async deleteOpLogs(opLogIds: string[], status: SyncStatus) {
-    const res = await this.db
-      .delete(opLogs)
-      .where(and(inArray(opLogs.id, opLogIds), eq(opLogs.status, status)));
-    return res;
+  public async clearOpLogs() {
+    return await this.db.delete(opLogs).returning();
   }
 
   public async getMaxSeq(deviceId: string) {
@@ -193,6 +194,31 @@ export class SyncRepository extends Repository<SyncSchema> {
         .onConflictDoUpdate({
           target: deviceSyncSequences.deviceId,
           set: { sequence: data.sequence },
+        })
+        .returning()
+    ).at(0);
+  }
+
+  public async clearDeviceSyncSequence() {
+    return await this.db.delete(deviceSyncSequences).returning();
+  }
+
+  public async getCurrentSnapshotChecksum() {
+    const keyName = 'currentSnapshotChecksum';
+    return await this.db.query.information.findFirst({
+      where: ({ name }, { eq }) => eq(name, keyName),
+    });
+  }
+
+  public async upsertCurrentSnapshotChecksum(snapshotChecksum: string) {
+    const keyName = 'currentSnapshotChecksum';
+    return (
+      await this.db
+        .insert(information)
+        .values({ name: keyName, value: snapshotChecksum })
+        .onConflictDoUpdate({
+          target: information.name,
+          set: { value: snapshotChecksum },
         })
         .returning()
     ).at(0);

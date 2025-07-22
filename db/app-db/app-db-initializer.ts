@@ -3,8 +3,7 @@ import type { UserConfigKey } from '@/db/app-db/schema';
 import * as schema from '@/db/app-db/schema';
 import { APP_SCHEMA_VERSION, LATEST_CLEAN_VERSION } from '@/db/app-db/version-table';
 import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
-import { BackupService } from '@/services/backup-service';
-import { getSyncService } from '@/services/service-helpers';
+import { SyncWorker } from '@/lib/sync-worker';
 import { SyncService } from '@/services/sync-service';
 import { IdbFs as IdbFs02, PGlite as PGlite02 } from '@electric-sql/pglite-02';
 import { pgDump } from '@electric-sql/pglite-tools/pg_dump';
@@ -42,6 +41,13 @@ export class AppDBInitializer extends DBInitializer {
   }
 
   public async initialize() {
+    const isInitialized = localStorage.getItem(LOCAL_STORAGE_KEYS.APP.INITIALIZED) === 'true';
+    if (isInitialized) {
+      // Sync data retrospectively
+      const syncWorker = await SyncWorker.getInstance();
+      await syncWorker.onReady();
+    }
+
     if (!(await this.validateSchemaVersion())) {
       await this.syncSchema();
     }
@@ -60,10 +66,6 @@ export class AppDBInitializer extends DBInitializer {
     }
 
     this.clearUnusedLocalStorageValues();
-
-    if (!(await this.hasSnapshot())) {
-      await this.createFirstSnapshot();
-    }
 
     localStorage.setItem(LOCAL_STORAGE_KEYS.APP.SYNC_TIMESTAMP, `${Date.now()}`);
     this.isInitialized = true;
@@ -264,40 +266,6 @@ export class AppDBInitializer extends DBInitializer {
     if (localStorage.getItem(targetKey[0])) {
       targetKey.forEach(localStorage.removeItem);
     }
-  }
-
-  private async hasSnapshot() {
-    const isInitialized = localStorage.getItem(LOCAL_STORAGE_KEYS.APP.INITIALIZED);
-    if (isInitialized === 'true') {
-      return true;
-    }
-
-    if (!this.syncService) {
-      this.syncService = await getSyncService();
-    }
-
-    return this.syncService.hasSnapshot();
-  }
-
-  private async createFirstSnapshot() {
-    const backupService = new BackupService({ db: this.db });
-
-    if (!this.syncService) {
-      this.syncService = await getSyncService();
-    }
-
-    const { dump, metaData } = await backupService.createBackup();
-
-    const deviceId = await this.syncService.getUserConfig('deviceId');
-    if (!deviceId) throw new Error('deviceId is undefined in local storage');
-
-    await this.syncService.insertSnapshot({
-      type: 'autosave',
-      schemaVersion: metaData.schemaVersion,
-      meta: metaData,
-      dump,
-      status: 'idle',
-    });
   }
 
   private async isDBReady() {

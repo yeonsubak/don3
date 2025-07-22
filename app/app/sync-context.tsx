@@ -40,7 +40,7 @@ export const SyncContextProvider = ({ children }: { children: ReactNode }) => {
       }
 
       const worker = await SyncWorker.getInstance();
-      worker.injectQueryClient(queryClient);
+      worker.injectQueryClientToSyncService(queryClient);
       wsRef.current = worker;
 
       setSyncStatus(worker.connectionState);
@@ -62,6 +62,7 @@ export const SyncContextProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     switch (syncStatus) {
       case RxStompState.OPEN: {
+        wsRef.current?.onReady();
         wsRef.current?.startIntervalSync();
         break;
       }

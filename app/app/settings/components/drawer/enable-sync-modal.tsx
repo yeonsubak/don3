@@ -2,7 +2,8 @@ import { GoogleSignInButton } from '@/components/buttons/google-sign-in-button';
 import { PasskeyActivateButton } from '@/components/buttons/passkey-activate-button';
 import { useSession } from '@/lib/better-auth/auth-client';
 import { APP_DB_NAME } from '@/lib/constants';
-import { getBackupService } from '@/services/service-helpers';
+import { SyncWorker } from '@/lib/sync-worker';
+import { getBackupService, getSyncService } from '@/services/service-helpers';
 import { useQueryClient } from '@tanstack/react-query';
 import { usePathname, useRouter } from 'next/navigation';
 
@@ -13,9 +14,25 @@ export const EnableSyncModal = () => {
   const router = useRouter();
   const pathname = usePathname();
 
-  async function syncPostHook() {
+  async function processSync() {
     const backupService = await getBackupService();
-    const { status, meta } = await backupService.migrateDB(APP_DB_NAME(session.user?.id));
+    const backupObj = await backupService.createBackup();
+    const { status, meta } = await backupService.migrateDB(
+      APP_DB_NAME(session.user?.id),
+      backupObj,
+    );
+
+    const syncService = await getSyncService();
+    await syncService.insertSnapshot({
+      type: 'autosave',
+      meta: backupObj.metaData,
+      dump: backupObj.dump,
+      status: 'idle',
+    });
+
+    const syncWorker = await SyncWorker.getInstance();
+    await syncWorker.closeWorker();
+
     router.refresh();
   }
 
@@ -40,7 +57,7 @@ export const EnableSyncModal = () => {
           <PasskeyActivateButton
             session={session}
             queryClient={queryClient}
-            postHook={syncPostHook}
+            postHook={processSync}
           />
         </div>
       </div>

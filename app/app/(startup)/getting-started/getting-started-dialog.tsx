@@ -4,13 +4,49 @@ import { GlobalContextProvider } from '@/app/app/global-context';
 import { TransactionFormTab } from '@/app/app/transactions/components/drawer/transaction-form-tab';
 import { TransactionContextProvider } from '@/app/app/transactions/transaction-context';
 import { TransactionDrawerContextProvider } from '@/app/app/transactions/transaction-drawer-context';
+import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
+import { getBackupService, getSyncService } from '@/services/service-helpers';
 import { QueryClientProvider, useQueryClient } from '@tanstack/react-query';
-import { useRef, useState, type RefObject } from 'react';
+import { useCallback, useRef, useState, type RefObject } from 'react';
 import { AccountsOverview } from '../../accounts/components/accounts-overview';
 import { type StepProps } from '../step';
 import { StepDialog } from '../step-dialog';
 import { CompletionStep } from './steps/completion-step';
 import { DefaultValueStep } from './steps/default-value-step';
+
+const Completion = () => {
+  const [status, setStatus] = useState<'inProcess' | 'done'>('inProcess');
+
+  const effectFn = useCallback(() => {
+    async function finalize() {
+      const isInitialized = localStorage.getItem(LOCAL_STORAGE_KEYS.APP.INITIALIZED) === 'true';
+      const isSyncEnable = localStorage.getItem(LOCAL_STORAGE_KEYS.SYNC.SYNC_ENABLED) === 'true';
+
+      if (isInitialized) {
+        setStatus('done');
+        return;
+      }
+
+      if (isSyncEnable) {
+        const backupService = await getBackupService();
+        const syncService = await getSyncService();
+
+        const { dump, metaData } = await backupService.createBackup();
+        const insertSnapshotResult = await syncService.insertSnapshot({
+          type: 'autosave',
+          meta: metaData,
+          dump,
+          status: 'idle',
+        });
+        setStatus('done');
+      }
+    }
+
+    finalize();
+  }, []);
+
+  return <CompletionStep status={status} syncFn={effectFn} syncFnDeps={[]} />;
+};
 
 function steps(
   currentStep: number,
@@ -73,7 +109,7 @@ function steps(
       order: 4,
       title: 'All done!',
       description: 'You are ready to start using the application.',
-      Component: <CompletionStep />,
+      Component: <Completion />,
     },
   ];
 }

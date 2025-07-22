@@ -1,6 +1,6 @@
 'use client';
 
-import { DECORATOR_NAME_KEY_SYMBOL } from '@/lib/constants';
+import { DECORATOR_NAME_KEY_SYMBOL, LOCAL_STORAGE_KEYS } from '@/lib/constants';
 import { getSyncService } from '@/services/service-helpers';
 import type { Query } from 'drizzle-orm';
 
@@ -8,7 +8,7 @@ export function writeOpLog(...tanstackQueryKeys: string[]) {
   return function (target: unknown, propertyKey: string, descriptor: PropertyDescriptor) {
     descriptor.value[DECORATOR_NAME_KEY_SYMBOL] = 'writeOpLog';
 
-    if (process.env.VITEST === 'true' || process.env.NODE_ENV === 'test') {
+    if (process && (process.env.VITEST === 'true' || process.env.NODE_ENV === 'test')) {
       return descriptor;
     }
 
@@ -20,11 +20,14 @@ export function writeOpLog(...tanstackQueryKeys: string[]) {
 
       const mutateResult = await queryBuilder;
 
-      try {
-        const syncService = await getSyncService();
-        const res = await syncService.insertOpLog(query, tanstackQueryKeys);
-      } catch (err) {
-        console.error(err);
+      const isInitialized = localStorage.getItem(LOCAL_STORAGE_KEYS.APP.INITIALIZED) === 'true';
+      if (isInitialized) {
+        try {
+          const syncService = await getSyncService();
+          const res = await syncService.insertOpLog(query, tanstackQueryKeys);
+        } catch (err) {
+          console.error(err);
+        }
       }
 
       return mutateResult;

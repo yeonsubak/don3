@@ -66,6 +66,7 @@ CREATE TABLE "sync"."snapshots" (
 	"schema_version" varchar(255) NOT NULL,
 	"meta" jsonb NOT NULL,
 	"dump" text NOT NULL,
+	"checksum" text NOT NULL,
 	"status" "sync_status_enum" DEFAULT 'idle' NOT NULL,
 	"upload_at" timestamp with time zone,
 	"create_at" timestamp with time zone DEFAULT now() NOT NULL,
@@ -82,13 +83,6 @@ CREATE TABLE "sync"."temp_key_store" (
 --> statement-breakpoint
 ALTER TABLE "sync"."encrypt_keys" ADD CONSTRAINT "encrypt_keys_registry_id_encrypt_key_registry_id_fk" FOREIGN KEY ("registry_id") REFERENCES "sync"."encrypt_key_registry"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
 CREATE INDEX "information_idx_name_value" ON "config"."information" USING btree ("name","value");--> statement-breakpoint
+CREATE INDEX "snapshots_idx_checksum" ON "sync"."snapshots" USING btree ("checksum");--> statement-breakpoint
+CREATE INDEX "snapshots_idx_status" ON "sync"."snapshots" USING btree ("status");--> statement-breakpoint
 CREATE INDEX "temp_key_store_idx_expire_at" ON "sync"."temp_key_store" USING btree ("expire_at" DESC NULLS LAST);
-
---> statement-breakpoint
-CREATE TABLE "sync"."snapshot_sync_sequences" (
-	"id" uuid PRIMARY KEY DEFAULT uuid_generate_v4() NOT NULL,
-	"sequence" bigint NOT NULL,
-	"create_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"update_at" timestamp with time zone,
-	CONSTRAINT "snapshot_sync_sequences_unq_sequence" UNIQUE("sequence")
-);
