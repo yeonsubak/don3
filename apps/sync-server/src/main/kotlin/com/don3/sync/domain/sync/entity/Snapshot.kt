@@ -1,11 +1,9 @@
 package com.don3.sync.domain.sync.entity
 
 import com.don3.sync.domain.auth.entity.User
-import com.don3.sync.domain.sync.message.Command
 import com.don3.sync.domain.sync.message.Document
 import com.don3.sync.domain.sync.message.Event
-import com.don3.sync.domain.sync.message.Message
-import com.don3.sync.domain.sync.message.dto.SnapshotDTO
+import com.don3.sync.domain.sync.message.dto.snapshot.SnapshotDTO
 import com.don3.sync.domain.sync.message.enums.DocumentType
 import com.don3.sync.domain.sync.message.enums.EventType
 import jakarta.persistence.*
@@ -25,12 +23,8 @@ import java.util.UUID
     ],
     uniqueConstraints = [
         UniqueConstraint(
-            name = "snapshots_unq_local_id_user_id",
-            columnNames = ["local_id", "user_id"]
-        ),
-        UniqueConstraint(
-            name = "snapshots_unq_user_id_sequence",
-            columnNames = ["user_id", "sequence"]
+            name = "snapshots_unq_checksum_user_id",
+            columnNames = ["checksum", "user_id"]
         )
     ]
 )
@@ -39,15 +33,9 @@ class Snapshot {
     @Column(name = "id", nullable = false)
     var id: UUID = UUID.randomUUID()
 
-    @Column(name = "local_id", nullable = false)
-    lateinit var localId: UUID
-
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     lateinit var user: User
-
-    @Column(name = "sequence", nullable = false)
-    var sequence: Long = 0
 
     @Column(name = "schema_version", nullable = false)
     lateinit var schemaVersion: String
@@ -61,6 +49,9 @@ class Snapshot {
     @Column(name = "iv", nullable = false)
     lateinit var iv: String
 
+    @Column(name = "checksum", nullable = false)
+    lateinit var checksum: String // sha256
+
     @CreatedDate
     @Column(name = "create_at", nullable = false, updatable = false)
     lateinit var createAt: Instant
@@ -70,27 +61,25 @@ class Snapshot {
     var updateAt: Instant? = null
 
     fun toDTO(): SnapshotDTO = SnapshotDTO(
-        localId = this.localId,
         schemaVersion = this.schemaVersion,
         iv = this.iv,
         meta = this.meta,
         dump = this.dump,
-        sequence = this.sequence,
+        checksum = this.checksum,
         createAt = this.createAt
     )
 
     fun toDTOWithoutDump() = SnapshotDTO(
-        localId = this.localId,
         schemaVersion = this.schemaVersion,
         iv = this.iv,
         meta = this.meta,
         dump = null,
-        sequence = this.sequence,
+        checksum = this.checksum,
         createAt = this.createAt
     )
 
 
-    fun toDocument(correlationId: UUID?): Document<SnapshotDTO> = Document(
+    fun toDocument(correlationId: String?): Document<SnapshotDTO> = Document(
         type = DocumentType.SNAPSHOT,
         timestamp = Instant.now(),
         correlationId = correlationId,
@@ -99,8 +88,7 @@ class Snapshot {
 
     fun toDocument(): Document<SnapshotDTO> = this.toDocument(null)
 
-    fun toEvent(withoutDump: Boolean, correlationId: UUID?) = Event(
-        eventId = UUID.randomUUID(),
+    fun toEvent(withoutDump: Boolean, correlationId: String?) = Event(
         timestamp = Instant.now(),
         correlationId = correlationId,
         type = EventType.SNAPSHOT_CREATED,
@@ -108,17 +96,13 @@ class Snapshot {
     )
 
     companion object {
-        fun fromMessage(request: Message<Command<SnapshotDTO>>, user: User, sequence: Long): Snapshot {
-            val dto = request.body.data
-            return Snapshot().apply {
-                this.localId = dto.localId
-                this.user = user
-                this.schemaVersion = dto.schemaVersion
-                this.dump = dto.dump ?: ""
-                this.meta = dto.meta
-                this.iv = dto.iv
-                this.sequence = sequence
-            }
+        fun fromDTO(dto: SnapshotDTO, user: User): Snapshot = Snapshot().apply {
+            this.user = user
+            this.schemaVersion = dto.schemaVersion
+            this.dump = dto.dump ?: ""
+            this.meta = dto.meta
+            this.iv = dto.iv
+            this.checksum = dto.checksum
         }
     }
 }

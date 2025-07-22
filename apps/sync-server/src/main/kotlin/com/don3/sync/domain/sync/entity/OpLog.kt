@@ -1,13 +1,9 @@
 package com.don3.sync.domain.sync.entity
 
 import com.don3.sync.domain.auth.entity.User
-import com.don3.sync.domain.sync.message.Command
 import com.don3.sync.domain.sync.message.Document
-import com.don3.sync.domain.sync.message.Event
-import com.don3.sync.domain.sync.message.Message
-import com.don3.sync.domain.sync.message.dto.OpLogDTO
+import com.don3.sync.domain.sync.message.dto.oplog.OpLogDTO
 import com.don3.sync.domain.sync.message.enums.DocumentType
-import com.don3.sync.domain.sync.message.enums.EventType
 import jakarta.persistence.*
 import org.hibernate.annotations.ColumnDefault
 import org.hibernate.annotations.JdbcTypeCode
@@ -28,10 +24,6 @@ import java.util.UUID
         Index(name = "op_logs_idx_create_at_user_id_device_id", columnList = "create_at, user_id, device_id")
     ],
     uniqueConstraints = [
-        UniqueConstraint(
-            name = "op_logs_unq_local_id_user_id_device_id",
-            columnNames = ["local_id", "user_id", "device_id"]
-        ),
         UniqueConstraint(name = "op_logs_unq_user_id_device_id_seq", columnNames = ["user_id", "device_id", "sequence"])
     ]
 )
@@ -40,8 +32,8 @@ class OpLog {
     @Column(name = "id", nullable = false)
     var id: UUID = UUID.randomUUID()
 
-    @Column(name = "local_id", nullable = false)
-    lateinit var localId: UUID
+    @Column(name = "chunk_id", nullable = false)
+    lateinit var chunkId: UUID
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
@@ -49,6 +41,9 @@ class OpLog {
 
     @Column(name = "device_id", nullable = false)
     lateinit var deviceId: UUID
+
+    @Column(name = "local_id", nullable = false)
+    lateinit var localId: UUID
 
     @Column(name = "version", nullable = false)
     lateinit var version: String
@@ -79,8 +74,9 @@ class OpLog {
     var updateAt: Instant? = null
 
     fun toDTO(): OpLogDTO = OpLogDTO(
-        deviceId = this.deviceId,
-        localId = this.localId,
+        localId = this.localId.toString(),
+        deviceId = this.deviceId.toString(),
+        chunkId = this.chunkId.toString(),
         version = this.version,
         schemaVersion = this.schemaVersion,
         sequence = this.sequence,
@@ -92,35 +88,24 @@ class OpLog {
     fun toDocument(correlationId: UUID?): Document<OpLogDTO> = Document(
         type = DocumentType.OP_LOG,
         timestamp = Instant.now(),
-        correlationId = correlationId,
+        correlationId = correlationId.toString(),
         data = this.toDTO()
     )
 
     fun toDocument(): Document<OpLogDTO> = this.toDocument(null)
 
-    fun toEvent(correlationId: UUID?) = Event(
-        eventId = UUID.randomUUID(),
-        timestamp = Instant.now(),
-        correlationId = correlationId,
-        type = EventType.OP_LOG_CREATED,
-        data = this.toDTO()
-    )
-
-
     companion object {
-        fun fromMessage(request: Message<Command<OpLogDTO>>, user: User): OpLog {
-            val dto = request.body.data
-            return OpLog().apply {
-                this.user = user
-                this.deviceId = dto.deviceId
-                this.localId = dto.localId
-                this.version = dto.version
-                this.schemaVersion = dto.schemaVersion
-                this.sequence = dto.sequence
-                this.data = dto.data
-                this.iv = dto.iv
-                this.queryKeys = dto.queryKeys
-            }
+        fun fromDTO(opLogDTO: OpLogDTO, user: User): OpLog = OpLog().apply {
+            this.user = user
+            this.deviceId = UUID.fromString(opLogDTO.deviceId)
+            this.chunkId = UUID.fromString(opLogDTO.chunkId)
+            this.localId = UUID.fromString(opLogDTO.localId)
+            this.version = opLogDTO.version
+            this.schemaVersion = opLogDTO.schemaVersion
+            this.sequence = opLogDTO.sequence
+            this.data = opLogDTO.data
+            this.iv = opLogDTO.iv
+            this.queryKeys = opLogDTO.queryKeys
         }
     }
 }

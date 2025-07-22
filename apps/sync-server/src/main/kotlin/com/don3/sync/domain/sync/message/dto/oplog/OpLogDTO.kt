@@ -1,10 +1,9 @@
-package com.don3.sync.domain.sync.message.dto
-
-import java.util.UUID
+package com.don3.sync.domain.sync.message.dto.oplog
 
 data class OpLogDTO(
-    val deviceId: UUID,
-    val localId: UUID,
+    val localId: String?,
+    val deviceId: String,
+    val chunkId: String,
     val version: String,
     val schemaVersion: String,
     val sequence: Long,
