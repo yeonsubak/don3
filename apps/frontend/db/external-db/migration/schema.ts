@@ -60,7 +60,7 @@ export const schemaDefinitions = pgTable(
     requireDumpToUpdate: boolean('require_dump_to_update').default(false).notNull(),
   },
   (table) => [
-    unique('schema_definitions_version_key').on(table.version),
+    unique('schema_definitions_unq_type_version').on(table.type, table.version),
     pgPolicy('Enable update', {
       as: 'permissive',
       for: 'update',
