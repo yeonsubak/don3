@@ -1,0 +1,34 @@
+{
+  "name": "don3",
+  "private": true,
+  "version": "0.0.1",
+  "packageManager": "pnpm@10.12.3",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7"
+  },
+  "pnpm": {
+    "overrides": {
+      "esbuild": "^0.25.0",
+      "vite": "^6.3.5",
+      "@babel/runtime": ">=7.26.10",
+      "@babel/helpers": ">=7.26.10",
+      "react-is": "^19.0.0",
+      "brace-expansion": ">=2.0.2"
+    },
+    "onlyBuiltDependencies": [
+      "@biomejs/biome",
+      "@tailwindcss/oxide",
+      "@vercel/speed-insights",
+      "esbuild",
+      "sharp",
+      "simple-git-hooks",
+      "unrs-resolver"
+    ]
+  }
+}

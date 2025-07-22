@@ -13,8 +13,7 @@
     "shadcn": "pnpm dlx shadcn@latest add",
     "drk:app": "pnpm drizzle-kit --config=db/app-db/drizzle.config.ts",
     "drk:sync": "pnpm drizzle-kit --config=db/sync-db/drizzle.config.ts",
-    "drk:external": "pnpm drizzle-kit --config=db/external-db/drizzle.config.ts",
-    "prepare": "husky"
+    "drk:external": "pnpm drizzle-kit --config=db/external-db/drizzle.config.ts"
   },
   "dependencies": {
     "@better-auth/utils": "^0.2.5",
@@ -90,7 +89,6 @@
     "eslint-config-next": "15.3.3",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-you-might-not-need-an-effect": "^0.0.20",
-    "husky": "^9.1.7",
     "jsdom": "^25.0.1",
     "postcss": "^8.5.4",
     "prettier": "^3.4.2",
@@ -100,24 +98,5 @@
     "tw-animate-css": "^1.2.9",
     "typescript": "^5.8.3",
     "vitest": "^3.2.2"
-  },
-  "pnpm": {
-    "overrides": {
-      "esbuild": "^0.25.0",
-      "vite": "^6.3.5",
-      "@babel/runtime": ">=7.26.10",
-      "@babel/helpers": ">=7.26.10",
-      "react-is": "^19.0.0",
-      "brace-expansion": ">=2.0.2"
-    },
-    "onlyBuiltDependencies": [
-      "@biomejs/biome",
-      "@tailwindcss/oxide",
-      "@vercel/speed-insights",
-      "esbuild",
-      "sharp",
-      "simple-git-hooks",
-      "unrs-resolver"
-    ]
   }
 }

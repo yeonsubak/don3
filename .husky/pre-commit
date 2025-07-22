@@ -1,0 +1,6 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+cd apps/frontend || exit 1
+
+pnpm test && pnpm lint
