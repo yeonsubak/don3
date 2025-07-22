@@ -1,4 +1,4 @@
-import type { CountryInsert, CountrySelect } from '@/db/drizzle/types';
+import type { CountryInsert, CountrySelect } from '@/db/app-db/drizzle-types';
 import { useTranslations } from 'next-intl';
 import { useMemo } from 'react';
 import { Combobox, type ComboboxItem, type ComboboxProps } from '../primitives/combobox';

@@ -1,15 +1,17 @@
-import { journalEntries, journalEntryFxRates, transactions } from '@/db/drizzle/schema';
 import type {
+  AppSchema,
   JournalEntryFxRatesInsert,
   JournalEntryInsert,
   JournalEntryType,
   TransactionInsert,
-} from '@/db/drizzle/types';
+} from '@/db/app-db/drizzle-types';
+import { journalEntries, journalEntryFxRates, transactions } from '@/db/app-db/schema';
 import { and, between, eq, inArray } from 'drizzle-orm';
 import type { DateRange } from 'react-day-picker';
 import { Repository } from './abstract-repository';
+import { writeOpLog } from './repository-decorators';
 
-export class TransactionRepository extends Repository {
+export class TransactionRepository extends Repository<AppSchema> {
   public async getJournalEntryById(id: string) {
     return await this.db.query.journalEntries.findFirst({
       where: (journalEntries, { eq }) => eq(journalEntries.id, id),
@@ -48,58 +50,66 @@ export class TransactionRepository extends Repository {
     });
   }
 
-  public async insertJournalEntry(insert: JournalEntryInsert) {
-    return (await this.db.insert(journalEntries).values(insert).returning()).at(0);
+  @writeOpLog('getJournalEntries', 'getSummary')
+  public insertJournalEntry(data: JournalEntryInsert) {
+    return this.db
+      .insert(journalEntries)
+      .values({ id: crypto.randomUUID(), ...data })
+      .returning();
   }
 
-  public async updateJournalEntry(updateObj: JournalEntryInsert) {
-    return (
-      await this.db
-        .update(journalEntries)
-        .set({ ...updateObj, id: undefined })
-        .where(eq(journalEntries.id, updateObj.id!))
-        .returning()
-    ).at(0);
+  @writeOpLog('getJournalEntries', 'getSummary')
+  public updateJournalEntry(data: JournalEntryInsert) {
+    return this.db
+      .update(journalEntries)
+      .set({ ...data, id: undefined, updateAt: new Date() })
+      .where(eq(journalEntries.id, data.id!))
+      .returning();
   }
 
-  public async deleteJournalEntries(journalEntryId: string | string[]) {
+  @writeOpLog('getJournalEntries', 'getSummary')
+  public deleteJournalEntries(journalEntryId: string | string[]) {
     if (Array.isArray(journalEntryId)) {
-      return await this.db
+      return this.db
         .delete(journalEntries)
         .where(inArray(journalEntries.id, journalEntryId))
         .returning();
     }
 
-    return (
-      await this.db.delete(journalEntries).where(eq(journalEntries.id, journalEntryId)).returning()
-    ).at(0);
+    return this.db.delete(journalEntries).where(eq(journalEntries.id, journalEntryId)).returning();
   }
 
-  public async insertJournalEntryFxRate(insert: JournalEntryFxRatesInsert) {
-    return (await this.db.insert(journalEntryFxRates).values(insert).returning()).at(0);
+  @writeOpLog()
+  public insertJournalEntryFxRate(data: JournalEntryFxRatesInsert) {
+    return this.db
+      .insert(journalEntryFxRates)
+      .values({ id: crypto.randomUUID(), ...data })
+      .returning();
   }
 
-  public async updateJournalEntryFxRate(updateObj: JournalEntryFxRatesInsert) {
-    return (
-      await this.db
-        .update(journalEntryFxRates)
-        .set({ ...updateObj, id: undefined })
-        .where(eq(journalEntryFxRates.id, updateObj.id!))
-        .returning()
-    ).at(0);
+  @writeOpLog()
+  public updateJournalEntryFxRate(data: JournalEntryFxRatesInsert) {
+    return this.db
+      .update(journalEntryFxRates)
+      .set({ ...data, id: undefined, updateAt: new Date() })
+      .where(eq(journalEntryFxRates.id, data.id!))
+      .returning();
   }
 
-  public async insertTransaction(insertObj: TransactionInsert) {
-    return (await this.db.insert(transactions).values(insertObj).returning()).at(0);
+  @writeOpLog('getJournalEntries', 'getSummary')
+  public insertTransaction(data: TransactionInsert) {
+    return this.db
+      .insert(transactions)
+      .values({ id: crypto.randomUUID(), ...data })
+      .returning();
   }
 
-  public async updateTransaction(updateObj: TransactionInsert) {
-    return (
-      await this.db
-        .update(transactions)
-        .set({ ...updateObj, id: undefined })
-        .where(eq(transactions.id, updateObj.id!))
-        .returning()
-    ).at(0);
+  @writeOpLog('getJournalEntries', 'getSummary')
+  public updateTransaction(data: TransactionInsert) {
+    return this.db
+      .update(transactions)
+      .set({ ...data, id: undefined, updateAt: new Date() })
+      .where(eq(transactions.id, data.id!))
+      .returning();
   }
 }

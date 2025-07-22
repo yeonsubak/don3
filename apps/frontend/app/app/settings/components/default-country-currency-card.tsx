@@ -4,7 +4,7 @@ import { CountryCombobox } from '@/components/compositions/country-combobox';
 import { CurrencyCombobox } from '@/components/compositions/currency-combobox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import type { UserConfigKey } from '@/db/drizzle/schema';
+import type { UserConfigKey } from '@/db/app-db/schema';
 import { LOCAL_STORAGE_KEYS } from '@/lib/constants';
 import { getConfigService } from '@/services/service-helpers';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -13,7 +13,7 @@ import { useGlobalContext } from '../../global-context';
 
 const updateUserConfig = async ({ key, value }: { key: UserConfigKey; value: string }) => {
   const configService = await getConfigService();
-  return configService.updateUserConfig(key, value);
+  return configService.upsertUserConfig(key, value);
 };
 
 export const DefaultCountryCurrencyCard = () => {

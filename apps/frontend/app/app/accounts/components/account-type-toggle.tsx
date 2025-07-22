@@ -1,7 +1,7 @@
 'use client';
 
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { accounts } from '@/db/drizzle/schema';
+import { accounts } from '@/db/app-db/schema';
 import { cn } from '@/lib/utils';
 import type { ControllerRenderProps } from 'react-hook-form';
 

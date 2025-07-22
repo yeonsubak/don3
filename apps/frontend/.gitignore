@@ -89,6 +89,7 @@ next-env.d.ts
 
 # Output of 'npm pack'
 *.tgz
+!lib/patches/*.tgz
 
 # Yarn Integrity file
 .yarn-integrity

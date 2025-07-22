@@ -1,10 +1,11 @@
-import { parseSQLFile } from '@/app/api/database/server-util';
-import type { PgliteDrizzle } from '@/db';
+import { parseSQLFile } from '@/app/server/db';
+import type { AppDrizzle } from '@/db';
+import * as schema from '@/db/app-db/schema';
+import { APP_SCHEMA_VERSION, LATEST_CLEAN_VERSION } from '@/db/app-db/version-table';
 import { DATASET_ACCOUNT_GROUPS } from '@/db/dataset/account-groups';
 import { DATASET_COUNTRY } from '@/db/dataset/country';
 import { DATASET_CURRENCY_FIAT } from '@/db/dataset/currency';
-import * as schema from '@/db/drizzle/schema';
-import { LATEST_CLEAN_VERSION, SCHEMA_VERSION_TABLE } from '@/db/drizzle/version-table';
+import type { SchemaDefinitionType } from '@/db/external-db/migration/schema';
 import { MemoryFS, PGlite } from '@electric-sql/pglite';
 import { uuid_ossp } from '@electric-sql/pglite/contrib/uuid_ossp';
 import { live } from '@electric-sql/pglite/live';
@@ -16,7 +17,7 @@ export const printTestResult = (input: unknown, expected: unknown, result: unkno
   console.log(`Input: ${input} | Expected: ${expected} | Got: ${result}`);
 };
 
-export async function createInMemoryPGLiteDrizzle(): Promise<PgliteDrizzle> {
+export async function createInMemoryPGLiteDrizzle(type: SchemaDefinitionType): Promise<AppDrizzle> {
   const pg = new PGlite({
     fs: new MemoryFS(),
     relaxedDurability: true,
@@ -31,13 +32,13 @@ export async function createInMemoryPGLiteDrizzle(): Promise<PgliteDrizzle> {
     throw new Error('Invalid fileName');
   }
 
-  const majorDDL = await parseSQLFile(LATEST_CLEAN_VERSION.fileName);
+  const majorDDL = await parseSQLFile(type, LATEST_CLEAN_VERSION.fileName);
   const minorDDLs: string[] = [];
   let nextVersion = LATEST_CLEAN_VERSION.nextVersion;
   while (nextVersion) {
-    const next = SCHEMA_VERSION_TABLE[nextVersion];
+    const next = APP_SCHEMA_VERSION[nextVersion];
     if (next.fileName) {
-      const ddl = await parseSQLFile(next.fileName);
+      const ddl = await parseSQLFile(type, next.fileName);
       minorDDLs.push(ddl);
     }
 

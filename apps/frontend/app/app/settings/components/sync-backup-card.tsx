@@ -9,19 +9,27 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
-import { DBBackupUtil } from '@/db/db-backup-util';
-import { PGliteWorker } from '@/db/pglite-web-worker';
+import { getBackupService, getSyncService } from '@/services/service-helpers';
 import { useRef, useState } from 'react';
-import { useSettingsDrawerContext } from '../settings-drawer-context';
 import { toast } from 'sonner';
+import { useSettingsDrawerContext } from '../settings-drawer-context';
 
 const SyncSelect = () => {
   const [value, setValue] = useState<string>('disabled');
+  const { setOpen, setMode } = useSettingsDrawerContext();
+
+  function handleValueChange(value: string) {
+    setValue(value);
+    if (value === 'enable') {
+      setMode('sync');
+      setOpen(true);
+    }
+  }
 
   return (
-    <Select value={value} onValueChange={setValue}>
+    <Select value={value} onValueChange={handleValueChange}>
       <SelectTrigger className="w-[180px]">
-        <SelectValue placeholder="sssss" />
+        <SelectValue />
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="disabled">Disabled</SelectItem>
@@ -41,9 +49,14 @@ export const SyncBackupCard = () => {
       return;
     }
 
-    const pg = await PGliteWorker.createNewInstance();
-    const backupUtil = new DBBackupUtil(pg);
-    const { fileName, url } = await backupUtil.createBackup();
+    const syncService = await getSyncService();
+    const deviceId = await syncService.getUserConfig('deviceId');
+    if (!deviceId) throw new Error('deviceId not found');
+
+    const backupService = await getBackupService();
+
+    const { dump, metaData, baseFileName } = await backupService.createBackup();
+    const { fileName, url } = await backupService.exportToZip(dump, metaData, baseFileName);
 
     downloadAnchorRef.current.href = url;
     downloadAnchorRef.current.download = fileName;

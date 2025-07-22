@@ -1,17 +1,18 @@
-import { assetLiabilityBalances, accountGroups, accounts } from '@/db/drizzle/schema';
 import type {
   AccountBalanceInsert,
-  AccountBalanceSelect,
   AccountGroupInsert,
   AccountGroupType,
   AccountInsert,
   AccountSelectAll,
   AccountSelectAllTx,
-} from '@/db/drizzle/types';
+  AppSchema,
+} from '@/db/app-db/drizzle-types';
+import { accountGroups, accounts, assetLiabilityBalances } from '@/db/app-db/schema';
 import { eq } from 'drizzle-orm';
 import { Repository } from './abstract-repository';
+import { writeOpLog } from './repository-decorators';
 
-export class AccountsRepository extends Repository {
+export class AccountsRepository extends Repository<AppSchema> {
   public async getAllAccounts(): Promise<AccountSelectAll[]> {
     return await this.db.query.accounts.findMany({
       with: {
@@ -57,35 +58,30 @@ export class AccountsRepository extends Repository {
     });
   }
 
-  public async insertAccount(insert: AccountInsert) {
-    const result = await this.db.insert(accounts).values(insert).returning();
-    return result.at(0);
+  @writeOpLog('getAccountsByCountry', 'getAllAccounts', 'getAllAccountGroups')
+  public insertAccount(data: AccountInsert) {
+    return this.db
+      .insert(accounts)
+      .values({ id: crypto.randomUUID(), ...data })
+      .returning();
   }
 
-  public async updateAccount(update: Partial<AccountInsert>) {
-    const result = await this.db
+  @writeOpLog('getAccountsByCountry', 'getAllAccounts', 'getAllAccountGroups')
+  public updateAccount(data: Partial<AccountInsert>) {
+    return this.db
       .update(accounts)
       .set({
-        ...update,
+        ...data,
         id: undefined,
+        updateAt: new Date(),
       })
-      .where(eq(accounts.id, update.id!))
+      .where(eq(accounts.id, data.id!))
       .returning();
-    return result.at(0);
   }
 
-  public async archiveAccount(accountId: string) {
-    const result = await this.db
-      .update(accounts)
-      .set({ isArchive: true })
-      .where(eq(accounts.id, accountId))
-      .returning();
-    return result.at(0);
-  }
-
-  public async deleteAccount(accountId: string) {
-    const result = await this.db.delete(accounts).where(eq(accounts.id, accountId)).returning();
-    return result.at(0);
+  @writeOpLog('getAccountsByCountry', 'getAllAccounts', 'getAllAccountGroups')
+  public deleteAccount(accountId: string) {
+    return this.db.delete(accounts).where(eq(accounts.id, accountId)).returning();
   }
 
   public async getAccountGroup(_id: string) {
@@ -155,23 +151,13 @@ export class AccountsRepository extends Repository {
     });
   }
 
-  public async insertAccountGroup(form: AccountGroupInsert) {
-    return await this.db.insert(accountGroups).values(form).returning();
+  @writeOpLog('getAccountsByCountry', 'getAllAccounts', 'getAllAccountGroups')
+  public insertAccountGroup(data: AccountGroupInsert) {
+    return this.db
+      .insert(accountGroups)
+      .values({ id: crypto.randomUUID(), ...data })
+      .returning();
   }
-
-  // public async getBalancesByType(_type: AccountGroupType) {
-  //   if (_type === 'asset' || _type === 'liability') {
-  //     const accounts = await this.db.query.accounts.findMany({
-  //       where: ({type}, {eq}) => eq(type, _type)
-  //     });
-
-  //     return await this.db.query.incomeLiabilityBalances.findMany({
-  //       where: ({}, {}) =>
-  //     })
-  //   }
-
-  //   return await this.db.query.
-  // }
 
   public async getAccountBalance(targetAccountId: string) {
     return await this.db.query.assetLiabilityBalances.findFirst({
@@ -179,28 +165,17 @@ export class AccountsRepository extends Repository {
     });
   }
 
-  public async insertAccountBalance(
-    accountBalanceInsert: AccountBalanceInsert,
-  ): Promise<AccountBalanceSelect> {
-    const insertResult = await this.db
+  @writeOpLog('getAccountsByCountry', 'getAllAccounts', 'getAllAccountGroups')
+  public insertAccountBalance(data: AccountBalanceInsert) {
+    return this.db
       .insert(assetLiabilityBalances)
-      .values(accountBalanceInsert)
+      .values({ id: crypto.randomUUID(), ...data })
       .returning();
-    const insertedBalance = insertResult.at(0);
-
-    if (!insertedBalance)
-      throw new Error(
-        `Inserting account balance for accountId=${accountBalanceInsert.accountId} failed.`,
-      );
-
-    return insertedBalance;
   }
 
-  public async updateAccountBalance(
-    accountBalanceId: string,
-    amount: number,
-  ): Promise<AccountBalanceSelect> {
-    const updatedAccountBalance: AccountBalanceSelect[] = await this.db
+  @writeOpLog('getAccountsByCountry', 'getAllAccounts', 'getAllAccountGroups')
+  public updateAccountBalance(accountBalanceId: string, amount: number) {
+    return this.db
       .update(assetLiabilityBalances)
       .set({
         balance: amount,
@@ -208,7 +183,5 @@ export class AccountsRepository extends Repository {
       })
       .where(eq(assetLiabilityBalances.id, accountBalanceId))
       .returning();
-
-    return updatedAccountBalance.at(0)!;
   }
 }

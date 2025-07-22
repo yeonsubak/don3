@@ -1,4 +1,4 @@
-import type { CurrencyInsert, CurrencySelect } from '@/db/drizzle/types';
+import type { CurrencyInsert, CurrencySelect } from '@/db/app-db/drizzle-types';
 import { useMemo } from 'react';
 import { Combobox, flattenComboboxItems, type ComboboxProps } from '../primitives/combobox';
 
