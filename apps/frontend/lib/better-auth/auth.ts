@@ -3,7 +3,13 @@ import * as schema from '@/db/external-db/migration/schema';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { passkey } from 'better-auth/plugins/passkey';
-import { BETTER_AUTH_URL, PASSKEY_PRF_SALT_FIRST, RP_ID } from '../constants';
+import {
+  PASSKEY_PRF_SALT_FIRST,
+  RP_ID,
+  TRUSTED_ORIGIN_BASE,
+  TRUSTED_ORIGIN_HTTPS,
+  TRUSTED_ORIGIN_HTTPS_WWW,
+} from '../constants';
 
 const passkeyPrfSalt = new TextEncoder().encode(PASSKEY_PRF_SALT_FIRST);
 const passkeyPrfSaltBuffer = passkeyPrfSalt.buffer.slice(
@@ -16,7 +22,7 @@ export const auth = betterAuth({
     provider: 'pg',
     schema,
   }),
-  trustedOrigins: ['http://localhost:3000', BETTER_AUTH_URL],
+  trustedOrigins: ['http://localhost:3000', ...TRUSTED_ORIGIN_HTTPS, TRUSTED_ORIGIN_HTTPS_WWW],
   socialProviders: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID as string,
@@ -27,7 +33,7 @@ export const auth = betterAuth({
     passkey({
       rpID: RP_ID,
       rpName: 'Don3',
-      origin: BETTER_AUTH_URL,
+      origin: TRUSTED_ORIGIN_HTTPS_WWW,
       authenticatorSelection: {
         authenticatorAttachment: 'cross-platform',
       },
