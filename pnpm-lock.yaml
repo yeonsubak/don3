@@ -8,7 +8,6 @@ overrides:
   '@babel/runtime': '>=7.26.10'
   '@babel/helpers': '>=7.26.10'
   '@eslint/plugin-kit': '>=0.3.3'
-  better-call: '>=1.0.12'
   brace-expansion: '>=2.0.2'
   esbuild: ^0.25.0
   form-data: '>=4.0.4'
@@ -113,8 +112,8 @@ importers:
         specifier: ^0.5.0
         version: 0.5.0
       better-auth:
-        specifier: file:lib/patches/better-auth-1.2.9.tgz
-        version: file:apps/frontend/lib/patches/better-auth-1.2.9.tgz
+        specifier: file:lib/patches/better-auth-1.3.2.tgz
+        version: file:apps/frontend/lib/patches/better-auth-1.3.2.tgz(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -1518,13 +1517,13 @@ packages:
       typescript:
         optional: true
 
-  '@simplewebauthn/browser@file:apps/frontend/lib/patches/simplewebauthn-browser-13.1.0.tgz':
-    resolution: {integrity: sha512-eFcQAwcRe84SACTcp4PFOenoGo0Buy4S8EWPt7AZ5fcQ0OB8jPKVfSLCB8ikXJjpkjDmHSbX2GfxpZyNeOrGoA==, tarball: file:apps/frontend/lib/patches/simplewebauthn-browser-13.1.0.tgz}
-    version: 13.1.0
+  '@simplewebauthn/browser@file:apps/frontend/lib/patches/simplewebauthn-browser-13.1.2.tgz':
+    resolution: {integrity: sha512-B/eiVk59FB80BCXGl6BcQ3/qm18XItMruoYmk2t29B3vekP7dA3emx0eOJiuaKSetpxKQVSVV0h1e9bTL7GT8g==, tarball: file:apps/frontend/lib/patches/simplewebauthn-browser-13.1.2.tgz}
+    version: 13.1.2
 
-  '@simplewebauthn/server@file:apps/frontend/lib/patches/simplewebauthn-server-13.1.1.tgz':
-    resolution: {integrity: sha512-z7sYnezPHYFpIwoYYlnOpsD7hdlKb2I4Bf4MDJ+KZG0ZyVFpBYx7pjLqGmVNXDoPyA4XSHmXTzcdpsH44VDwrA==, tarball: file:apps/frontend/lib/patches/simplewebauthn-server-13.1.1.tgz}
-    version: 13.1.1
+  '@simplewebauthn/server@file:apps/frontend/lib/patches/simplewebauthn-server-13.1.2.tgz':
+    resolution: {integrity: sha512-Y7P9JQLKpBmJ+ECZGyUM5uuwF1DXrEqvT6A0iGoGy7oVNEWcYhvPZ0fvukX6iPZ36WNAfw1TlcYjxFAbNUx+PA==, tarball: file:apps/frontend/lib/patches/simplewebauthn-server-13.1.2.tgz}
+    version: 13.1.2
     engines: {node: '>=20.0.0'}
 
   '@stomp/rx-stomp@2.0.1':
@@ -2129,9 +2128,17 @@ packages:
     resolution: {integrity: sha512-vjtV3hiLqYDNRoiAv0zC4QaGAMPomEoq83PRmYIofPswwZurCeWR5LByXm7SyoL0Zh5+2z0+HC7jG8gSZJUh0w==}
     engines: {node: '>= 16'}
 
-  better-auth@file:apps/frontend/lib/patches/better-auth-1.2.9.tgz:
-    resolution: {integrity: sha512-EkfS3xYNxUeIppJbWkqNBJfdVUomdDG6hWtIZIU2370oLMPn4pa3X1GB0IfjgGiX8BGzXEDSNVqZ5rjzBEwtXQ==, tarball: file:apps/frontend/lib/patches/better-auth-1.2.9.tgz}
-    version: 1.2.9
+  better-auth@file:apps/frontend/lib/patches/better-auth-1.3.2.tgz:
+    resolution: {integrity: sha512-QeZ0BF1ML4AI8hA3nvH3V1d+9OHzVYFzgtCa1Typs7oIQ5YQmHJLzCUIMU0bD7qdHMJwiMf96emY2nhQOaxQ4w==, tarball: file:apps/frontend/lib/patches/better-auth-1.3.2.tgz}
+    version: 1.3.2
+    peerDependencies:
+      react: ^18.0.0 || ^19.0.0
+      react-dom: ^18.0.0 || ^19.0.0
+    peerDependenciesMeta:
+      react:
+        optional: true
+      react-dom:
+        optional: true
 
   better-call@1.0.12:
     resolution: {integrity: sha512-ssq5OfB9Ungv2M1WVrRnMBomB0qz1VKuhkY2WxjHaLtlsHoSe9EPolj1xf7xf8LY9o3vfk3Rx6rCWI4oVHeBRg==}
@@ -5393,9 +5400,9 @@ snapshots:
     optionalDependencies:
       typescript: 5.8.3
 
-  '@simplewebauthn/browser@file:apps/frontend/lib/patches/simplewebauthn-browser-13.1.0.tgz': {}
+  '@simplewebauthn/browser@file:apps/frontend/lib/patches/simplewebauthn-browser-13.1.2.tgz': {}
 
-  '@simplewebauthn/server@file:apps/frontend/lib/patches/simplewebauthn-server-13.1.1.tgz':
+  '@simplewebauthn/server@file:apps/frontend/lib/patches/simplewebauthn-server-13.1.2.tgz':
     dependencies:
       '@hexagon/base64': 1.1.28
       '@levischuck/tiny-cbor': 0.2.11
@@ -5987,20 +5994,23 @@ snapshots:
 
   balanced-match@3.0.1: {}
 
-  better-auth@file:apps/frontend/lib/patches/better-auth-1.2.9.tgz:
+  better-auth@file:apps/frontend/lib/patches/better-auth-1.3.2.tgz(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
     dependencies:
       '@better-auth/utils': 0.2.5
       '@better-fetch/fetch': 1.1.18
       '@noble/ciphers': 0.6.0
       '@noble/hashes': 1.8.0
-      '@simplewebauthn/browser': file:apps/frontend/lib/patches/simplewebauthn-browser-13.1.0.tgz
-      '@simplewebauthn/server': file:apps/frontend/lib/patches/simplewebauthn-server-13.1.1.tgz
+      '@simplewebauthn/browser': file:apps/frontend/lib/patches/simplewebauthn-browser-13.1.2.tgz
+      '@simplewebauthn/server': file:apps/frontend/lib/patches/simplewebauthn-server-13.1.2.tgz
       better-call: 1.0.12
       defu: 6.1.4
       jose: 5.10.0
       kysely: 0.28.3
       nanostores: 0.11.4
-      zod: 3.25.76
+      zod: 4.0.5
+    optionalDependencies:
+      react: 19.1.0
+      react-dom: 19.1.0(react@19.1.0)
 
   better-call@1.0.12:
     dependencies:
