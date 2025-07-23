@@ -6,7 +6,6 @@ import { passkey } from 'better-auth/plugins/passkey';
 import {
   PASSKEY_PRF_SALT_FIRST,
   RP_ID,
-  TRUSTED_ORIGIN_BASE,
   TRUSTED_ORIGIN_HTTPS,
   TRUSTED_ORIGIN_HTTPS_WWW,
 } from '../constants';
@@ -22,6 +21,12 @@ export const auth = betterAuth({
     provider: 'pg',
     schema,
   }),
+  advanced: {
+    crossSubDomainCookies: {
+      enabled: true,
+      domain: '*.don3.com',
+    },
+  },
   trustedOrigins: ['http://localhost:3000', ...TRUSTED_ORIGIN_HTTPS, TRUSTED_ORIGIN_HTTPS_WWW],
   socialProviders: {
     google: {
